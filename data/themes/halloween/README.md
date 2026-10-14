@@ -1,1 +1,1 @@
-Orange-and-purple Halloween palette with pumpkin android tab icon (`icon.svg`) and optional `decor.svg` garland.
+Orange-and-purple Halloween palette with pumpkin android icon and triple-pumpkin garland (`decor.svg`) for October (UTC).

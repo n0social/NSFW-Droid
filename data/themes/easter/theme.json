@@ -1,0 +1,20 @@
+{
+  "id": "easter",
+  "name": "Easter",
+  "priority": 10,
+  "icon": "icon.svg",
+  "schedule": {
+    "months": [3, 4],
+    "description": "Pastel spring palette throughout March and April (UTC)."
+  },
+  "colors": {
+    "background": "#1A1428",
+    "foreground": "#FFF7ED",
+    "primary": "#C084FC",
+    "accent": "#F9A8D4",
+    "surface": "#2D1F45",
+    "textMuted": "#E9D5FF",
+    "border": "#C084FC40",
+    "borderStrong": "#A855F7"
+  }
+}

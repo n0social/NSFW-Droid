@@ -1,0 +1,20 @@
+{
+  "id": "summer",
+  "name": "Summer",
+  "priority": 10,
+  "icon": "icon.svg",
+  "schedule": {
+    "months": [6, 7, 8],
+    "description": "Sun-and-surf accents throughout June, July, and August (UTC)."
+  },
+  "colors": {
+    "background": "#0C1A2E",
+    "foreground": "#F0F9FF",
+    "primary": "#38BDF8",
+    "accent": "#FB923C",
+    "surface": "#132A45",
+    "textMuted": "#BAE6FD",
+    "border": "#38BDF840",
+    "borderStrong": "#0EA5E9"
+  }
+}
