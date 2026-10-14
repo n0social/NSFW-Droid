@@ -56,16 +56,19 @@ The catalog should feel like a **specialist game store** (Nutaku-shaped: curated
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│  HEADER  glass/blur strip · logo · pill nav · search field · submit CTA        │
+│  HEADER  logo · pill nav · search · [♥ Wallet 1,240] · Sign in · Submit (dev)   │
+│          Wallet = Phase 3 live-ops; v1 shows disabled/tooltip or hides until   │
+│          accounts ship. Sign in = email magic link for favorites (Phase 1b).   │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │  HERO CAROUSEL  (1–3 slides, 21:9 crop, gradient overlay, single CTA pill)      │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │  CHIP ROW   [ All ] [ New ] [ Windows ] [ Browser ] [ Android ]  → scroll      │
 ├──────────────────────────────────────────────────────────────────────────────┤
-│  Section: Popular now                    [ See all ]                            │
-│  ◀  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐  ▶   horizontal   │
-│     │ large  │ │        │ │        │ │        │ │        │       rail       │
-│     └────────┘ └────────┘ └────────┘ └────────┘ └────────┘                    │
+│  Section: Top grossing                   [ See all ]   ← rank #1–#10 on art    │
+│  ◀  ┌─①───┐ ┌─②───┐ ┌─③───┐ ┌─④───┐ ┌─⑤───┐  ▶   badge: gold/silver/bronze │
+│     │     │ │     │ │     │ │     │ │     │       for #1–#3 optional        │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  Section: Popular now                    (clicks / editorial; may overlap)      │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │  Section: New releases                   (second rail, same card component)    │
 ├──────────────────────────────────────────────────────────────────────────────┤
@@ -73,7 +76,17 @@ The catalog should feel like a **specialist game store** (Nutaku-shaped: curated
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Card component:** `rounded-2xl`, overflow hidden, art aspect **3:4** or **16:9** per section, bottom gradient `transparent → #14061C`, sponsored **pill** on art (top-left). Favorite heart top-right. No separate “title bar” box unless typographic fallback cover.
+**Card component:** `rounded-2xl`, overflow hidden, art aspect **3:4** or **16:9** per section, bottom gradient `transparent → #14061C`, sponsored **pill** on art (top-left). Favorite heart top-right. **Rank badge** (top-left or overlapping art corner): `#1`–`#10` on **Top grossing** rail — bold tabular nums, `#FF4D8D` fill for top 3. Data source: `listing.chart_rank` / `chart_bucket` (`docs/data-and-ingest.md`). No separate “title bar” box unless typographic fallback cover.
+
+**Header — wallet and sign-in (Nutaku-shaped, PG demo):**
+
+| Control | Phase | Behavior |
+| --- | --- | --- |
+| **Wallet** | 3 | Balance + add funds; hidden or “Coming soon” in link-catalog phase |
+| **Sign in** | 1b | Opens auth modal; favorites and email prefs when account exists |
+| **Submit** | 1 | Developer listing form (always visible post-gate) |
+
+Demo wireframes show wallet as a **pill** (`♥ 1,240` mock balance) and **Sign in** as outline button — clearly labeled mock in PG previews.
 
 **Browse** keeps chips + sort at top; results use the **same card** in a responsive grid (2 col mobile, 4–5 desktop) — still not a bare image board because cards share the store chrome and section context.
 
@@ -303,6 +316,9 @@ Same palette and card anatomy as web. Bottom nav for thumb reach.
 | `FilterChips` | Home, browse |
 | `GameCard` | Home rails, browse grid |
 | `ScrollRail` | Home sections |
+| `TopGrossingRail` | Home — ranked cards `#1`–`#10` |
+| `RankBadge` | Top grossing cards |
+| `WalletPill` / `SignInButton` | Header (wallet gated by phase) |
 | `FilterPanel` | Browse |
 | `OutboundCTA` | Detail |
 | `SponsoredBadge` | Featured cards |
