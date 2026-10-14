@@ -2,6 +2,10 @@
 
 Adult (18+) game **catalog** — link-out first, DigitalOcean in production. This repo now includes a **working storefront preview** with real itch.io feed data.
 
+## Secrets
+
+Do not commit API keys or `.env` files. Use `.env.example` locally; see [SECURITY.md](SECURITY.md).
+
 ## Quick start (storefront + data)
 
 ```bash

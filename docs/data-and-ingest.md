@@ -132,6 +132,10 @@ Implemented in `scripts/ingest-steam.ts`.
 - Rows → `candidate` (`source = steam`), `platforms` from Steam (windows/mac/linux).
 - Production still uses **human review** before public listings unless `DEMO_AUTO_PUBLISH=1`.
 
+#### Steam Web API key
+
+Optional for production-style deltas. Register the key in Steamworks using your **production domain** (apex or `www` — no `https://`). Store the key only in **local `.env`** (gitignored) or your host’s secret/env UI. **Do not** put keys, tokens, or connection strings in this repository or in markdown docs.
+
 ### Job 3: Affiliate export (`affiliate_*`)
 
 Implemented in `scripts/ingest-affiliate.ts`.
@@ -177,23 +181,9 @@ Staff UI: approve candidate → create `listing`, assign `slug`, platforms, artw
 | Steam ingest | Needs **Steam Web API key** only |
 | Production domain, TLS, cron 24/7 | **Droplet + Managed DB** when you go live |
 
-**What to share when deploying (not required for repo work today):**
-
-- DO API token or SSH to the Droplet — deploy, Cloud Firewall, Managed DB connection string.
-- Domain DNS pointed at the Droplet.
-- App secrets: `DATABASE_URL`, `STEAM_WEB_API_KEY`, age vendor keys, affiliate keys; **Spaces** keys in Phase 2.
+**Deploy credentials** (API tokens, DB URLs, Steam key, etc.) are configured on the host or in a private password manager — **never** committed to GitHub. See [SECURITY.md](../SECURITY.md).
 
 **We are not on your Droplet today.** Work happens in this repo and the Cloud Agent environment until you provision infrastructure and we add `infra/` deploy scripts (or you run `docker compose up` locally).
-
----
-
-## Secrets checklist (when ready)
-
-1. `DATABASE_URL` — local first, then DO Managed PostgreSQL URL.
-2. `STEAM_WEB_API_KEY` — [Steamworks](https://partner.steamgames.com/doc/webapi/IStoreService).
-3. Affiliate credentials — per network dashboard (after approval).
-4. Age verification vendor — sandbox + production keys.
-5. Optional: **Spaces** access keys — **Phase 2** only.
 
 ---
 

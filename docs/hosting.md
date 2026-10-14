@@ -49,7 +49,7 @@ Both forbid CSAM, non-consensual sexual imagery, disruptive crawling, and copyri
 | Implement app + ingest in repo | No |
 | Staging/production deploy | **Yes** — API token or SSH to Droplet, Managed DB connection string, Spaces keys (Phase 2) |
 
-We do **not** need credentials until you want a live Droplet. Share via your normal secret flow when ready: `DATABASE_URL`, `STEAM_WEB_API_KEY`, Spaces access keys, age vendor keys.
+We do **not** need credentials until you want a live Droplet. Configure secrets on the server or in your host’s env UI — **never** in this git repo ([SECURITY.md](../SECURITY.md)).
 
 ---
 
