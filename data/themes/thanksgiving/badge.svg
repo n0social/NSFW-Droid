@@ -1,0 +1,7 @@
+<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <path d="M4 4h40l-4 40H8L4 4z" fill="#EA580C"/>
+  <path d="M8 8h32l-3 32H11L8 8z" fill="#241033"/>
+  <path d="M24 12c0-2 1.5-3.5 3-3.5h-6c1.5 0 3 1.5 3 3.5z" fill="#B45309"/>
+  <ellipse cx="24" cy="24" rx="8" ry="7" fill="#C2410C"/>
+  <text x="24" y="38" text-anchor="middle" fill="#FDBA74" font-family="system-ui,sans-serif" font-size="5.5" font-weight="700">FEAST</text>
+</svg>

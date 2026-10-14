@@ -1,0 +1,6 @@
+<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <path d="M4 4h40l-4 40H8L4 4z" fill="#FBBF24"/>
+  <path d="M8 8h32l-3 32H11L8 8z" fill="#241033"/>
+  <circle cx="24" cy="20" r="7" fill="#38BDF8" opacity="0.9"/>
+  <text x="24" y="38" text-anchor="middle" fill="#FDE68A" font-family="system-ui,sans-serif" font-size="7" font-weight="700">SUN</text>
+</svg>

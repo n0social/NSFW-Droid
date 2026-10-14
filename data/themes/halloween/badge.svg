@@ -1,0 +1,8 @@
+<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <path d="M4 4h40l-4 40H8L4 4z" fill="#F97316"/>
+  <path d="M8 8h32l-3 32H11L8 8z" fill="#1C1917"/>
+  <ellipse cx="24" cy="22" rx="7" ry="6" fill="#EA580C"/>
+  <ellipse cx="21" cy="21" rx="1.2" ry="1.6" fill="#0C0A09"/>
+  <ellipse cx="27" cy="21" rx="1.2" ry="1.6" fill="#0C0A09"/>
+  <text x="24" y="38" text-anchor="middle" fill="#FDBA74" font-family="system-ui,sans-serif" font-size="6" font-weight="700">SPOOK</text>
+</svg>

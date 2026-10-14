@@ -1,0 +1,6 @@
+<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <path d="M4 4h40l-4 40H8L4 4z" fill="#A78BFA"/>
+  <path d="M8 8h32l-3 32H11L8 8z" fill="#241033"/>
+  <ellipse cx="24" cy="22" rx="8" ry="10" fill="#F472B6" stroke="#C4B5FD" stroke-width="0.8"/>
+  <text x="24" y="38" text-anchor="middle" fill="#E9D5FF" font-family="system-ui,sans-serif" font-size="6.5" font-weight="700">HOP</text>
+</svg>

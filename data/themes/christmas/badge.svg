@@ -1,0 +1,6 @@
+<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <path d="M4 4h40l-4 40H8L4 4z" fill="#DC2626"/>
+  <path d="M8 8h32l-3 32H11L8 8z" fill="#241033"/>
+  <path d="M24 12l2 4h4l-3 2.5 1 4-4-2.5-4 2.5 1-4-3-2.5h4l2-4z" fill="#22C55E"/>
+  <text x="24" y="38" text-anchor="middle" fill="#BBF7D0" font-family="system-ui,sans-serif" font-size="6.5" font-weight="700">SALE</text>
+</svg>
