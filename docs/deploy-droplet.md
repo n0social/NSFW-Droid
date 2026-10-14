@@ -116,11 +116,20 @@ Reliable pattern:
 
 ## 5. After deploy
 
+Stop the app before ingest so PGlite is not opened twice (root CLI + `www-data` server causes `PGlite failed to initialize` and a `0 games` storefront):
+
 ```bash
+systemctl stop nsfwdroid
 cd /var/www/nsfwdroid
-npm run ingest          # candidates → auto-published when TOS-clear (AUTO_PUBLISH=1)
-# TOS holds: visit https://www.nsfwdroid.com/admin (set ADMIN_PASSWORD)
+set -a && source /etc/nsfwdroid.env && set +a
+npx --yes tsx scripts/db-migrate.ts && npx --yes tsx scripts/ingest-all.ts
+chown -R www-data:www-data data/catalog
+systemctl start nsfwdroid
 ```
+
+(`npm run ingest` needs `tsx` from devDependencies; production `node_modules` from `npm ci --omit=dev` does not include it — use `npx tsx` as above.)
+
+TOS holds: visit https://www.nsfwdroid.com/admin (set `ADMIN_PASSWORD`).
 
 Daily ingest (cron):
 
