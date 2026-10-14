@@ -112,6 +112,8 @@ flowchart LR
   cand -->|human approve| list
 ```
 
+**CLI:** `npm run ingest` runs itch + Steam + affiliate file, then demo auto-publish when `DEMO_AUTO_PUBLISH=1`. Per-source: `ingest:itch`, `ingest:steam`, `ingest:affiliate`.
+
 ### Job 1: itch.io (`itch_new_xml`)
 
 - **GET** `https://itch.io/feed/new.xml` (public RSS).

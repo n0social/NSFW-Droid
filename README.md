@@ -6,7 +6,7 @@ Adult (18+) game **catalog** — link-out first, DigitalOcean in production. Thi
 
 ```bash
 npm install
-npm run ingest:itch   # PGlite DB + migrations + itch.io RSS → listings (demo auto-publish)
+npm run ingest        # itch.io + Steam (+ affiliate JSON if present) → listings
 npm run dev           # http://localhost:3847
 ```
 
@@ -34,7 +34,10 @@ Local DB is **PGlite** (`data/catalog/`). Production target: **DigitalOcean Mana
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` | Next.js on port **3847** |
-| `npm run ingest:itch` | Migrate + pull itch RSS into `listing` |
+| `npm run ingest` | Migrate + **itch** + **Steam** + optional **affiliate** file |
+| `npm run ingest:itch` | itch.io RSS only |
+| `npm run ingest:steam` | Steam only (`STEAM_WEB_API_KEY` or store search fallback) |
+| `npm run ingest:affiliate` | `data/affiliate-export.json` (copy from `.example`) |
 | `npm run db:migrate` | Apply Drizzle migrations to PGlite |
 
 ## Docker (optional)

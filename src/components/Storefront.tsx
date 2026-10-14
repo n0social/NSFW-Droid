@@ -115,7 +115,7 @@ export function Storefront({
               </section>
 
               <p className="mt-8 text-center text-[10px] font-semibold text-[#E9D5FF]/70">
-                Live data from itch.io RSS (titles + links). Covers blurred by default.
+                Live data from itch.io RSS and Steam store API (titles + links). Covers blurred by default.
               </p>
             </>
           )}

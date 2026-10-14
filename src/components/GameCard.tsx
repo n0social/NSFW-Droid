@@ -16,6 +16,19 @@ type Props = {
   blur: boolean;
 };
 
+function platformLabel(game: Listing) {
+  const plats = (game.platforms ?? []).join(" · ") || "PC";
+  const src =
+    game.source === "steam"
+      ? "Steam"
+      : game.source === "affiliate_export"
+        ? "Partner"
+        : game.source === "developer_form"
+          ? "Developer"
+          : "itch.io";
+  return `${plats} · ${src}`;
+}
+
 export function GameCard({ game, index, rank, wide, blur }: Props) {
   const w = wide ? "w-[200px]" : "w-[140px]";
   const h = wide ? "h-[200px]" : "h-[168px]";
@@ -56,7 +69,9 @@ export function GameCard({ game, index, rank, wide, blur }: Props) {
           </span>
         )}
       </div>
-      <div className="px-2.5 py-2 text-[10px] font-bold text-[#E9D5FF]">Browser · itch.io</div>
+      <div className="px-2.5 py-2 text-[10px] font-bold text-[#E9D5FF]">
+        {platformLabel(game)}
+      </div>
     </a>
   );
 }
