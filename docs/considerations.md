@@ -1,7 +1,7 @@
 # Considerations: getting the right to distribute
 
 **Date:** 10 October 2026  
-**Product context:** an adult (18+) game catalog. The first version links out. Later versions may host builds on Vultr Object Storage and deliver them through the store’s own Android app and desktop downloads.  
+**Product context:** an adult (18+) game catalog. The first version links out. Later versions may host builds on DigitalOcean Spaces and deliver them through the store’s own Android app and desktop downloads.  
 **Scope:** how a listing becomes legal to show, and how a file becomes legal to host. This is a product note, not legal advice. Have a lawyer draft the developer terms and any distribution agreement before the first hosted build goes live.
 
 ## Three permissions, three deals
@@ -14,11 +14,11 @@ A store listing needs up to three separate permissions. Getting one does not inc
 | Promote | Use the name, logo, and approved artwork on your pages and in ads | An affiliate creative kit, or a written trademark and artwork license |
 | Distribute | Copy the build onto your storage and deliver it to players | A written copyright license that names the build, the platforms, and the territory |
 
-The first version of this store only needs the first row, and the second row wherever a banner or screenshot appears. Hosting an APK, a Windows build, or a browser package on Vultr is the third row. A public download button on someone else’s site is not that license. A Steam page, an itch.io page, a Discord “feel free to share,” or a file already circulating on a mirror is not that license either.
+The first version of this store only needs the first row, and the second row wherever a banner or screenshot appears. Hosting an APK, a Windows build, or a browser package on our object storage (DO Spaces) is the third row. A public download button on someone else’s site is not that license. A Steam page, an itch.io page, a Discord “feel free to share,” or a file already circulating on a mirror is not that license either.
 
 ## Phase 1: links and artwork
 
-While the catalog only links out, do not put game binaries in Vultr, GitHub, or the store app.
+While the catalog only links out, do not put game binaries in Spaces, GitHub, or the store app.
 
 1. **Official URL.** Point at the developer’s or publisher’s own page, or at the store they already sell on (Steam, itch.io, DLsite, Nutaku, their site). The player downloads from them. You are sending traffic, not copying the game.
 2. **Affiliate URL, when one exists.** Nutaku and similar programs pay for a referred registration or a referred purchase. The program’s current offer states the rate, the countries, the cookie, and the banned traffic sources. Typical bans include incentivized clicks. Read that offer before spending on ads. Listings in October 2026 showed both revenue-share and per-registration offers, and the numbers differ by network and tier, so the contract you sign is the number that counts.
@@ -56,16 +56,16 @@ The license is worthless if they do not own what they uploaded. The terms should
 
 - They own the game or have every license they need, including music, fonts, plugins, and third-party art.
 - Every character in sexual content is an adult, written and drawn as an adult.
-- The build does not include the categories Vultr’s acceptable use policy and card networks already refuse: sexual content involving minors or characters presented as minors, non-consensual sexual content, incest, bestiality, and sexually explicit images of real people.
+- The build does not include the categories our hosting AUP (DigitalOcean, see `docs/hosting.md`) and card networks already refuse: sexual content involving minors or characters presented as minors, non-consensual sexual content, incest, bestiality, and sexually explicit images of real people.
 - They will tell you if a claim arrives, and they will cover your losses if the warranty is false.
 
-Keep the content rules in the developer terms even when a developer offers a game outside them. A file you cannot show under Vultr’s policy, dated 11 March 2026, or under a payment partner’s rules, is a file you should not accept.
+Keep the content rules in the developer terms even when a developer offers a game outside them. A file you cannot show under DigitalOcean’s Acceptable Use Policy (20 March 2026) or under a payment partner’s rules, is a file you should not accept.
 
 ### Operations that make the right real
 
 - Store the accepted terms version on the developer account.
 - Store a hash of each accepted build next to the license record.
-- Serve downloads from Vultr Object Storage with a short-lived link, after the age gate.
+- Serve downloads from Spaces with a short-lived link, after the age gate.
 - Publish a copyright complaint contact. If developers can upload, follow a DMCA-style notice and a repeat-uploader ban even before a lawyer tells you the formal agent registration is due.
 - Take the file down first when a complaint names a specific build. Sort out the contract afterward.
 

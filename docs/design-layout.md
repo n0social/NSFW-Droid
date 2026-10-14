@@ -1,7 +1,7 @@
 # UI layout and page structure
 
 **Date:** 14 October 2026  
-**Status:** wireframes for implementation. Visual language from `docs/design-and-mascot.md`. Hosting context in `docs/architecture.md` (Vultr Phase 1).  
+**Status:** wireframes for implementation. Visual language from `docs/design-and-mascot.md`. Hosting context in `docs/architecture.md` (DigitalOcean Phase 1).  
 **Breakpoints:** mobile `<768px`, tablet `768–1023px`, desktop `≥1024px`. Max content width `1280px`.
 
 ---
@@ -354,5 +354,5 @@ Map colors to CSS variables: `--bg`, `--surface`, `--primary`, `--accent-hot`, `
 ## Related
 
 - Brand and mascot: `docs/design-and-mascot.md`
-- Infrastructure on Vultr: `docs/architecture.md` → **Initial hosting on Vultr**
+- Infrastructure: `docs/hosting.md`, `docs/architecture.md` → **Initial hosting on DigitalOcean**
 - Interactive wireframes (brand colors, mobile toggle): [NSFW-Droid UI layout wireframes](https://cursor.com/canvas/store-becc70ce-ef76-4c20-8155-94b79e3477ff/c5ce481c-cc7c-4b10-a1c4-ca8b17e49f28)

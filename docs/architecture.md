@@ -2,9 +2,9 @@
 
 **Date:** 14 October 2026  
 **Status:** target architecture for implementation. Aligns with `docs/gaps.md`, `docs/how_we_get_links.md`, `docs/considerations.md`, `docs/revenue_streams.md`, and `docs/design-and-mascot.md`.  
-**Principle:** Phase 1 distributes **links only**. Phase 2 adds **licensed builds** via Object Storage and a sideloaded Android store app. Nothing in Phase 1 stores game binaries.
+**Principle:** Phase 1 distributes **links only**. Phase 2 adds **licensed builds** via **DigitalOcean Spaces** and a sideloaded Android store app. Nothing in Phase 1 stores game binaries.
 
-**Hosting decision:** **Vultr** is the initial production platform for compute, TLS termination, and (when needed) Object Storage. The link catalog runs on a single Vultr Cloud Compute instance until traffic or compliance needs force a split. UI page layout is specified in `docs/design-layout.md`.
+**Hosting decision:** **DigitalOcean** is the production platform (Droplet, Managed PostgreSQL, Spaces). Rationale and AUP notes: `docs/hosting.md`. The link catalog runs on one Droplet until traffic forces a split. UI page layout: `docs/design-layout.md`.
 
 ---
 
@@ -17,7 +17,7 @@
                     └──────────────────▲──────────────────────┘
                                        │ outbound clicks (affiliate or plain)
 ┌──────────────┐   HTTPS    ┌──────────┴──────────┐   jobs    ┌─────────────┐
-│   Browsers   │◄──────────►│  Catalog (Vultr)    │◄─────────►│ Feed ingest │
+│   Browsers   │◄──────────►│  Catalog (DO)       │◄─────────►│ Feed ingest │
 │  (18+ gate)  │            │  web + API + admin    │           │  (daily)    │
 └──────────────┘            └──────────┬──────────┘           └──────▲──────┘
                                        │                              │
@@ -33,7 +33,7 @@
 
 Phase 2 only:
                             ┌─────────────────────┐
-                            │ Vultr Object Storage │
+                            │  DO Spaces           │
                             │ signed build objects │
                             └─────────────────────┘
 ```
@@ -47,7 +47,7 @@ Players discover games on the **website** first. The **Android app** is the trus
 | Phase | User-facing | Backend | Storage | Money |
 | --- | --- | --- | --- | --- |
 | **1 — Link catalog** | Marketing pages, browse/search, game detail with outbound CTA, age gate, legal pages | Ingest jobs, review admin, public read API | Postgres; Redis for sessions/rate limits | Affiliate links, adult display ads, sponsored rows |
-| **2 — Hosted builds** | Same catalog + “Download” on licensed titles; Android store APK | Upload pipeline, license records, signed download URLs | Object Storage for builds; hash per build | Per-download commission via adult processor |
+| **2 — Hosted builds** | Same catalog + “Download” on licensed titles; Android store APK | Upload pipeline, license records, signed download URLs | DO Spaces for builds; hash per build | Per-download commission via adult processor |
 | **3 — Live ops (later)** | Wallet, in-game currency, featuring | Payment webhooks, fraud, SDK docs | Same + ledger | Platform wallet (Nutaku-shaped) |
 
 This document specifies Phase 1 in detail and names Phase 2 boundaries so the Phase 1 stack does not need a rewrite.
@@ -207,9 +207,9 @@ Public JSON enables a future Android client to reuse the same catalog before dow
 
 ---
 
-## Initial hosting on Vultr
+## Initial hosting on DigitalOcean
 
-All Phase 1 and Phase 2 services below run on **Vultr** first. Revisit multi-cloud or managed PaaS only if Vultr policy, payment-adjacent compliance, or egress economics block a requirement.
+All Phase 1 and Phase 2 services run on **DigitalOcean**. See `docs/hosting.md` for why DO vs Vultr.
 
 ### Topology (Phase 1)
 
@@ -218,36 +218,35 @@ All Phase 1 and Phase 2 services below run on **Vultr** first. Revisit multi-clo
                              │
                              ▼
               ┌──────────────────────────────┐
-              │  Vultr Cloud Compute (VM)     │
+              │  DigitalOcean Droplet         │
               │  ───────────────────────────  │
               │  Caddy or nginx :443 TLS      │
               │    ├─ Next.js (Node) :3000    │
               │    ├─ ingest worker (cron)    │
               │    └─ link-checker (weekly)   │
-              │  Postgres (same VM or         │
-              │    Vultr Managed DB)          │
-              │  Redis (same VM, small)       │
+              │  Redis (on Droplet)           │
+              │  Managed PostgreSQL (DO)      │
               └──────────────────────────────┘
                              │
-              optional Phase 1 ──► Vultr Object Storage
+              optional Phase 1 ──► DO Spaces
               (static assets only: typographic templates,
                affiliate creatives we may host locally)
 
-Phase 2 adds ──► Vultr Object Storage bucket(s)
+Phase 2 adds ──► Spaces bucket(s)
                game builds, APK, signed GET URLs
 ```
 
 ```mermaid
 flowchart TB
   users[Players and staff browsers]
-  dns[Domain DNS A/AAAA to Vultr]
-  vm[Vultr Cloud Compute VM]
+  dns[Domain DNS A/AAAA to Droplet]
+  vm[DigitalOcean Droplet]
   caddy[Caddy or nginx TLS]
   app[Next.js app and API]
   worker[Ingest and link-check workers]
-  pg[(Postgres)]
-  redis[(Redis)]
-  obj[(Vultr Object Storage)]
+  pg[(Managed PostgreSQL)]
+  redis[(Redis on Droplet)]
+  obj[(DO Spaces)]
   feeds[itch.io RSS Steam API affiliates]
 
   users --> dns --> caddy
@@ -261,43 +260,42 @@ flowchart TB
   vm --- caddy
   vm --- app
   vm --- worker
-  vm --- pg
   vm --- redis
 ```
 
 ### Sizing and region (starting point)
 
-| Piece | Vultr product | Phase 1 note |
+| Piece | DigitalOcean product | Phase 1 note |
 | --- | --- | --- |
-| Compute | Cloud Compute, 2 vCPU / 4 GB RAM (adjust after metrics) | Runs web, workers, Redis; co-locate Postgres on same VM only for staging or very early prod |
-| Database | Managed PostgreSQL when prod traffic is real | Prefer managed backups and patches before launch marketing |
-| Cache | Redis on VM | Sessions, rate limits, age-gate flags |
-| Object Storage | Standard tier | Phase 1: optional static bucket; Phase 2: game binaries and APK |
-| Firewall | Vultr firewall group | 443 public; 22 restricted to admin IPs; Postgres not public |
-| DNS | Your registrar → Vultr VM IP | Staging subdomain optional (`staging.example.com`) |
+| Compute | Droplet, 2 vCPU / 4 GB RAM (adjust after metrics) | Web, workers, Redis |
+| Database | **Managed Database for PostgreSQL** | Prefer managed before launch marketing |
+| Cache | Redis on Droplet (or Managed Redis later) | Sessions, rate limits, age-gate flags |
+| Object storage | **Spaces** | Phase 1: optional; Phase 2: binaries + APK |
+| Firewall | **Cloud Firewall** | 443 public; 22 restricted to admin IPs; DB not public |
+| DNS | Registrar → Droplet IP (or DO DNS) | `staging.example.com` optional |
 
-Pick one **region** close to the primary audience (e.g. US East or EU Amsterdam) and record it in deploy notes. Keep staging and production in the same region until latency requirements say otherwise.
+Pick one **region** (e.g. NYC, SFO, AMS) near the primary audience. Keep staging and production in the same region until latency says otherwise.
 
-### Deploy flow on Vultr
+### Deploy flow on DigitalOcean
 
-1. Provision VM + firewall + (optional) managed Postgres.
-2. Install Docker or run Node via systemd; pull release artifact from CI.
+1. Create Droplet + Cloud Firewall + Managed PostgreSQL cluster.
+2. Install Docker or run Node via systemd; deploy from CI or git pull.
 3. Caddy obtains Let’s Encrypt certs for production domain.
-4. Environment variables on VM: database URL, Redis, Steam key, age vendor, affiliate secrets.
-5. Cron or systemd timers for ingest and link-check on the same VM as the app (Phase 1).
-6. Enable Vultr backups or scheduled DB snapshots.
+4. Env on Droplet: `DATABASE_URL`, Redis, Steam key, age vendor, affiliate secrets.
+5. Cron/systemd timers for ingest and link-check on the Droplet (Phase 1).
+6. Enable Droplet backups and Managed DB automatic backups.
 
-**Environments:** `staging` (noindex, age vendor sandbox) and `production` on separate VMs or the same VM with separate DB — prefer separate VMs before paid traffic.
+**Environments:** `staging` (noindex, age vendor sandbox) and `production` — prefer separate Droplets before paid traffic.
 
 ### Cost shape (order of magnitude)
 
-Link catalog only: one small VM + domain is enough (`docs/gaps.md`). Object Storage billing matters when hosting builds (`docs/revenue_streams.md`: storage + egress per download). Keep the bucket empty until a licensed binary exists (`docs/considerations.md`).
+Link catalog only: one small Droplet + managed DB + domain (`docs/gaps.md`). **Spaces** storage and egress matter when hosting builds (`docs/revenue_streams.md`). No bucket for game files until a licensed binary exists (`docs/considerations.md`).
 
 ---
 
 ## Phase 2: Android store app (architecture preview)
 
-Build this **after** upload terms and Object Storage exist (`docs/gaps.md` order).
+Build this **after** upload terms and Spaces exist (`docs/gaps.md` order).
 
 ### Role of the app
 
@@ -322,7 +320,7 @@ Build this **after** upload terms and Object Storage exist (`docs/gaps.md` order
 ```text
 Client requests download for listing_id
   → API checks age session + account + license record
-  → API returns short-lived signed URL (Object Storage)
+  → API returns short-lived signed URL (Spaces)
   → Client downloads, verifies sha256 from API
   → Client triggers install (user-granted unknown sources)
 ```
@@ -396,8 +394,8 @@ Monorepo optional; a single Next.js app with `src/workers` is fine until ingest 
 5. Typographic artwork generator + listing detail + outbound click logging.
 6. Steam ingest after API key.
 7. Developer form.
-8. Staging on Vultr; production domain + TLS.
+8. Staging on DigitalOcean; production domain + TLS.
 9. Affiliate exports and ad slots when accounts exist.
-10. Android app spike only after first licensed build is ready for Object Storage.
+10. Android app spike only after first licensed build is ready for Spaces.
 
 This sequence matches “catalog people trust” before mascot art, wallet, or APK (`docs/gaps.md`).

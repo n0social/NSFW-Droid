@@ -2,7 +2,7 @@
 
 **Date:** 10 October 2026  
 **Status:** theory. Nothing here is built.  
-**Already decided:** link catalog first, Vultr for the site, host a build only with a written license (`docs/considerations.md`), earn from affiliates, adult ads, and labeled sponsorships (`docs/revenue_streams.md`), purple-and-pink brand with Vesper (`docs/design-and-mascot.md`).
+**Already decided:** link catalog first, DigitalOcean for the site, host a build only with a written license (`docs/considerations.md`), earn from affiliates, adult ads, and labeled sponsorships (`docs/revenue_streams.md`), purple-and-pink brand with Vesper (`docs/design-and-mascot.md`).
 
 The hole that blocks a public site is not the mascot and not the Android app. It is a catalog people trust, a way to add rows without stealing them, and an age check that actually sits in front of the explicit art.
 
@@ -15,13 +15,13 @@ The hole that blocks a public site is not the mascot and not the Android app. It
 5. **The legal pages.** Terms of use, a privacy notice, an affiliate disclosure on paid links, and a contact for copyright complaints. These are short. They have to exist on the domain.
 6. **A review queue, not an autopublish switch.** Every candidate row lands as unseen. A person, or a tight rule set plus a person for the edge cases, approves it. The public table only holds approved rows.
 7. **Accounts with the programs that pay.** Affiliate approvals and one adult ad network. The revenue note is a plan until those accounts exist.
-8. **Domain, TLS, and a small Vultr instance.** The link catalog fits on one box. Object Storage stays off until a licensed file exists.
+8. **Domain, TLS, and a small Droplet.** The link catalog fits on one box. Spaces stays off until a licensed file exists.
 
 ## Finding new games
 
 A daily job that notices new uploads is the right idea. Copying those sites with a handful of HTML scrapers is the wrong shape.
 
-Scrapers break when the page changes, they copy text and screenshots the store does not have a license to republish, and they get the Vultr address blocked. Vultr’s acceptable use policy already forbids crawling that impairs another system, and it forbids uploading material you do not have the rights to. A piracy forum is not a source. Linking to a rehost teaches players that this store is a mirror, which is the opposite of the license model in `docs/considerations.md`.
+Scrapers break when the page changes, they copy text and screenshots the store does not have a license to republish, and they get the host IP blocked. DigitalOcean’s acceptable use policy forbids crawling that impairs another system, and it forbids uploading material you do not have the rights to. A piracy forum is not a source. Linking to a rehost teaches players that this store is a mirror, which is the opposite of the license model in `docs/considerations.md`.
 
 Use a feed or an API the site publishes, and store a pointer.
 

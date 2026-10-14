@@ -6,11 +6,12 @@ Planning repository for an adult (18+) game **catalog**: link-out first, license
 
 | Doc | Contents |
 | --- | --- |
-| [docs/architecture.md](docs/architecture.md) | **Website + app target architecture** (Phase 1 catalog, Phase 2 downloads; **Vultr** hosting) |
+| [docs/hosting.md](docs/hosting.md) | **DigitalOcean** hosting decision (vs Vultr) |
+| [docs/architecture.md](docs/architecture.md) | **Website + app target architecture** (Phase 1 catalog, Phase 2 downloads) |
 | [docs/design-layout.md](docs/design-layout.md) | **UI wireframes** — age gate, home, browse, detail, Android shell |
 | [docs/gaps.md](docs/gaps.md) | What blocks a public launch |
 | [docs/how_we_get_links.md](docs/how_we_get_links.md) | itch.io, Steam, affiliate, and developer ingestion |
-| [docs/data-and-ingest.md](docs/data-and-ingest.md) | **Postgres schema, feed workers, Vultr vs local dev** |
+| [docs/data-and-ingest.md](docs/data-and-ingest.md) | **Postgres schema, feed workers, DO vs local dev** |
 | [docs/considerations.md](docs/considerations.md) | Link vs promote vs distribute rights |
 | [docs/revenue_streams.md](docs/revenue_streams.md) | Affiliates, ads, sponsorships, later commissions |
 | [docs/design-and-mascot.md](docs/design-and-mascot.md) | Visual direction and mascot (Vesper) |
@@ -18,4 +19,4 @@ Planning repository for an adult (18+) game **catalog**: link-out first, license
 
 ## Status
 
-Theory and architecture only — no application code yet. Phase 1 is a **website** on Vultr that links to official and affiliate URLs with human review and real age assurance.
+Theory and architecture only — no application code yet. Phase 1 is a **website** on **DigitalOcean** that links to official and affiliate URLs with human review and real age assurance.

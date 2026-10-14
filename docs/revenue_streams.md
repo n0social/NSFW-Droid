@@ -1,7 +1,7 @@
 # Revenue streams
 
 **Date:** 10 October 2026  
-**Product context:** an adult (18+) game catalog. Phase 1 links out from a site on Vultr and does not host builds. Phase 2 hosts builds the store has a license to distribute. See `docs/considerations.md` for how that license is obtained.  
+**Product context:** an adult (18+) game catalog. Phase 1 links out from a site on DigitalOcean and does not host builds. Phase 2 hosts builds the store has a license to distribute. See `docs/considerations.md` for how that license is obtained.  
 **Scope:** where money can come from, what has to be true first, and which familiar ad products do not apply. Rates below are examples from public listings, not a forecast. The signed offer is the rate.
 
 ## Phase 1, while the store only links out
@@ -44,7 +44,7 @@ This is the cleanest early money from developers who want to be found and do not
 
 ## Phase 2, after you have a license to host
 
-These start only when `docs/considerations.md` is satisfied for that game: a written license, the build in Vultr Object Storage, and a short-lived download link. Each download costs egress. Vultr’s Standard Object Storage tier is $18 a month for 1 TB stored and 1 TB out, then $0.01 per GB. A 2 GB game downloaded 500 times uses the included terabyte. The fee you keep has to clear that cost.
+These start only when `docs/considerations.md` is satisfied for that game: a written license, the build in **DigitalOcean Spaces**, and a short-lived download link. Each download costs egress. Spaces pricing is plan-based (storage + outbound transfer per DO’s current rates — budget storage and ~$0.01/GB class egress when estimating). A 2 GB game at scale must clear transfer in your margin. The fee you keep has to clear that cost.
 
 ### Paid download commission
 

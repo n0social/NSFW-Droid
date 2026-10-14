@@ -12,7 +12,7 @@ A daily HTML scraper per site was the first idea. It is a poor fit for this cata
 
 - The pages change, and the parser breaks.
 - The text and images on those pages are someone else’s. Republishing them is a different, bigger rights problem than linking to the page. `docs/considerations.md` already separates those two permissions.
-- Vultr’s acceptable use policy, updated 11 March 2026, forbids crawling that impairs another system, and it forbids uploading material you do not have the rights to.
+- DigitalOcean’s acceptable use policy (20 March 2026) forbids crawling that impairs another system, and it forbids uploading material you do not have the rights to.
 - Sites that rehost games without a license are not sources. Linking to them would make this catalog a mirror.
 
 The sites that matter already publish a list, a feed, or an affiliate export. Those are the inputs. Anything with no list is typed in by hand.

@@ -19,7 +19,7 @@ We do **not** crawl Steam store HTML, Nutaku pages, or forum mirrors. We pull **
 
 ## Database (Postgres)
 
-Runs on Vultr in production (managed Postgres or co-located). **Local dev** uses Docker Compose with the same schema — no Vultr account required to build or test ingest.
+Runs on **DigitalOcean** in production (Managed PostgreSQL + Droplet workers). **Local dev** uses Docker Compose with the same schema — no DO account required to build or test ingest.
 
 ### Core tables
 
@@ -95,7 +95,7 @@ flowchart LR
     form[Developer form]
   end
 
-  subgraph vultr [Vultr VM — cron/systemd]
+  subgraph dovm [DO Droplet — cron/systemd]
     job[Ingest worker]
   end
 
@@ -122,7 +122,7 @@ flowchart LR
 
 ### Job 2: Steam (`steam_app_delta`)
 
-- **Requires:** `STEAM_WEB_API_KEY` (env secret — you create this in Steamworks, not Vultr).
+- **Requires:** `STEAM_WEB_API_KEY` (env secret — you create this in Steamworks, not DigitalOcean).
 - Call `IStoreService/GetAppList` with `if_modified_since` from `ingest_source.cursor`.
 - For each new/changed app id, fetch store details (descriptor for adult-only sexual content).
 - Only apps with the adult descriptor → `candidate` with `raw_payload` flags.
@@ -151,43 +151,43 @@ Staff UI: approve candidate → create `listing`, assign `slug`, platforms, artw
 
 ## What runs where
 
-| Environment | Postgres | Ingest jobs | Needs Vultr? |
+| Environment | Postgres | Ingest jobs | Needs DigitalOcean? |
 | --- | --- | --- | --- |
 | **This repo / your laptop** | Docker Compose | `npm run ingest` manually | **No** |
 | **Cursor Cloud Agent VM** | Docker Compose | same — can hit public RSS/API | **No** |
-| **Staging / production** | Vultr managed or VM | cron on Vultr VM | **Yes**, when you deploy |
+| **Staging / production** | DO Managed PostgreSQL | cron on Droplet | **Yes**, when you deploy |
 
 ---
 
-## Do you need Vultr access now?
+## Do you need DigitalOcean access now?
 
-**No — not for design, schema, app code, or ingest development.**
+**No — not for design, schema, app code, or ingest development.** You already have a DO account; we only need credentials when you want a live Droplet.
 
-| Task | Vultr access |
+| Task | DigitalOcean access |
 | --- | --- |
 | Docs, UI wireframes, Next.js scaffold | Not needed |
 | Postgres schema + migrations | Local Docker |
 | itch.io ingest (public RSS) | Runs from dev machine or Cloud Agent |
 | Steam ingest | Needs **Steam Web API key** only |
-| Production domain, TLS, cron 24/7 | **Vultr** (or CI deploy to Vultr) when you go live |
+| Production domain, TLS, cron 24/7 | **Droplet + Managed DB** when you go live |
 
-**What to share later (not now unless you want staging today):**
+**What to share when deploying (not required for repo work today):**
 
-- Vultr API token or SSH to a VM — for **deploy**, firewall, managed DB.
-- Domain DNS pointed at the VM.
-- Secrets in Vultr env / vault: `DATABASE_URL`, `STEAM_WEB_API_KEY`, age vendor keys, affiliate keys.
+- DO API token or SSH to the Droplet — deploy, Cloud Firewall, Managed DB connection string.
+- Domain DNS pointed at the Droplet.
+- App secrets: `DATABASE_URL`, `STEAM_WEB_API_KEY`, age vendor keys, affiliate keys; **Spaces** keys in Phase 2.
 
-**We are not on your Vultr VM today.** Work happens in this git repo and the Cloud Agent environment until you provision Vultr and we add `infra/` deploy scripts (or you run `docker compose up` locally).
+**We are not on your Droplet today.** Work happens in this repo and the Cloud Agent environment until you provision infrastructure and we add `infra/` deploy scripts (or you run `docker compose up` locally).
 
 ---
 
 ## Secrets checklist (when ready)
 
-1. `DATABASE_URL` — local first, then Vultr Postgres URL.
+1. `DATABASE_URL` — local first, then DO Managed PostgreSQL URL.
 2. `STEAM_WEB_API_KEY` — [Steamworks](https://partner.steamgames.com/doc/webapi/IStoreService).
 3. Affiliate credentials — per network dashboard (after approval).
 4. Age verification vendor — sandbox + production keys.
-5. Optional: Vultr Object Storage keys — **Phase 2** only.
+5. Optional: **Spaces** access keys — **Phase 2** only.
 
 ---
 
@@ -198,4 +198,4 @@ Staff UI: approve candidate → create `listing`, assign `slug`, platforms, artw
 3. CLI: `ingest itch` (single run, logs counts).
 4. Admin: candidate queue + approve.
 5. Steam job after API key exists.
-6. Deploy worker + web to Vultr when catalog is ready to be public.
+6. Deploy worker + web to DigitalOcean when catalog is ready to be public.
