@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { VesperMark } from "@/components/site/VesperMark";
 
 type Props = {
   listingCount: number;
@@ -16,12 +17,9 @@ export function SiteHeader({ listingCount, blurToggle, ageVerified }: Props) {
   return (
     <header className="sticky top-0 z-50 border-b-[3px] border-[#C026D3]/35 bg-[#14061C]/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3">
-        <Link href="/" className="flex items-center gap-2">
-          <span
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#C026D3] text-lg shadow-md"
-            aria-hidden
-          >
-            ♥
+        <Link href="/" className="flex items-center gap-2" aria-label="NSFW Droid home">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#241033] shadow-md ring-1 ring-[#C026D3]/50">
+            <VesperMark className="h-8 w-8" />
           </span>
           <span className="text-sm font-black tracking-tight text-[#FFF1F7]">
             NSFW<span className="text-[#FF4D8D]">Droid</span>
