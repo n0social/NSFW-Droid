@@ -6,6 +6,10 @@ Adult (18+) game **catalog** — link-out first, DigitalOcean in production. Thi
 
 Do not commit API keys or `.env` files. Use `.env.example` locally; see [SECURITY.md](SECURITY.md).
 
+## GitHub (private)
+
+Create a **private** repository and push `main` — step-by-step: [docs/github-setup.md](docs/github-setup.md). Dependabot is optional; you can skip it for now.
+
 ## Quick start (storefront + data)
 
 ```bash
