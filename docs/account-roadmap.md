@@ -1,16 +1,19 @@
 # Player accounts roadmap
 
-**Today:** `/sign-in` (email + Google), `/account` (minimal), sign out in header. **No** `/sign-up`, password reset, or Postgres profile/favorites. Session: `POST /api/auth/session` + `USER_SESSION` cookie (needs `FIREBASE_SERVICE_ACCOUNT_JSON` + `SESSION_SECRET` on the droplet).
+## Phase 1b — **shipped** (`main`, migration `0003_user_accounts`)
 
-See `docs/firebase-setup.md` for env setup.
+| Feature | Route / API |
+| --- | --- |
+| Sign up | `/sign-up` |
+| Sign in + forgot password | `/sign-in` |
+| Account hub | `/account` (profile, favorites, preferences) |
+| Favorites | Heart on `GameCard`; `GET/POST/DELETE /api/account/favorites` |
+| Profile | `GET/PATCH /api/account/profile` |
+| Session | `POST /api/auth/session` → upserts `user_profile` |
 
-## Phase 1b (recommended next)
+**Server env (droplet `/etc/nsfwdroid.env`):** `SESSION_SECRET` (auto-generated if missing) + **`FIREBASE_SERVICE_ACCOUNT_JSON`** (you must paste from Firebase Console — without it, session API returns 503 and favorites/profile APIs return 401). See `docs/firebase-setup.md`.
 
-1. **Self-service:** `/sign-up`, password reset, keep Google.
-2. **`user_profile`** table — upsert on first session (`firebase_uid`, `display_name`, `preferences` jsonb).
-3. **Favorites** — `user_favorite` + heart on cards + list on `/account`.
-4. **Persist preferences** — holiday theme, blur default, newsletter opt-in (sync cookies on login where needed).
-5. **Account UI** — Profile, Favorites, Preferences sections (replace placeholders).
+## Phase 1b checklist (done)
 
 ## Phase 1c+ (after catalog tags exist)
 
