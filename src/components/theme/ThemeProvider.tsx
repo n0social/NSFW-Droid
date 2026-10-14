@@ -68,7 +68,11 @@ export function ThemeProvider({
               unoptimized
             />
           )}
-          <span>{activeThemeName} theme is on</span>
+          <span>
+            {activeThemeId === "halloween" ? "🎃 " : ""}
+            {activeThemeName} theme is on
+            {activeThemeId === "halloween" ? " 🎃" : ""}
+          </span>
           <button
             type="button"
             disabled={busy}

@@ -11,11 +11,11 @@ export const DEFAULT_THEME: ThemeDefinition = {
   colors: {
     background: "#14061C",
     foreground: "#FFF1F7",
-    primary: "#C026D3",
-    accent: "#FF4D8D",
+    primary: "#22FF88",
+    accent: "#39FF14",
     surface: "#241033",
-    textMuted: "#E9D5FF",
-    border: "#C026D340",
-    borderStrong: "#C026D3",
+    textMuted: "#86EFAC",
+    border: "#22FF8840",
+    borderStrong: "#39FF14",
   },
 };

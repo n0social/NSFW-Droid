@@ -4,7 +4,28 @@ Server-driven color packs for the storefront. Default branding stays the purple/
 
 **Live behavior:** In production, the active month (UTC) selects the theme — e.g. October → Halloween, December → Christmas. Holiday `icon.svg` files are decorative layout icons, not the **Vesper** character mascot (Vesper is reserved for in-app prompts and updates later).
 
-## Layout
+## Theme package convention
+
+Each holiday lives under `data/themes/<id>/` as a **theme package**:
+
+| File | Required | Role |
+| --- | --- | --- |
+| `theme.json` | Yes | `id`, `name`, `priority`, `schedule.months`, `colors` |
+| `icon.svg` | Recommended | Tab/mark icon served at `/api/theme/icon/<id>` |
+| `decor.svg` or `assets/*.svg` | Optional | Seasonal art (SVG only for v1; not wired globally yet) |
+| `README.md` | Optional | One-line description for operators |
+
+Shipped packages:
+
+| `id` | Months (UTC) | Icon motif |
+| --- | --- | --- |
+| `valentines` | February (`2`) | Heart-eyed android |
+| `halloween` | October (`10`) | Pumpkin + orange android (`decor.svg` pumpkin garland) |
+| `christmas` | December (`12`) | Santa-hat android with snow accents |
+
+Default (non-holiday) colors are compiled from `src/lib/themes/default-theme.ts` (neon green accents on `#14061C`); holiday packs override via `theme.json` only.
+
+## Layout (code)
 
 | Path | Role |
 | --- | --- |
