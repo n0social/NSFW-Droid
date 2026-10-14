@@ -13,15 +13,6 @@ export type ThemeClientState = {
 
 type Props = ThemeClientState;
 
-const HOLIDAY_BANNER_EMOJI: Partial<Record<string, string>> = {
-  valentines: "💕",
-  easter: "🐣",
-  summer: "☀️",
-  halloween: "🎃",
-  thanksgiving: "🦃",
-  christmas: "🎄",
-};
-
 /**
  * Holiday opt-out UI is shown only when isSignedIn is true (Firebase session cookie on the server).
  * Server-side theme_override cookie still works for all visitors via POST /api/theme/override.
@@ -44,8 +35,6 @@ export function ThemeProvider({
     scheduledThemeId !== "default";
 
   if (!showHolidayBanner && !showRestore) return null;
-
-  const bannerEmoji = HOLIDAY_BANNER_EMOJI[activeThemeId];
 
   async function setPreference(preference: "default" | "auto") {
     setBusy(true);
@@ -79,11 +68,7 @@ export function ThemeProvider({
               unoptimized
             />
           )}
-          <span>
-            {bannerEmoji ? `${bannerEmoji} ` : ""}
-            {activeThemeName} theme is on
-            {bannerEmoji ? ` ${bannerEmoji}` : ""}
-          </span>
+          <span>{activeThemeName} theme is on</span>
           <button
             type="button"
             disabled={busy}

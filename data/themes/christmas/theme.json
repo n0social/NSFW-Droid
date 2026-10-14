@@ -8,13 +8,13 @@
     "description": "Auto-applies throughout December (UTC)."
   },
   "colors": {
-    "background": "#061410",
+    "background": "#14061C",
     "foreground": "#F0FDF4",
-    "primary": "#16A34A",
-    "accent": "#DC2626",
-    "surface": "#0F2A1D",
+    "primary": "#DC2626",
+    "accent": "#22C55E",
+    "surface": "#241033",
     "textMuted": "#BBF7D0",
-    "border": "#16A34A40",
-    "borderStrong": "#22C55E"
+    "border": "#22C55E40",
+    "borderStrong": "#16A34A"
   }
 }

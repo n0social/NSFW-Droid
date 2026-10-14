@@ -1,5 +1,5 @@
 <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-  <rect x="6" y="10" width="24" height="20" rx="8" fill="#0F2A1D" stroke="#22C55E" stroke-width="1.5"/>
+  <rect x="6" y="10" width="24" height="20" rx="8" fill="#241033" stroke="#22C55E" stroke-width="1.5"/>
   <circle cx="14" cy="5" r="2" fill="#DC2626"/>
   <circle cx="22" cy="5" r="2" fill="#DC2626"/>
   <path d="M12 10V6M20 10V6" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/>
@@ -8,8 +8,8 @@
   <path d="M8 4.5l2 1.5M28 4.5l-2 1.5" stroke="#F8FAFC" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
   <ellipse cx="13" cy="18" rx="2.5" ry="3" fill="#BBF7D0"/>
   <ellipse cx="23" cy="18" rx="2.5" ry="3" fill="#BBF7D0"/>
-  <circle cx="13" cy="18" r="1" fill="#0F2A1D"/>
-  <circle cx="23" cy="18" r="1" fill="#0F2A1D"/>
+  <circle cx="13" cy="18" r="1" fill="#241033"/>
+  <circle cx="23" cy="18" r="1" fill="#241033"/>
   <path d="M14 24h8l-1.5 4h-5L14 24z" fill="#16A34A"/>
   <path d="M4 12l1.5 1M32 12l-1.5 1M6 20l1 1.2M30 20l-1 1.2" stroke="#F8FAFC" stroke-width="0.75" stroke-linecap="round" opacity="0.55"/>
 </svg>

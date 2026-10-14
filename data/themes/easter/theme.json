@@ -5,16 +5,16 @@
   "icon": "icon.svg",
   "schedule": {
     "months": [3, 4],
-    "description": "Pastel spring palette throughout March and April (UTC)."
+    "description": "Auto-applies March–April (UTC)."
   },
   "colors": {
-    "background": "#1A1428",
-    "foreground": "#FFF7ED",
-    "primary": "#C084FC",
-    "accent": "#F9A8D4",
-    "surface": "#2D1F45",
+    "background": "#14061C",
+    "foreground": "#FFF8FB",
+    "primary": "#A78BFA",
+    "accent": "#F472B6",
+    "surface": "#241033",
     "textMuted": "#E9D5FF",
-    "border": "#C084FC40",
-    "borderStrong": "#A855F7"
+    "border": "#A78BFA40",
+    "borderStrong": "#C4B5FD"
   }
 }

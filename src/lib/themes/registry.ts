@@ -46,12 +46,21 @@ export function getThemeById(id: string): ThemeDefinition {
   return found ?? DEFAULT_THEME;
 }
 
+const THEME_ASSET_FILENAME = /^[a-z0-9-]+\.svg$/;
+
 export function themeIconPath(themeId: string): string | null {
+  return themeAssetPath(themeId, "icon.svg");
+}
+
+/** Resolve a whitelisted SVG asset under data/themes/<id>/ (path traversal safe). */
+export function themeAssetPath(themeId: string, fileName: string): string | null {
   if (themeId === "default") return null;
+  if (!THEME_ASSET_FILENAME.test(fileName)) return null;
   const dir = path.join(THEMES_DIR, themeId);
-  const theme = getThemeById(themeId);
-  const fileName = theme.icon ?? "icon.svg";
+  if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) return null;
   const full = path.join(dir, fileName);
+  const resolved = path.resolve(full);
+  if (!resolved.startsWith(path.resolve(dir) + path.sep)) return null;
   return fs.existsSync(full) ? full : null;
 }
 

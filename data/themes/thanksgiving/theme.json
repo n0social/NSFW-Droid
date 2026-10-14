@@ -5,16 +5,16 @@
   "icon": "icon.svg",
   "schedule": {
     "months": [11],
-    "description": "Harvest gold and cranberry accents throughout November (UTC)."
+    "description": "Auto-applies throughout November (UTC)."
   },
   "colors": {
-    "background": "#1C1208",
+    "background": "#14061C",
     "foreground": "#FFF7ED",
-    "primary": "#D97706",
-    "accent": "#B91C1C",
-    "surface": "#2D1A0A",
-    "textMuted": "#FED7AA",
-    "border": "#D9770640",
-    "borderStrong": "#EA580C"
+    "primary": "#EA580C",
+    "accent": "#B45309",
+    "surface": "#241033",
+    "textMuted": "#FDBA74",
+    "border": "#EA580C40",
+    "borderStrong": "#C2410C"
   }
 }
