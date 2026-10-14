@@ -4,7 +4,7 @@
 **Status:** theory only. No logo, icon, or character art is being produced in this pass.  
 **Product context:** the adult game catalog described in `docs/nsfw-game-market-analysis.md`, `docs/considerations.md`, and `docs/revenue_streams.md`.
 
-**Implementation note (Oct 2026):** The sticky header uses an android bust SVG (`DroidMark`) as layout branding only. **Vesper** remains the name for the future female mascot in product UI (updates, deals, subscription prompts) — see `docs/mascots.md`.
+**Implementation note (Oct 2026):** The sticky header and favicon use **Andri** — the heart-eyed android bust (`DroidMark` / `AndriMark` in code). **Vesper** is a separate female mascot reserved for future product UI (updates, deals, subscription prompts) — see `docs/mascots.md`.
 
 ## Look
 

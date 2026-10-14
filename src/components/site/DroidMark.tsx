@@ -3,7 +3,7 @@ type Props = {
 };
 
 /**
- * Header / layout android bust (heart eyes). Not the Vesper character mascot —
+ * **Andri** — header / layout android bust (heart eyes). Not **Vesper** (female mascot) —
  * Vesper is reserved for future in-app UI (updates, deal cards, subscription prompts).
  */
 export function DroidMark({ className = "h-9 w-9" }: Props) {
@@ -57,3 +57,6 @@ export function DroidMark({ className = "h-9 w-9" }: Props) {
     </svg>
   );
 }
+
+/** Alias for the Andri header mark (same SVG as `DroidMark`). */
+export const AndriMark = DroidMark;

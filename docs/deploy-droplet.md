@@ -94,6 +94,21 @@ This installs Node 20, Caddy, builds the app, installs `deploy/nsfwdroid.service
 
 ---
 
+## 4b. Cloud agent release (code + build)
+
+On the small droplet (~512 MiB RAM), **do not** rsync a partial `node_modules` tree — it causes `502` from Caddy when `next` or transitive deps (e.g. `lodash.isinteger` for `firebase-admin`) are missing.
+
+Reliable pattern:
+
+1. On the agent: `npm run build` with production `NEXT_PUBLIC_*` from `/etc/nsfwdroid.env` (never commit secrets).
+2. Tar-sync the repo **excluding** `node_modules` and `data/catalog` to `/var/www/nsfwdroid`.
+3. Install production deps either:
+   - **On droplet:** `cd /var/www/nsfwdroid && npm ci --omit=dev` (slow; needs swap), or
+   - **From agent:** `npm ci --omit=dev` in a temp dir, `tar czf node_modules.tgz node_modules`, copy to `/var/www/nsfwdroid` (not `/tmp` if tmpfs is full), extract, `chown -R www-data:www-data node_modules`.
+4. `systemctl restart nsfwdroid` and verify `curl -sI http://localhost:3000` and `https://www.nsfwdroid.com`.
+
+---
+
 ## 5. After deploy
 
 ```bash
