@@ -19,7 +19,7 @@ We do **not** crawl Steam store HTML, Nutaku pages, or forum mirrors. We pull **
 
 ## Database (Postgres)
 
-Runs on **DigitalOcean** in production (Managed PostgreSQL + Droplet workers). **Local dev** uses Docker Compose with the same schema — no DO account required to build or test ingest.
+Runs on **DigitalOcean** in production (Managed PostgreSQL + Droplet workers). **Local dev** uses **PGlite** (`data/catalog/`) with the same Drizzle schema — run `npm run ingest:itch`. Optional `docker-compose.yml` for Postgres. No DO account required to build or test ingest.
 
 ### Core tables
 

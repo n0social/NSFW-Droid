@@ -1,0 +1,38 @@
+{
+  "name": "tmp-scaffold",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack -p 3847",
+    "build": "next build --turbopack",
+    "start": "next start",
+    "lint": "eslint",
+    "db:migrate": "tsx scripts/db-migrate.ts",
+    "db:push": "drizzle-kit push",
+    "ingest:itch": "tsx scripts/db-migrate.ts && tsx scripts/ingest-itch.ts",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.10",
+    "dotenv": "^18.0.8",
+    "drizzle-orm": "^0.45.4",
+    "fast-xml-parser": "^5.11.2",
+    "next": "15.5.27",
+    "postgres": "^3.4.9",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.11",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.27",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.15",
+    "typescript": "^5"
+  }
+}

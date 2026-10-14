@@ -1,22 +1,42 @@
 # NSFW-Droid
 
-Planning repository for an adult (18+) game **catalog**: link-out first, licensed hosting and a sideloaded Android store app later.
+Adult (18+) game **catalog** — link-out first, DigitalOcean in production. This repo now includes a **working storefront preview** with real itch.io feed data.
+
+## Quick start (storefront + data)
+
+```bash
+npm install
+npm run ingest:itch   # PGlite DB + migrations + itch.io RSS → listings (demo auto-publish)
+npm run dev           # http://localhost:3847
+```
+
+- **Age gate:** “Are you over 18?” **Yes** / **No** — backdrop is not dismissible.
+- **Blur:** Covers are **blurred by default**. If age is not confirmed, blur stays on (anti-bypass). After **Yes**, use **Blur covers: ON/OFF** in the header to test unblurred titles.
+- **Data:** Titles and links come from [itch.io new uploads RSS](https://itch.io/feed/new.xml) (not HTML scraping). `DEMO_AUTO_PUBLISH=1` publishes the queue for the mockup; production uses human review.
+
+Local DB is **PGlite** (`data/catalog/`). Production target: **DigitalOcean Managed PostgreSQL** (`docs/data-and-ingest.md`).
 
 ## Documentation
 
 | Doc | Contents |
 | --- | --- |
-| [docs/hosting.md](docs/hosting.md) | **DigitalOcean** hosting decision (vs Vultr) |
-| [docs/architecture.md](docs/architecture.md) | **Website + app target architecture** (Phase 1 catalog, Phase 2 downloads) |
-| [docs/design-layout.md](docs/design-layout.md) | **UI wireframes** — age gate, home, browse, detail, Android shell |
-| [docs/gaps.md](docs/gaps.md) | What blocks a public launch |
-| [docs/how_we_get_links.md](docs/how_we_get_links.md) | itch.io, Steam, affiliate, and developer ingestion |
-| [docs/data-and-ingest.md](docs/data-and-ingest.md) | **Postgres schema, feed workers, DO vs local dev** |
-| [docs/considerations.md](docs/considerations.md) | Link vs promote vs distribute rights |
-| [docs/revenue_streams.md](docs/revenue_streams.md) | Affiliates, ads, sponsorships, later commissions |
-| [docs/design-and-mascot.md](docs/design-and-mascot.md) | Visual direction and mascot (Vesper) |
-| [docs/nsfw-game-market-analysis.md](docs/nsfw-game-market-analysis.md) | Market and competitor notes |
+| [docs/hosting.md](docs/hosting.md) | **DigitalOcean** hosting |
+| [docs/architecture.md](docs/architecture.md) | Website + app architecture |
+| [docs/data-and-ingest.md](docs/data-and-ingest.md) | Postgres schema, feed workers |
+| [docs/design-layout.md](docs/design-layout.md) | UI wireframes |
+| [docs/how_we_get_links.md](docs/how_we_get_links.md) | itch, Steam, affiliate ingestion |
+| [docs/considerations.md](docs/considerations.md) | Link vs distribute rights |
+| [docs/revenue_streams.md](docs/revenue_streams.md) | Revenue |
+| [docs/design-and-mascot.md](docs/design-and-mascot.md) | Brand (Vesper) |
 
-## Status
+## Scripts
 
-Theory and architecture only — no application code yet. Phase 1 is a **website** on **DigitalOcean** that links to official and affiliate URLs with human review and real age assurance.
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Next.js on port **3847** |
+| `npm run ingest:itch` | Migrate + pull itch RSS into `listing` |
+| `npm run db:migrate` | Apply Drizzle migrations to PGlite |
+
+## Docker (optional)
+
+`docker-compose.yml` is for **Managed Postgres-style** local testing on DigitalOcean deploy; the default dev path uses PGlite without Docker.
