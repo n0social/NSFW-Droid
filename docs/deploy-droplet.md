@@ -100,7 +100,7 @@ On the small droplet (~512 MiB RAM), **do not** rsync a partial `node_modules`
 
 Reliable pattern:
 
-1. On the agent: `npm run build` with production `NEXT_PUBLIC_*` from `/etc/nsfwdroid.env` (never commit secrets).
+1. On the agent: `npm run build` with production `NEXT_PUBLIC_*` from `/etc/nsfwdroid.env` (never commit secrets). Keep `@electric-sql/pglite` external (`serverExternalPackages` in `next.config.mjs`) so the catalog DB works in `next start`.
 2. Tar-sync the repo **excluding** `node_modules` and `data/catalog` to `/var/www/nsfwdroid`.
 3. Install production deps either:
    - **On droplet:** `cd /var/www/nsfwdroid && npm ci --omit=dev` (slow; needs swap), or

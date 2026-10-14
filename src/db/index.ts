@@ -1,10 +1,13 @@
 import { mkdirSync } from "fs";
-import { dirname } from "path";
+import path from "path";
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
 import * as schema from "./schema";
 
-const DATA_DIR = process.env.PGLITE_DATA_DIR ?? "data/catalog";
+const DATA_DIR = path.resolve(
+  process.cwd(),
+  process.env.PGLITE_DATA_DIR ?? "data/catalog",
+);
 
 declare global {
   var __catalogPglite: PGlite | undefined;
@@ -12,7 +15,7 @@ declare global {
 }
 
 function createClient() {
-  mkdirSync(dirname(DATA_DIR), { recursive: true });
+  mkdirSync(path.dirname(DATA_DIR), { recursive: true });
   return new PGlite(DATA_DIR);
 }
 
