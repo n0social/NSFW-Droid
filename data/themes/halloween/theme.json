@@ -8,13 +8,13 @@
     "description": "Auto-applies throughout October (UTC)."
   },
   "colors": {
-    "background": "#0C0A09",
-    "foreground": "#FFF7ED",
-    "primary": "#F97316",
+    "background": "#14061C",
+    "foreground": "#ECFDF5",
+    "primary": "#22FF88",
     "accent": "#A855F7",
-    "surface": "#1C1917",
-    "textMuted": "#FDBA74",
-    "border": "#F9731640",
-    "borderStrong": "#EA580C"
+    "surface": "#1F1028",
+    "textMuted": "#86EFAC",
+    "border": "#22FF8840",
+    "borderStrong": "#39FF14"
   }
 }
