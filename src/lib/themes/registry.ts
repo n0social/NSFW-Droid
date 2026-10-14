@@ -49,7 +49,10 @@ export function getThemeById(id: string): ThemeDefinition {
 const THEME_ASSET_FILENAME = /^[a-z0-9-]+\.svg$/;
 
 export function themeIconPath(themeId: string): string | null {
-  return themeAssetPath(themeId, "icon.svg");
+  if (themeId === "default") return null;
+  const theme = getThemeById(themeId);
+  const fileName = theme.icon ?? "icon.svg";
+  return themeAssetPath(themeId, fileName);
 }
 
 /** Resolve a whitelisted SVG asset under data/themes/<id>/ (path traversal safe). */
