@@ -1,7 +1,7 @@
 # What's still open
 
-**Date:** 10 October 2026  
-**Status:** theory. Nothing here is built.  
+**Date:** 10 October 2026 (updated 14 October 2026)  
+**Status:** partial. Link catalog, ingest, auto-publish (TOS holds), admin, legal pages, themes, and accounts **1b** are on `main`. Items below remain open (age vendor, browse/search/detail, Managed Postgres, affiliate wiring, creator profiles).  
 **Already decided:** link catalog first, DigitalOcean for the site, host a build only with a written license (`docs/considerations.md`), earn from affiliates, adult ads, and labeled sponsorships (`docs/revenue_streams.md`), purple-and-pink brand with Vesper (`docs/design-and-mascot.md`).
 
 The hole that blocks a public site is not the mascot and not the Android app. It is a catalog people trust, a way to add rows without stealing them, and an age check that actually sits in front of the explicit art.
@@ -13,7 +13,7 @@ The hole that blocks a public site is not the mascot and not the Android app. It
 3. **Which shelves version 1 covers.** Start with two sources that already publish a machine-readable list, plus games a developer submits. Add a third source only when it offers the same kind of list. Five scrapers on day one means five broken parsers.
 4. **Age check in front of the art.** A catalog of adult games is the kind of service the UK Online Safety Act treats as pornography. Since 25 July 2025, services that allow pornography have had to use highly effective age assurance so children are not normally able to see it. Ofcom’s position is that a dedicated service should put that check at the front door, with no sexual content visible before it passes. A checkbox that says “I am 18” is not that check. Several US states have their own verification rules. This needs a real vendor and a written record of how the check works before explicit thumbnails go up. The brand note already keeps Vesper’s storefront outfit and the heart system usable on the gate itself.
 5. **The legal pages.** Terms of use, a privacy notice, an affiliate disclosure on paid links, and a contact for copyright complaints. These are short. They have to exist on the domain.
-6. **A review queue, not an autopublish switch.** Every candidate row lands as unseen. A person, or a tight rule set plus a person for the edge cases, approves it. The public table only holds approved rows.
+6. **Review for edge cases.** Ingest and submit land as candidates; **TOS-clear rows auto-publish** in production (`AUTO_PUBLISH=1`, see `docs/tos-review-policy.md`). Holds and strict mode still use `/admin`.
 7. **Accounts with the programs that pay.** Affiliate approvals and one adult ad network. The revenue note is a plan until those accounts exist.
 8. **Domain, TLS, and a small Droplet.** The link catalog fits on one box. Spaces stays off until a licensed file exists.
 
