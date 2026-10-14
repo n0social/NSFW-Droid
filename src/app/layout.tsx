@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { FavoritesProvider } from "@/components/favorites/FavoritesProvider";
 import { FirebaseProvider } from "@/components/FirebaseProvider";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { isFirebaseAnalyticsEnabled } from "@/lib/firebase/config";
@@ -59,6 +60,7 @@ export default async function RootLayout({
         {!useFirebaseAnalytics && <GoogleAnalytics />}
         <FirebaseProvider>
         <AuthProvider>
+          <FavoritesProvider>
           <ThemeProvider
             activeThemeId={active.id}
             activeThemeName={active.name}
@@ -66,6 +68,7 @@ export default async function RootLayout({
             isSignedIn={signedIn}
           />
           {children}
+          </FavoritesProvider>
         </AuthProvider>
         </FirebaseProvider>
       </body>

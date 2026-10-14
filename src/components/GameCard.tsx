@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 import type { Listing } from "@/db/schema";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { useFavoritesContext } from "@/components/favorites/FavoritesProvider";
 
 const gradients = [
   "linear-gradient(145deg, #4a1d6a 0%, #C026D3 45%, #14061C 100%)",
@@ -35,6 +37,8 @@ function platformLabel(game: Listing) {
 export function GameCard({ game, index, rank, wide, blur }: Props) {
   const w = wide ? "w-[200px]" : "w-[140px]";
   const h = wide ? "h-[200px]" : "h-[168px]";
+  const { user } = useAuth();
+  const { favoriteIds, toggleFavorite } = useFavoritesContext();
 
   useEffect(() => {
     fetch("/api/analytics/view", {
@@ -44,11 +48,27 @@ export function GameCard({ game, index, rank, wide, blur }: Props) {
     }).catch(() => {});
   }, [game.id]);
 
+  const favorited = favoriteIds.has(game.id);
+
   return (
-    <a
-      href={`/api/go/${game.id}`}
-      className={`${w} shrink-0 overflow-hidden rounded-2xl shadow-[0_10px_28px_rgba(0,0,0,0.45)] bg-[#241033] block`}
+    <div
+      className={`${w} shrink-0 overflow-hidden rounded-2xl shadow-[0_10px_28px_rgba(0,0,0,0.45)] bg-[#241033] relative`}
     >
+      {user && (
+        <button
+          type="button"
+          aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            void toggleFavorite(game.id);
+          }}
+          className="absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/45 text-base leading-none hover:bg-black/60"
+        >
+          {favorited ? "♥" : "♡"}
+        </button>
+      )}
+      <a href={`/api/go/${game.id}`} className="block">
       <div className={`relative ${h}`} style={{ background: gradients[index % gradients.length] }}>
         {rank !== undefined && (
           <span
@@ -81,6 +101,7 @@ export function GameCard({ game, index, rank, wide, blur }: Props) {
       <div className="px-2.5 py-2 text-[10px] font-bold text-[#E9D5FF]">
         {platformLabel(game)}
       </div>
-    </a>
+      </a>
+    </div>
   );
 }

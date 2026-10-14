@@ -7,6 +7,7 @@ import {
   pgEnum,
   uniqueIndex,
   integer,
+  boolean,
 } from "drizzle-orm/pg-core";
 
 export const reviewStatusEnum = pgEnum("review_status", [
@@ -105,6 +106,34 @@ export const analyticsEvents = pgTable("analytics_event", {
   sessionHash: text("session_hash"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const userProfiles = pgTable("user_profile", {
+  firebaseUid: text("firebase_uid").primaryKey(),
+  email: text("email").notNull(),
+  displayName: text("display_name"),
+  newsletterOptIn: boolean("newsletter_opt_in").notNull().default(false),
+  preferences: jsonb("preferences").notNull().default({}),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const userFavorites = pgTable(
+  "user_favorite",
+  {
+    firebaseUid: text("firebase_uid").notNull(),
+    listingId: uuid("listing_id")
+      .notNull()
+      .references(() => listings.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("user_favorite_uid_listing_idx").on(t.firebaseUid, t.listingId)],
+);
+
+export type UserProfile = typeof userProfiles.$inferSelect;
+export type UserPreferences = {
+  theme_preference?: "default" | "auto";
+  blur_covers?: boolean;
+};
 
 export type Listing = typeof listings.$inferSelect;
 export type Candidate = typeof candidates.$inferSelect;

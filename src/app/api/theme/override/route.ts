@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { THEME_OVERRIDE_COOKIE, themeCookieOptions } from "@/lib/themes/preferences";
 import type { ThemeOverridePreference } from "@/lib/themes/types";
+import { getSessionUserId } from "@/lib/user-session";
+import { mergeUserPreferences } from "@/lib/user-profile";
 
 const VALID: ThemeOverridePreference[] = ["default", "auto"];
 
@@ -13,6 +15,15 @@ export async function POST(request: Request) {
       { ok: false, error: "invalid_preference", allowed: VALID },
       { status: 400 },
     );
+  }
+
+  const uid = await getSessionUserId();
+  if (uid) {
+    try {
+      await mergeUserPreferences(uid, { theme_preference: preference });
+    } catch {
+      /* ignore profile write failures */
+    }
   }
 
   const res = NextResponse.json({ ok: true, preference });

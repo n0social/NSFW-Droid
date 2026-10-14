@@ -2,6 +2,7 @@
 
 import {
   GoogleAuthProvider,
+  createUserWithEmailAndPassword,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -19,12 +20,14 @@ import {
   type ReactNode,
 } from "react";
 import { getFirebaseAuth, isFirebaseConfigured } from "@/lib/firebase/client";
+import { fetchAndSyncProfilePreferences } from "@/lib/sync-profile-preferences";
 
 type AuthContextValue = {
   configured: boolean;
   loading: boolean;
   user: User | null;
   signInWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -37,11 +40,14 @@ async function syncSession(user: User | null) {
     return;
   }
   const idToken = await user.getIdToken();
-  await fetch("/api/auth/session", {
+  const sessionRes = await fetch("/api/auth/session", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ idToken }),
   });
+  if (sessionRes.ok) {
+    await fetchAndSyncProfilePreferences();
+  }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -79,6 +85,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signInWithEmailAndPassword(auth, email, password);
   }, []);
 
+  const signUpWithEmail = useCallback(async (email: string, password: string) => {
+    const auth = getFirebaseAuth();
+    if (!auth) throw new Error("Firebase not configured");
+    await createUserWithEmailAndPassword(auth, email, password);
+  }, []);
+
   const signInWithGoogle = useCallback(async () => {
     const auth = getFirebaseAuth();
     if (!auth) throw new Error("Firebase not configured");
@@ -98,10 +110,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       user,
       signInWithEmail,
+      signUpWithEmail,
       signInWithGoogle,
       signOut,
     }),
-    [configured, loading, user, signInWithEmail, signInWithGoogle, signOut],
+    [configured, loading, user, signInWithEmail, signUpWithEmail, signInWithGoogle, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

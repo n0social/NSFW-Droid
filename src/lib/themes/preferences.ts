@@ -2,6 +2,8 @@ import { cookies } from "next/headers";
 import type { ThemeOverridePreference } from "./types";
 import { resolveActiveTheme, resolveScheduledTheme } from "./resolve";
 import type { ResolvedTheme } from "./types";
+import { getSessionUserId } from "@/lib/user-session";
+import { getUserProfile, parseUserPreferences } from "@/lib/user-profile";
 
 export const THEME_OVERRIDE_COOKIE = "theme_override";
 
@@ -15,15 +17,16 @@ export function parseThemeOverride(value: string | undefined): ThemeOverridePref
   return null;
 }
 
-/**
- * Future: load persisted preference from the user account.
- * Until accounts ship, returns null and cookie resolution handles everyone.
- */
+/** Load holiday theme opt-out from `user_profile.preferences` when signed in. */
 export async function getUserThemePreference(userId?: string): Promise<ThemeOverridePreference | null> {
-  if (userId) {
-    /* account-backed preference will load here */
+  if (!userId) return null;
+  try {
+    const profile = await getUserProfile(userId);
+    const pref = parseUserPreferences(profile?.preferences).theme_preference;
+    return parseThemeOverride(pref);
+  } catch {
+    return null;
   }
-  return null;
 }
 
 export async function getThemeOverrideFromCookies(): Promise<ThemeOverridePreference | null> {
@@ -36,7 +39,10 @@ export async function resolveThemeForRequest(now = new Date()): Promise<{
   scheduled: ResolvedTheme;
   preference: ThemeOverridePreference | null;
 }> {
-  const preference = await getThemeOverrideFromCookies();
+  const cookiePreference = await getThemeOverrideFromCookies();
+  const uid = await getSessionUserId();
+  const profilePreference = uid ? await getUserThemePreference(uid) : null;
+  const preference = cookiePreference ?? profilePreference;
   const active = resolveActiveTheme(now, preference);
   const scheduled = resolveScheduledTheme(now);
   return {

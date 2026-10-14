@@ -61,7 +61,7 @@ export function SiteHeader({ listingCount, blurToggle, ageVerified }: Props) {
             <>
               <Link
                 href="/account"
-                className="hidden rounded-full border border-[var(--theme-primary)]/40 px-3 py-1.5 text-[10px] font-bold text-[var(--theme-text-muted)] hover:bg-[var(--theme-surface)] sm:inline"
+                className="rounded-full border border-[var(--theme-primary)]/40 px-3 py-1.5 text-[10px] font-bold text-[var(--theme-text-muted)] hover:bg-[var(--theme-surface)]"
               >
                 Account
               </Link>
@@ -76,7 +76,7 @@ export function SiteHeader({ listingCount, blurToggle, ageVerified }: Props) {
           ) : !loading && configured ? (
             <Link
               href="/sign-in"
-              className="hidden rounded-full border border-[var(--theme-primary)]/40 px-3 py-1.5 text-[10px] font-bold text-[var(--theme-accent)] hover:bg-[var(--theme-surface)] sm:inline"
+              className="rounded-full border border-[var(--theme-primary)]/40 px-3 py-1.5 text-[10px] font-bold text-[var(--theme-accent)] hover:bg-[var(--theme-surface)]"
             >
               Sign in
             </Link>

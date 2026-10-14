@@ -30,11 +30,21 @@ export async function POST(request: Request) {
   }
 
   let uid: string;
+  let email: string;
   try {
     const decoded = await adminAuth.verifyIdToken(idToken);
     uid = decoded.uid;
+    email = decoded.email ?? "";
   } catch {
     return NextResponse.json({ ok: false, error: "invalid_token" }, { status: 401 });
+  }
+
+  try {
+    const { upsertUserProfileFromSession } = await import("@/lib/user-profile");
+    const profileEmail = email || `noreply+${uid}@users.nsfwdroid.local`;
+    await upsertUserProfileFromSession(uid, profileEmail);
+  } catch {
+    /* profile table may be unavailable during migration */
   }
 
   const sessionValue = createSignedSessionValue(uid);

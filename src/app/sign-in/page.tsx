@@ -3,14 +3,18 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { sendPasswordResetEmail } from "firebase/auth";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { SiteFooter } from "@/components/site/SiteFooter";
+import { getFirebaseAuth } from "@/lib/firebase/client";
 
 export default function SignInPage() {
   const router = useRouter();
   const { configured, loading, user, signInWithEmail, signInWithGoogle } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
 
   useEffect(() => {
     if (!loading && user) router.replace("/account");
@@ -25,7 +29,34 @@ export default function SignInPage() {
       await signInWithEmail(String(form.get("email")), String(form.get("password")));
       router.push("/account");
     } catch {
-      setError("Could not sign in. Check email and password, or create the user in Firebase Console.");
+      setError("Could not sign in. Check email and password, or sign up for a new account.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onForgotPassword(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setMessage(null);
+    setBusy(true);
+    const email = resetEmail.trim();
+    if (!email) {
+      setError("Enter your email to reset your password.");
+      setBusy(false);
+      return;
+    }
+    const auth = getFirebaseAuth();
+    if (!auth) {
+      setError("Firebase not configured.");
+      setBusy(false);
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setMessage("Password reset email sent. Check your inbox.");
+    } catch {
+      setError("Could not send reset email. Check the address or try again later.");
     } finally {
       setBusy(false);
     }
@@ -64,7 +95,8 @@ export default function SignInPage() {
         ) : (
           <>
             <p className="mt-2 text-xs text-[var(--theme-text-muted)]">
-              Email/password and Google use Firebase Authentication on this device.
+              Email/password and Google use Firebase Authentication. New here?{" "}
+              <Link href="/sign-up" className="font-bold text-[var(--theme-accent)]">Sign up</Link>
             </p>
             <form onSubmit={onEmailSubmit} className="mt-6 space-y-3">
               <input
@@ -99,6 +131,29 @@ export default function SignInPage() {
             >
               Continue with Google
             </button>
+            <details className="mt-6 rounded-xl border border-[var(--theme-primary)]/30 p-3">
+              <summary className="cursor-pointer text-xs font-bold text-[var(--theme-text-muted)]">
+                Forgot password?
+              </summary>
+              <form onSubmit={onForgotPassword} className="mt-3 space-y-2">
+                <input
+                  type="email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  autoComplete="email"
+                  placeholder="Account email"
+                  className="w-full rounded-lg border border-[var(--theme-primary)]/40 bg-[var(--background)] px-3 py-2 text-sm"
+                />
+                <button
+                  type="submit"
+                  disabled={busy}
+                  className="w-full rounded-lg border border-[var(--theme-border-strong)] py-2 text-xs font-bold disabled:opacity-50"
+                >
+                  Send reset email
+                </button>
+              </form>
+            </details>
+            {message && <p className="mt-3 text-xs font-bold text-emerald-400">{message}</p>}
             {error && <p className="mt-3 text-xs font-bold text-red-400">{error}</p>}
           </>
         )}
