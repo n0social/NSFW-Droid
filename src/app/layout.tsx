@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { FirebaseProvider } from "@/components/FirebaseProvider";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { isFirebaseAnalyticsEnabled } from "@/lib/firebase/config";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { siteName, siteUrl } from "@/lib/site";
 import { themeToCssVariables } from "@/lib/themes/css-vars";
@@ -44,11 +46,13 @@ export default async function RootLayout({
   const { active, scheduled } = await resolveThemeForRequest();
   const signedIn = await isSignedIn();
   const themeStyle = themeToCssVariables(active.colors);
+  const useFirebaseAnalytics = isFirebaseAnalyticsEnabled();
 
   return (
     <html lang="en" data-theme={active.id} style={themeStyle}>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <GoogleAnalytics />
+        {!useFirebaseAnalytics && <GoogleAnalytics />}
+        <FirebaseProvider>
         <AuthProvider>
           <ThemeProvider
             activeThemeId={active.id}
@@ -58,6 +62,7 @@ export default async function RootLayout({
           />
           {children}
         </AuthProvider>
+        </FirebaseProvider>
       </body>
     </html>
   );

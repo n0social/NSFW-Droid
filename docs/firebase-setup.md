@@ -1,6 +1,8 @@
-# Firebase Authentication setup
+# Firebase setup (Auth + Analytics)
 
 Player accounts use the **Firebase modular web SDK** on the client and an optional **httpOnly session cookie** for server-side `isSignedIn()` (holiday theme opt-out, SSR).
+
+**Analytics:** When all required Firebase env vars **and** `NEXT_PUBLIC_GA_MEASUREMENT_ID` are set, the app uses the **Firebase Analytics SDK** (`getAnalytics`) only — no duplicate gtag snippet. Use the **Measurement ID** from the same Firebase web app config (`measurementId`, format `G-…`). That ID must match the GA4 property linked in Firebase (Project settings → Integrations → Google Analytics). If Firebase is not configured but `NEXT_PUBLIC_GA_MEASUREMENT_ID` is set, the standalone gtag loader in `GoogleAnalytics.tsx` is used instead.
 
 Console: [Firebase console](https://console.firebase.google.com/)
 
@@ -29,6 +31,7 @@ Copy from `.env.example` into local `.env` and on the droplet into `/etc/nsfwdro
 | --- | --- |
 | `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | Web app config |
 | `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Web app config |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Web app config `measurementId` (GA4 property linked to this Firebase project) |
 
 **Required for SSR session cookie** (`POST /api/auth/session`, `isSignedIn()` on the server):
 

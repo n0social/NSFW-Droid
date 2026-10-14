@@ -62,13 +62,21 @@ Never commit this file. Example:
 ```bash
 NODE_ENV=production
 NEXT_PUBLIC_SITE_URL=https://www.nsfwdroid.com
-NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX   # same as Firebase web app measurementId
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+# FIREBASE_SERVICE_ACCOUNT_JSON=   # minified service account JSON (one line)
+# SESSION_SECRET=
 ADMIN_PASSWORD=choose-a-long-secret
 DEMO_AUTO_PUBLISH=0
 STEAM_WEB_API_KEY=optional
 ```
 
-- **Google Analytics:** create a GA4 property for `www.nsfwdroid.com`, copy the **Measurement ID** (`G-…`) into `NEXT_PUBLIC_GA_MEASUREMENT_ID`, rebuild (`npm run build`), restart `nsfwdroid`.
+- **Google Analytics:** use the Firebase web app **measurementId** (`G-…`) in `NEXT_PUBLIC_GA_MEASUREMENT_ID` (see [firebase-setup.md](firebase-setup.md)). Rebuild (`npm run build`), restart `nsfwdroid`.
 - First-party rails still use `analytics_event` in Postgres/PGlite; GA is for marketing and funnel views.
 
 ---
