@@ -121,7 +121,8 @@ flowchart LR
 - **GET** `https://itch.io/feed/new.xml` (public RSS).
 - Parse `item` → `title`, `link`, `guid`, `pubDate`.
 - `INSERT … ON CONFLICT (source, external_id) DO NOTHING` into `candidate`.
-- Optional extra feeds via env `ITCH_FEED_URLS` (comma-separated RSS URLs, e.g. featured).
+- Default feeds: `new.xml`, `featured.xml`, `sales.xml`, plus NSFW **tag browse** URLs (`games/tag-nsfw.xml`, etc. — `scripts/lib/itch-feeds.ts`). Override with `ITCH_FEED_URLS`; append with `ITCH_EXTRA_FEED_URLS`; `ITCH_MINIMAL_FEEDS=1` for legacy single-feed behavior.
+- Tags land in `tag` / `candidate_tag` (RSS title brackets, feed context, platforms, keywords). Approved listings copy to `listing_tag`.
 - Rate: once per day (or every 6h); polite `User-Agent` identifying the catalog.
 - **No** HTML scrape of project pages.
 
@@ -129,9 +130,9 @@ flowchart LR
 
 Implemented in `scripts/ingest-steam.ts`.
 
-- **With `STEAM_WEB_API_KEY`:** `IStoreService/GetAppList` delta, then per-app `appdetails`.
-- **Without key (dev/demo):** merges `data/steam-seed-appids.json` + Steam **storesearch** JSON (`cc=us`) + `appdetails` filter.
-- **Adult filter:** Steam content descriptor **#3 (Adult Only Sexual Content)** only — not every game with mild nudity.
+- **Discovery:** `data/steam-search-terms.json` + `STEAM_SEARCH_TERMS` / `STEAM_SEARCH_PER_TERM` (default 50 per term). Optional `STEAM_USE_APPLIST_DELTA=1` with API key merges `GetAppList` deltas.
+- **Adult filter:** descriptor **#3** by default; `STEAM_INCLUDE_SEXUAL_DESCRIPTOR=1` also accepts **#1 (Sexual Content)**.
+- **Rate limits:** `STEAM_INGEST_MAX_APPS` (default 250 detail calls/run), `STEAM_DETAIL_DELAY_MS`, `ITCH_FEED_DELAY_MS`.
 - Rows → `candidate` (`source = steam`), `platforms` from Steam (windows/mac/linux).
 - **Auto-publish:** TOS-clear Steam rows become `listing` when `AUTO_PUBLISH=1` or `NODE_ENV=production` (see [tos-review-policy.md](tos-review-policy.md)). Set `AUTO_PUBLISH=0` or `INGEST_REQUIRE_REVIEW=1` for all-manual review.
 

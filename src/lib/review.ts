@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { candidates, listings, type Candidate } from "@/db/schema";
+import { copyCandidateTagsToListing } from "@/lib/catalog-tags";
 import { slugify } from "@/lib/slug";
 
 export async function approveCandidate(
@@ -40,6 +41,8 @@ export async function approveCandidate(
       chartRank: opts?.chartRank ?? null,
     })
     .returning();
+
+  await copyCandidateTagsToListing(candidateId, listing.id);
 
   await db
     .update(candidates)

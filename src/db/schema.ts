@@ -129,6 +129,40 @@ export const userFavorites = pgTable(
   (t) => [uniqueIndex("user_favorite_uid_listing_idx").on(t.firebaseUid, t.listingId)],
 );
 
+export const tags = pgTable("tag", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  slug: text("slug").notNull().unique(),
+  label: text("label").notNull(),
+  kind: text("kind").notNull().default("general"),
+});
+
+export const listingTags = pgTable(
+  "listing_tag",
+  {
+    listingId: uuid("listing_id")
+      .notNull()
+      .references(() => listings.id, { onDelete: "cascade" }),
+    tagId: uuid("tag_id")
+      .notNull()
+      .references(() => tags.id, { onDelete: "cascade" }),
+  },
+  (t) => [uniqueIndex("listing_tag_listing_tag_idx").on(t.listingId, t.tagId)],
+);
+
+export const candidateTags = pgTable(
+  "candidate_tag",
+  {
+    candidateId: uuid("candidate_id")
+      .notNull()
+      .references(() => candidates.id, { onDelete: "cascade" }),
+    tagId: uuid("tag_id")
+      .notNull()
+      .references(() => tags.id, { onDelete: "cascade" }),
+  },
+  (t) => [uniqueIndex("candidate_tag_candidate_tag_idx").on(t.candidateId, t.tagId)],
+);
+
+export type Tag = typeof tags.$inferSelect;
 export type UserProfile = typeof userProfiles.$inferSelect;
 export type UserPreferences = {
   theme_preference?: "default" | "auto";
