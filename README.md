@@ -14,13 +14,15 @@ Create a **private** repository and push `main` — step-by-step: [docs/github-s
 
 ```bash
 npm install
-npm run ingest        # itch.io + Steam (+ affiliate JSON if present) → listings
+npm run ingest        # itch.io + Steam → candidate queue (admin review)
 npm run dev           # http://localhost:3847
 ```
 
 - **Age gate:** “Are you over 18?” **Yes** / **No** — backdrop is not dismissible.
 - **Blur:** Covers are **blurred by default**. If age is not confirmed, blur stays on (anti-bypass). After **Yes**, use **Blur covers: ON/OFF** in the header to test unblurred titles.
-- **Data:** Titles and links come from [itch.io new uploads RSS](https://itch.io/feed/new.xml) (not HTML scraping). `DEMO_AUTO_PUBLISH=1` publishes the queue for the mockup; production uses human review.
+- **Data:** itch.io RSS (+ optional `ITCH_FEED_URLS`) and Steam API → **candidates**. Approve at `/admin` (set `ADMIN_PASSWORD`). Developers submit at `/submit`.
+- **Rankings:** Outbound clicks (`/api/go/…`) and card views feed **Hottest** / **Trending** rails — your traffic, not store charts.
+- **Demo only:** `DEMO_AUTO_PUBLISH=1` auto-publishes ingest for local mockups; leave off in production.
 
 Local DB is **PGlite** (`data/catalog/`). Production target: **DigitalOcean Managed PostgreSQL** (`docs/data-and-ingest.md`).
 
@@ -42,10 +44,9 @@ Local DB is **PGlite** (`data/catalog/`). Production target: **DigitalOcean Mana
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` | Next.js on port **3847** |
-| `npm run ingest` | Migrate + **itch** + **Steam** + optional **affiliate** file |
-| `npm run ingest:itch` | itch.io RSS only |
+| `npm run ingest` | Migrate + **itch** + **Steam** (candidates only) |
+| `npm run ingest:itch` | itch.io RSS (`ITCH_FEED_URLS` optional) |
 | `npm run ingest:steam` | Steam only (`STEAM_WEB_API_KEY` or store search fallback) |
-| `npm run ingest:affiliate` | `data/affiliate-export.json` (copy from `.example`) |
 | `npm run db:migrate` | Apply Drizzle migrations to PGlite |
 
 ## Docker (optional)

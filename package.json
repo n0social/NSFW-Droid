@@ -12,7 +12,6 @@
     "ingest": "tsx scripts/db-migrate.ts && tsx scripts/ingest-all.ts",
     "ingest:itch": "tsx scripts/db-migrate.ts && tsx scripts/ingest-itch.ts",
     "ingest:steam": "tsx scripts/db-migrate.ts && tsx scripts/ingest-steam.ts",
-    "ingest:affiliate": "tsx scripts/db-migrate.ts && tsx scripts/ingest-affiliate.ts",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {

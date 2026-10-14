@@ -20,6 +20,13 @@ export const sourceEnum = pgEnum("source", [
   "steam",
   "affiliate_export",
   "developer_form",
+  "manual",
+]);
+
+export const analyticsEventTypeEnum = pgEnum("analytics_event_type", [
+  "outbound_click",
+  "listing_view",
+  "page_view",
 ]);
 
 export const linkStatusEnum = pgEnum("link_status", ["ok", "broken"]);
@@ -71,4 +78,23 @@ export const listings = pgTable("listing", {
   externalId: text("external_id"),
 });
 
+export const developerSubmissions = pgTable("developer_submission", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  candidateId: uuid("candidate_id"),
+  contactEmail: text("contact_email").notNull(),
+  message: text("message"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const analyticsEvents = pgTable("analytics_event", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  eventType: analyticsEventTypeEnum("event_type").notNull(),
+  listingId: uuid("listing_id"),
+  path: text("path"),
+  referrer: text("referrer"),
+  sessionHash: text("session_hash"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export type Listing = typeof listings.$inferSelect;
+export type Candidate = typeof candidates.$inferSelect;

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import type { Listing } from "@/db/schema";
 import { GameCard } from "./GameCard";
@@ -10,6 +11,7 @@ type Props = {
   blurCovers: boolean;
   topGrossing: Listing[];
   newReleases: Listing[];
+  rankingsFromAnalytics?: boolean;
 };
 
 export function Storefront({
@@ -17,6 +19,7 @@ export function Storefront({
   blurCovers: initialBlur,
   topGrossing,
   newReleases,
+  rankingsFromAnalytics = false,
 }: Props) {
   const [blurCovers, setBlurCovers] = useState(initialBlur);
 
@@ -34,13 +37,26 @@ export function Storefront({
     });
   }
 
+  const hotTitle = rankingsFromAnalytics ? "Hottest this week" : "Top picks";
+  const newTitle = rankingsFromAnalytics ? "Trending now" : "New releases";
+
   return (
     <>
       <AgeGate open={!ageVerified} />
 
       <div className={!ageVerified ? "pointer-events-none select-none" : ""}>
         <header className="sticky top-0 z-50 flex flex-wrap items-center gap-3 border-b-2 border-[#C026D3]/30 bg-[#14061C]/90 px-4 py-3 backdrop-blur-md">
-          <span className="text-sm font-black text-[#FFF1F7]">♥ Store</span>
+          <Link href="/" className="text-sm font-black text-[#FFF1F7]">
+            ♥ Store
+          </Link>
+          <nav className="flex gap-2 text-[10px] font-bold">
+            <Link
+              href="/submit"
+              className="rounded-full border border-[#C026D3]/50 px-3 py-1.5 text-[#E9D5FF] hover:border-[#FF4D8D]"
+            >
+              Submit game
+            </Link>
+          </nav>
           <span className="ml-auto flex flex-wrap items-center gap-2">
             <button
               type="button"
@@ -79,14 +95,19 @@ export function Storefront({
             <div className="rounded-2xl border-2 border-dashed border-[#C026D3]/50 p-12 text-center">
               <p className="font-bold text-[#E9D5FF]">No listings yet.</p>
               <p className="mt-2 text-xs text-[#E9D5FF]/80">
-                Run: docker compose up -d && npm run db:push && npm run ingest:itch
+                Run <code className="text-[#F9A8D4]">npm run db:migrate</code> and{" "}
+                <code className="text-[#F9A8D4]">npm run ingest</code>, then approve candidates in{" "}
+                <Link href="/admin" className="text-[#FF4D8D] underline">
+                  admin
+                </Link>
+                .
               </p>
             </div>
           ) : (
             <>
               <section className="mb-8">
                 <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-sm font-black text-[#FFF1F7]">Top grossing</h2>
+                  <h2 className="text-sm font-black text-[#FFF1F7]">{hotTitle}</h2>
                   <span className="text-[10px] font-bold text-[#FF4D8D]">See all</span>
                 </div>
                 <div className="flex gap-3 overflow-x-auto pb-2">
@@ -104,7 +125,7 @@ export function Storefront({
 
               <section>
                 <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-sm font-black text-[#FFF1F7]">New releases</h2>
+                  <h2 className="text-sm font-black text-[#FFF1F7]">{newTitle}</h2>
                   <span className="text-[10px] font-bold text-[#FF4D8D]">See all</span>
                 </div>
                 <div className="flex gap-3 overflow-x-auto pb-2">
@@ -115,7 +136,9 @@ export function Storefront({
               </section>
 
               <p className="mt-8 text-center text-[10px] font-semibold text-[#E9D5FF]/70">
-                Live data from itch.io RSS and Steam store API (titles + links). Covers blurred by default.
+                {rankingsFromAnalytics
+                  ? "Rankings from on-site clicks and views — not store charts."
+                  : "Approve ingest candidates in admin; rankings fill in as visitors play."}
               </p>
             </>
           )}

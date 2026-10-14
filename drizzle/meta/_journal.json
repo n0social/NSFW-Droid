@@ -8,6 +8,13 @@
       "when": 1791994885570,
       "tag": "0000_handy_paibok",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792000000000,
+      "tag": "0001_analytics_admin",
+      "breakpoints": true
     }
   ]
 }

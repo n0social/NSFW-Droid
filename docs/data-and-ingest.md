@@ -13,7 +13,7 @@
 | **Ingest worker** | Scheduled job that reads **official feeds/APIs** and writes **candidates** |
 | **Crawler / scraper** | HTML page parsing — **out of scope** for v1 (policy, breakage, rights) |
 
-We do **not** crawl Steam store HTML, Nutaku pages, or forum mirrors. We pull **RSS**, **Steam Web API**, **affiliate exports**, and **developer form** posts.
+We do **not** crawl Steam store HTML, Nutaku pages, or forum mirrors. We pull **RSS**, **Steam Web API**, **developer form** posts, and **manual** curator rows (DLsite/JAST links). Affiliate program **accounts** are for tagged outbound URLs later — not a JSON file ingest in `npm run ingest`.
 
 ---
 
@@ -27,7 +27,7 @@ Runs on **DigitalOcean** in production (Managed PostgreSQL + Droplet workers). *
 ingest_source          -- config: name, enabled, cursor, last_run_at, last_error
 candidate              -- pre-public rows from any source (review queue)
 listing                -- public catalog (approved)
-listing_click          -- outbound analytics
+analytics_event        -- outbound_click, listing_view, page_view
 ingest_run             -- optional audit log per job execution
 developer_submission   -- form PII, links to candidate
 ```
@@ -37,7 +37,7 @@ developer_submission   -- form PII, links to candidate
 | Column | Type | Notes |
 | --- | --- | --- |
 | `id` | uuid | PK |
-| `source` | enum | `itch`, `steam`, `affiliate_export`, `developer_form` |
+| `source` | enum | `itch`, `steam`, `developer_form`, `manual`, … |
 | `external_id` | text | itch game id, Steam app id, affiliate sku, etc. |
 | `title` | text | from feed |
 | `outbound_url` | text | official page URL |
@@ -67,7 +67,7 @@ Extends approved candidate fields plus:
 | `chart_rank` | int | nullable — **editorial / affiliate “top”** until real revenue data exists |
 | `chart_bucket` | text | nullable — `top_grossing`, `new`, … for home rails |
 
-**Top grossing rail (UI):** v1 ranks come from **manual curation**, **affiliate program “top” exports**, or **outbound click velocity** computed in our DB — not from scraping Nutaku’s charts.
+**Home rails (UI):** **Hottest** = outbound clicks in the last 7 days (`analytics_event`). **Trending** = listing views in the last 48 hours. Falls back to editorial `chart_rank` / publish date until traffic exists.
 
 ### `ingest_source` (cursor state)
 
@@ -78,9 +78,9 @@ Extends approved candidate fields plus:
 | `schedule` | cron expression |
 | `enabled` | boolean |
 
-### `listing_click` (for “popular” later)
+### `analytics_event`
 
-`listing_id`, `url_type`, `created_at`, optional coarse `country` — aggregate for “Popular now” without third-party charts.
+`event_type` (`outbound_click`, `listing_view`, `page_view`), `listing_id`, `path`, hashed session — powers on-site rankings without third-party charts.
 
 ---
 
@@ -91,7 +91,7 @@ flowchart LR
   subgraph sources [External — no login bypass]
     itch[itch.io RSS new.xml]
     steam[Steam GetAppList + details]
-    aff[Affiliate CSV/API]
+    manual[Admin manual listing]
     form[Developer form]
   end
 
@@ -106,19 +106,20 @@ flowchart LR
 
   itch --> job
   steam --> job
-  aff --> job
   form --> job
+  manual --> list
   job --> cand
   cand -->|human approve| list
 ```
 
-**CLI:** `npm run ingest` runs itch + Steam + affiliate file, then demo auto-publish when `DEMO_AUTO_PUBLISH=1`. Per-source: `ingest:itch`, `ingest:steam`, `ingest:affiliate`.
+**CLI:** `npm run ingest` runs itch + Steam into `candidate`. Optional `DEMO_AUTO_PUBLISH=1` for local auto-publish only. Per-source: `ingest:itch`, `ingest:steam`. **Admin:** `/admin` approve/reject; `/admin/listings/new` for curated partner URLs.
 
 ### Job 1: itch.io (`itch_new_xml`)
 
 - **GET** `https://itch.io/feed/new.xml` (public RSS).
 - Parse `item` → `title`, `link`, `guid`, `pubDate`.
 - `INSERT … ON CONFLICT (source, external_id) DO NOTHING` into `candidate`.
+- Optional extra feeds via env `ITCH_FEED_URLS` (comma-separated RSS URLs, e.g. featured).
 - Rate: once per day (or every 6h); polite `User-Agent` identifying the catalog.
 - **No** HTML scrape of project pages.
 
@@ -136,17 +137,13 @@ Implemented in `scripts/ingest-steam.ts`.
 
 Optional for production-style deltas. Register the key in Steamworks using your **production domain** (apex or `www` — no `https://`). Store the key only in **local `.env`** (gitignored) or your host’s secret/env UI. **Do not** put keys, tokens, or connection strings in this repository or in markdown docs.
 
-### Job 3: Affiliate export (`affiliate_*`)
+### Job 3: Developer form
 
-Implemented in `scripts/ingest-affiliate.ts`.
+- `POST /api/submissions` from `/submit` → `developer_submission` + `candidate` (`source = developer_form`).
 
-- Copy `data/affiliate-export.example.json` → `data/affiliate-export.json` when a program gives you an export.
-- Fields: `external_id`, `title`, `outbound_url`, optional `affiliate_url`.
-- **No** scraping partner storefront HTML (Nutaku, etc.).
+### Job 4: Manual listings
 
-### Job 4: Developer form
-
-- HTTP POST from site → `developer_submission` + `candidate` (`source = developer_form`).
+- Admin UI → `listing` directly (`source = manual`) for DLsite/JAST/etc. until exports exist.
 
 ### Job 5: Link health (weekly)
 
@@ -155,7 +152,7 @@ Implemented in `scripts/ingest-affiliate.ts`.
 
 ### Review → publish
 
-Staff UI: approve candidate → create `listing`, assign `slug`, platforms, artwork policy, optional `chart_rank` for **Top grossing** rail.
+Staff UI (`/admin`): approve candidate → create `listing`, assign `slug`, platforms, artwork policy. Storefront rankings prefer live `analytics_event` aggregates.
 
 ---
 

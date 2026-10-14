@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import type { Listing } from "@/db/schema";
 
 const gradients = [
@@ -21,11 +22,13 @@ function platformLabel(game: Listing) {
   const src =
     game.source === "steam"
       ? "Steam"
-      : game.source === "affiliate_export"
-        ? "Partner"
+      : game.source === "manual"
+        ? "Curated"
         : game.source === "developer_form"
           ? "Developer"
-          : "itch.io";
+          : game.source === "affiliate_export"
+            ? "Partner"
+            : "itch.io";
   return `${plats} · ${src}`;
 }
 
@@ -33,11 +36,17 @@ export function GameCard({ game, index, rank, wide, blur }: Props) {
   const w = wide ? "w-[200px]" : "w-[140px]";
   const h = wide ? "h-[200px]" : "h-[168px]";
 
+  useEffect(() => {
+    fetch("/api/analytics/view", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ listing_id: game.id, path: "/" }),
+    }).catch(() => {});
+  }, [game.id]);
+
   return (
     <a
-      href={game.officialUrl}
-      target="_blank"
-      rel="noopener noreferrer"
+      href={`/api/go/${game.id}`}
       className={`${w} shrink-0 overflow-hidden rounded-2xl shadow-[0_10px_28px_rgba(0,0,0,0.45)] bg-[#241033] block`}
     >
       <div className={`relative ${h}`} style={{ background: gradients[index % gradients.length] }}>

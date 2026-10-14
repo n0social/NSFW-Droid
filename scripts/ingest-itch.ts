@@ -6,14 +6,23 @@ import {
   touchIngestSource,
 } from "./lib/ingest-common";
 
-const FEED_URL = "https://itch.io/feed/new.xml";
+const DEFAULT_FEEDS = ["https://itch.io/feed/new.xml"];
 
-export async function runItchIngest() {
-  const res = await fetch(FEED_URL, {
+function feedUrls(): string[] {
+  const raw = process.env.ITCH_FEED_URLS?.trim();
+  if (!raw) return DEFAULT_FEEDS;
+  return raw
+    .split(",")
+    .map((u) => u.trim())
+    .filter(Boolean);
+}
+
+async function ingestFeed(url: string) {
+  const res = await fetch(url, {
     headers: { "User-Agent": USER_AGENT },
   });
   if (!res.ok) {
-    throw new Error(`itch feed HTTP ${res.status}`);
+    throw new Error(`itch feed HTTP ${res.status} for ${url}`);
   }
   const xml = await res.text();
   const parser = new XMLParser({ ignoreAttributes: false });
@@ -33,13 +42,35 @@ export async function runItchIngest() {
       externalId: guid,
       title,
       outboundUrl: link,
-      rawPayload: item,
+      rawPayload: { ...item, feedUrl: url },
     });
     if (ok) inserted += 1;
   }
 
-  await touchIngestSource("itch_new_xml", { fetched: list.length, inserted });
-  return { source: "itch", feedItems: list.length, newCandidates: inserted };
+  return { feedItems: list.length, newCandidates: inserted };
+}
+
+export async function runItchIngest() {
+  const urls = feedUrls();
+  let totalItems = 0;
+  let totalInserted = 0;
+  for (const url of urls) {
+    const r = await ingestFeed(url);
+    totalItems += r.feedItems;
+    totalInserted += r.newCandidates;
+  }
+
+  await touchIngestSource("itch_rss", {
+    feeds: urls,
+    fetched: totalItems,
+    inserted: totalInserted,
+  });
+  return {
+    source: "itch",
+    feeds: urls.length,
+    feedItems: totalItems,
+    newCandidates: totalInserted,
+  };
 }
 
 async function main() {

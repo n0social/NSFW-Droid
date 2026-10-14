@@ -19,6 +19,7 @@ export default async function HomePage() {
     topGrossing: [],
     newReleases: [],
     all: [],
+    rankingsFromAnalytics: false,
   };
   try {
     data = await getListingsForStorefront();
@@ -33,6 +34,7 @@ export default async function HomePage() {
         blurCovers={blurCovers}
         topGrossing={data.topGrossing}
         newReleases={data.newReleases}
+        rankingsFromAnalytics={data.rankingsFromAnalytics}
       />
     </div>
   );
