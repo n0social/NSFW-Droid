@@ -10,6 +10,10 @@ Do not commit API keys or `.env` files. Use `.env.example` locally; see [SECURIT
 
 Create a **private** repository and push `main` — step-by-step: [docs/github-setup.md](docs/github-setup.md). Dependabot is optional; you can skip it for now.
 
+## Production (DigitalOcean)
+
+Live domain: **https://www.nsfwdroid.com** on droplet `159.203.136.220`. Deploy checklist: [docs/deploy-droplet.md](docs/deploy-droplet.md) (DNS, Caddy, `NEXT_PUBLIC_GA_MEASUREMENT_ID`, `/etc/nsfwdroid.env`).
+
 ## Quick start (storefront + data)
 
 ```bash

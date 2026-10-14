@@ -6,7 +6,7 @@ import {
   parseAgeVerified,
   parseBlurCovers,
 } from "@/lib/cookies";
-import { getListingsForStorefront } from "@/lib/listings";
+import { getListingsForStorefront, getPublishedListingCount } from "@/lib/listings";
 
 export const dynamic = "force-dynamic";
 
@@ -21,8 +21,10 @@ export default async function HomePage() {
     all: [],
     rankingsFromAnalytics: false,
   };
+  let listingCount = 0;
   try {
     data = await getListingsForStorefront();
+    listingCount = await getPublishedListingCount();
   } catch {
     /* DB not up — empty state */
   }
@@ -35,6 +37,8 @@ export default async function HomePage() {
         topGrossing={data.topGrossing}
         newReleases={data.newReleases}
         rankingsFromAnalytics={data.rankingsFromAnalytics}
+        all={data.all}
+        listingCount={listingCount}
       />
     </div>
   );

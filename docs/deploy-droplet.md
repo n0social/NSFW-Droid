@@ -1,0 +1,97 @@
+# Deploy to DigitalOcean Droplet (www.nsfwdroid.com)
+
+**Droplet public IP:** `159.203.136.220`  
+**SSH key on droplet:** `icollar-droplet` (ed25519 — use the matching **private** key on your machine, not in git).
+
+This agent environment cannot SSH to your droplet unless you add its deploy key in DigitalOcean. Use the steps below from your laptop or paste the bootstrap script on the server after cloning the repo.
+
+---
+
+## 1. DNS (at your registrar)
+
+| Host | Type | Value |
+| --- | --- | --- |
+| `@` (apex) | A | `159.203.136.220` |
+| `www` | A | `159.203.136.220` |
+
+Optional: CNAME `www` → apex if your DNS provider prefers it. Caddy in `deploy/Caddyfile` requests certificates for both `www.nsfwdroid.com` and `nsfwdroid.com`.
+
+Propagation can take up to an hour.
+
+---
+
+## 2. SSH to the droplet
+
+```bash
+ssh -i ~/.ssh/icollar-droplet root@159.203.136.220
+```
+
+Create app directory and clone (private GitHub example):
+
+```bash
+apt-get update && apt-get install -y git
+mkdir -p /var/www/nsfwdroid
+cd /var/www/nsfwdroid
+git clone git@github.com:YOUR_ORG/NSFW-Droid.git .
+```
+
+---
+
+## 3. Environment (`/etc/nsfwdroid.env`)
+
+Never commit this file. Example:
+
+```bash
+NODE_ENV=production
+NEXT_PUBLIC_SITE_URL=https://www.nsfwdroid.com
+NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+ADMIN_PASSWORD=choose-a-long-secret
+DEMO_AUTO_PUBLISH=0
+STEAM_WEB_API_KEY=optional
+```
+
+- **Google Analytics:** create a GA4 property for `www.nsfwdroid.com`, copy the **Measurement ID** (`G-…`) into `NEXT_PUBLIC_GA_MEASUREMENT_ID`, rebuild (`npm run build`), restart `nsfwdroid`.
+- First-party rails still use `analytics_event` in Postgres/PGlite; GA is for marketing and funnel views.
+
+---
+
+## 4. Bootstrap script
+
+From the repo on the server:
+
+```bash
+chmod +x deploy/bootstrap-droplet.sh
+./deploy/bootstrap-droplet.sh
+```
+
+This installs Node 20, Caddy, builds the app, installs `deploy/nsfwdroid.service`, and proxies HTTPS → `localhost:3000`.
+
+---
+
+## 5. After deploy
+
+```bash
+cd /var/www/nsfwdroid
+npm run ingest          # candidates
+# set ADMIN_PASSWORD, visit https://www.nsfwdroid.com/admin
+```
+
+Daily ingest (cron):
+
+```text
+0 6 * * * cd /var/www/nsfwdroid && npm run ingest >> /var/log/nsfwdroid-ingest.log 2>&1
+```
+
+---
+
+## 6. Layout reference
+
+Storefront chrome matches `docs/design-layout.md` (header, 21:9 hero, chip row, horizontal rails, footer). Iterate copy and Vesper artwork from that doc after you review the live site.
+
+---
+
+## Security
+
+- Rotate any API key ever pasted in chat.
+- Restrict SSH to your IP in DigitalOcean Cloud Firewall when possible.
+- Keep `ADMIN_PASSWORD` only in `/etc/nsfwdroid.env`.

@@ -1,4 +1,4 @@
-import { desc, asc, isNotNull } from "drizzle-orm";
+import { desc, asc, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { listings, type Listing } from "@/db/schema";
 import { getHotListings, getRecentPopular } from "@/lib/analytics";
@@ -43,4 +43,11 @@ export async function getListingsForStorefront() {
 export async function hasAnyListings() {
   const [row] = await db.select({ id: listings.id }).from(listings).limit(1);
   return Boolean(row);
+}
+
+export async function getPublishedListingCount() {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(listings);
+  return row?.count ?? 0;
 }

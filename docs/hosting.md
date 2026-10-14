@@ -23,7 +23,8 @@ Both forbid CSAM, non-consensual sexual imagery, disruptive crawling, and copyri
 
 **Primary AUP:** [DigitalOcean Acceptable Use Policy](https://www.digitalocean.com/legal/acceptable-use-policy) (last updated 20 March 2026).
 
-**Production domain:** `https://www.nsfwdroid.com` (apex `nsfwdroid.com` should redirect or serve the same app). Point DNS A/AAAA at the Droplet when deploy is ready.
+**Production domain:** `https://www.nsfwdroid.com` (apex `nsfwdroid.com` served by the same Caddy config).  
+**Droplet IP:** `159.203.136.220` — deploy steps: [deploy-droplet.md](deploy-droplet.md).
 
 ---
 
