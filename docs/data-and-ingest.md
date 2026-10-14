@@ -124,17 +124,21 @@ flowchart LR
 
 ### Job 2: Steam (`steam_app_delta`)
 
-- **Requires:** `STEAM_WEB_API_KEY` (env secret — you create this in Steamworks, not DigitalOcean).
-- Call `IStoreService/GetAppList` with `if_modified_since` from `ingest_source.cursor`.
-- For each new/changed app id, fetch store details (descriptor for adult-only sexual content).
-- Only apps with the adult descriptor → `candidate` with `raw_payload` flags.
-- Second pass still needs **human review** (`docs/how_we_get_links.md`).
+Implemented in `scripts/ingest-steam.ts`.
+
+- **With `STEAM_WEB_API_KEY`:** `IStoreService/GetAppList` delta, then per-app `appdetails`.
+- **Without key (dev/demo):** merges `data/steam-seed-appids.json` + Steam **storesearch** JSON (`cc=us`) + `appdetails` filter.
+- **Adult filter:** Steam content descriptor **#3 (Adult Only Sexual Content)** only — not every game with mild nudity.
+- Rows → `candidate` (`source = steam`), `platforms` from Steam (windows/mac/linux).
+- Production still uses **human review** before public listings unless `DEMO_AUTO_PUBLISH=1`.
 
 ### Job 3: Affiliate export (`affiliate_*`)
 
-- After program approval: read dashboard **CSV/JSON export** URL or file drop (per network).
-- Map to `candidate` or directly update `listing.affiliate_url` for existing rows.
-- **No** scraping `nutaku.net` HTML.
+Implemented in `scripts/ingest-affiliate.ts`.
+
+- Copy `data/affiliate-export.example.json` → `data/affiliate-export.json` when a program gives you an export.
+- Fields: `external_id`, `title`, `outbound_url`, optional `affiliate_url`.
+- **No** scraping partner storefront HTML (Nutaku, etc.).
 
 ### Job 4: Developer form
 
