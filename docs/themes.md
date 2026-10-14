@@ -2,6 +2,8 @@
 
 Server-driven color packs for the storefront. Default branding stays the purple/pink palette from `docs/design-and-mascot.md`; optional holidays swap CSS variables on `<html>`.
 
+**Live behavior:** In production, the active month (UTC) selects the theme — e.g. October → Halloween, December → Christmas. Holiday `icon.svg` files are decorative layout icons, not the **Vesper** character mascot (Vesper is reserved for in-app prompts and updates later).
+
 ## Layout
 
 | Path | Role |

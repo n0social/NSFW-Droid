@@ -37,6 +37,7 @@ Local DB is **PGlite** (`data/catalog/`). Production target: **DigitalOcean Mana
 | [docs/hosting.md](docs/hosting.md) | **DigitalOcean** hosting |
 | [docs/architecture.md](docs/architecture.md) | Website + app architecture |
 | [docs/data-and-ingest.md](docs/data-and-ingest.md) | Postgres schema, feed workers |
+| [docs/themes.md](docs/themes.md) | Holiday color packs (UTC month auto-apply, signed-in opt-out) |
 | [docs/design-layout.md](docs/design-layout.md) | UI wireframes |
 | [docs/how_we_get_links.md](docs/how_we_get_links.md) | itch, Steam, affiliate ingestion |
 | [docs/considerations.md](docs/considerations.md) | Link vs distribute rights |
