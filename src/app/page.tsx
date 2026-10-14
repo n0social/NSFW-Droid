@@ -30,7 +30,7 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#14061C] text-[#FFF1F7]">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       <Storefront
         ageVerified={ageVerified}
         blurCovers={blurCovers}

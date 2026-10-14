@@ -79,8 +79,8 @@ export function Storefront({
       }
       className={`rounded-full px-3 py-1.5 text-[10px] font-extrabold ${
         effectiveBlur
-          ? "bg-[#FF4D8D] text-[#FFF1F7]"
-          : "border-2 border-[#C026D3] text-[#E9D5FF]"
+          ? "bg-[var(--theme-accent)] text-[var(--foreground)]"
+          : "border-2 border-[var(--theme-primary)] text-[var(--theme-text-muted)]"
       } disabled:cursor-not-allowed disabled:opacity-50`}
     >
       Blur: {effectiveBlur ? "ON" : "OFF"}
@@ -99,9 +99,9 @@ export function Storefront({
           <ChipRow active={chip} onChange={setChip} />
 
           {listingCount === 0 ? (
-            <div className="rounded-2xl border-2 border-dashed border-[#C026D3]/50 p-12 text-center">
-              <p className="font-bold text-[#E9D5FF]">No live listings yet.</p>
-              <p className="mt-2 text-xs text-[#E9D5FF]/80">
+            <div className="rounded-2xl border-2 border-dashed border-[var(--theme-primary)]/50 p-12 text-center">
+              <p className="font-bold text-[var(--theme-text-muted)]">No live listings yet.</p>
+              <p className="mt-2 text-xs text-[var(--theme-text-muted)]/80">
                 Run ingest on the server, then approve titles in{" "}
                 <Link href="/admin" className="text-[#FF4D8D] underline">
                   admin

@@ -1,0 +1,20 @@
+{
+  "id": "valentines",
+  "name": "Valentine's",
+  "priority": 10,
+  "icon": "icon.svg",
+  "schedule": {
+    "months": [2],
+    "description": "Auto-applies throughout February (UTC, months 1–12 where 2 = February)."
+  },
+  "colors": {
+    "background": "#1A0614",
+    "foreground": "#FFF0F5",
+    "primary": "#E11D48",
+    "accent": "#FB7185",
+    "surface": "#3B0A24",
+    "textMuted": "#FECDD3",
+    "border": "#E11D4840",
+    "borderStrong": "#F43F5E"
+  }
+}

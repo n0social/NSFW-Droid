@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { siteName, siteUrl } from "@/lib/site";
+import { themeToCssVariables } from "@/lib/themes/css-vars";
+import { resolveThemeForRequest } from "@/lib/themes/preferences";
+import { isSignedIn } from "@/lib/user-session";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,15 +35,25 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { active, scheduled } = await resolveThemeForRequest();
+  const signedIn = await isSignedIn();
+  const themeStyle = themeToCssVariables(active.colors);
+
   return (
-    <html lang="en">
+    <html lang="en" data-theme={active.id} style={themeStyle}>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <GoogleAnalytics />
+        <ThemeProvider
+          activeThemeId={active.id}
+          activeThemeName={active.name}
+          scheduledThemeId={scheduled.id}
+          isSignedIn={signedIn}
+        />
         {children}
       </body>
     </html>
