@@ -116,7 +116,11 @@ Reliable pattern:
 
 ## 5. After deploy
 
-Stop the app before ingest so PGlite is not opened twice (root CLI + `www-data` server causes `PGlite failed to initialize` and a `0 games` storefront):
+### Catalog ingest runbook (required)
+
+PGlite allows **one process** per `data/catalog` directory. If ingest or migrate runs while `nsfwdroid` is up, initialization fails (`PGlite failed to initialize`), `/api/health` returns **503**, and the homepage may show an empty catalog even though data on disk is fine.
+
+**Always stop the web service before any migrate/ingest:**
 
 ```bash
 systemctl stop nsfwdroid
@@ -127,14 +131,25 @@ chown -R www-data:www-data data/catalog
 systemctl start nsfwdroid
 ```
 
+Verify after start:
+
+```bash
+curl -sf http://localhost:3000/api/health | jq .
+# expect status 200 and listingCount > 0
+curl -sI https://www.nsfwdroid.com/api/health
+```
+
 (`npm run ingest` needs `tsx` from devDependencies; production `node_modules` from `npm ci --omit=dev` does not include it — use `npx tsx` as above.)
 
 TOS holds: visit https://www.nsfwdroid.com/admin (set `ADMIN_PASSWORD`).
 
-Daily ingest (cron):
+### Daily ingest (cron)
 
-```text
-0 6 * * * cd /var/www/nsfwdroid && npm run ingest >> /var/log/nsfwdroid-ingest.log 2>&1
+Cron must **stop** the app, ingest, then **start** — same as manual ingest:
+
+```bash
+# /etc/cron.d/nsfwdroid-ingest (example)
+0 6 * * * root systemctl stop nsfwdroid && cd /var/www/nsfwdroid && set -a && . /etc/nsfwdroid.env && set +a && npx --yes tsx scripts/db-migrate.ts && npx --yes tsx scripts/ingest-all.ts && chown -R www-data:www-data data/catalog && systemctl start nsfwdroid >> /var/log/nsfwdroid-ingest.log 2>&1
 ```
 
 ---

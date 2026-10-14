@@ -1,5 +1,5 @@
 import { eq, and } from "drizzle-orm";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import {
   userFavorites,
   userProfiles,
@@ -12,6 +12,7 @@ export async function upsertUserProfileFromSession(
   firebaseUid: string,
   email: string,
 ): Promise<void> {
+  const db = await getDb();
   const now = new Date();
   await db
     .insert(userProfiles)
@@ -30,6 +31,7 @@ export async function upsertUserProfileFromSession(
 }
 
 export async function getUserProfile(firebaseUid: string): Promise<UserProfile | null> {
+  const db = await getDb();
   const [row] = await db
     .select()
     .from(userProfiles)
@@ -58,6 +60,7 @@ export async function mergeUserPreferences(
   const existing = await getUserProfile(firebaseUid);
   if (!existing) return null;
   const merged = { ...parseUserPreferences(existing.preferences), ...patch };
+  const db = await getDb();
   const now = new Date();
   const [row] = await db
     .update(userProfiles)
@@ -78,6 +81,7 @@ export async function updateUserProfileFields(
   const existing = await getUserProfile(firebaseUid);
   if (!existing) return null;
 
+  const db = await getDb();
   const now = new Date();
   const set: Partial<typeof userProfiles.$inferInsert> = { updatedAt: now };
 
@@ -103,6 +107,7 @@ export async function updateUserProfileFields(
 }
 
 export async function listFavoriteListingIds(firebaseUid: string): Promise<string[]> {
+  const db = await getDb();
   const rows = await db
     .select({ listingId: userFavorites.listingId })
     .from(userFavorites)
@@ -111,6 +116,7 @@ export async function listFavoriteListingIds(firebaseUid: string): Promise<strin
 }
 
 export async function listFavoriteListings(firebaseUid: string) {
+  const db = await getDb();
   return db
     .select({
       favorite: userFavorites,
@@ -125,6 +131,7 @@ export async function toggleUserFavorite(
   firebaseUid: string,
   listingId: string,
 ): Promise<{ favorited: boolean }> {
+  const db = await getDb();
   const [existing] = await db
     .select({ listingId: userFavorites.listingId })
     .from(userFavorites)
@@ -147,6 +154,7 @@ export async function toggleUserFavorite(
 }
 
 export async function removeUserFavorite(firebaseUid: string, listingId: string): Promise<boolean> {
+  const db = await getDb();
   const deleted = await db
     .delete(userFavorites)
     .where(

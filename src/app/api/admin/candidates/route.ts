@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { candidates } from "@/db/schema";
 import { isAdminSession } from "@/lib/admin-auth";
 
@@ -8,6 +8,7 @@ export async function GET() {
   if (!(await isAdminSession())) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
+  const db = await getDb();
   const rows = await db
     .select()
     .from(candidates)

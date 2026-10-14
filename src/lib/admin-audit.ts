@@ -1,4 +1,4 @@
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { adminAuditLog } from "@/db/schema";
 
 export async function logAdminAction(input: {
@@ -8,6 +8,7 @@ export async function logAdminAction(input: {
   metadata?: Record<string, unknown>;
   ip?: string;
 }) {
+  const db = await getDb();
   await db.insert(adminAuditLog).values({
     action: input.action,
     actor: input.actor ?? "admin",

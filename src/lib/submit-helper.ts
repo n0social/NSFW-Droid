@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { candidates } from "@/db/schema";
 import { processCandidateAfterIngest } from "@/lib/auto-publish";
 
@@ -10,6 +10,7 @@ export async function upsertCandidate(input: {
   outboundUrl: string;
   rawPayload?: unknown;
 }): Promise<{ inserted: boolean; id: string | null }> {
+  const db = await getDb();
   const result = await db
     .insert(candidates)
     .values({

@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { db } from "../../src/db";
+import { getDb } from "../../src/db";
 import { candidates, ingestSources } from "../../src/db/schema";
 import {
   autoPublishPendingCandidates,
@@ -28,6 +28,7 @@ export async function upsertCandidate(input: {
   rawPayload?: unknown;
   tags?: ExtractedTag[];
 }): Promise<boolean> {
+  const db = await getDb();
   const result = await db
     .insert(candidates)
     .values({
@@ -70,6 +71,7 @@ export async function touchIngestSource(
   cursor: Record<string, unknown>,
   lastError: string | null = null,
 ) {
+  const db = await getDb();
   await db
     .insert(ingestSources)
     .values({

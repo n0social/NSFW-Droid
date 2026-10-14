@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { candidates, listings, type Candidate } from "@/db/schema";
 import { copyCandidateTagsToListing } from "@/lib/catalog-tags";
 import { slugify } from "@/lib/slug";
@@ -14,6 +14,7 @@ export async function approveCandidate(
     affiliateUrl?: string | null;
   },
 ) {
+  const db = await getDb();
   const [c] = await db.select().from(candidates).where(eq(candidates.id, candidateId)).limit(1);
   if (!c || c.reviewStatus !== "pending") return null;
 
@@ -75,6 +76,7 @@ export async function approveCandidate(
 }
 
 export async function rejectCandidate(candidateId: string, reviewer: string, reason: string) {
+  const db = await getDb();
   await db
     .update(candidates)
     .set({
@@ -98,6 +100,7 @@ export async function createManualListing(input: {
   platforms: string[];
   reviewer: string;
 }) {
+  const db = await getDb();
   const externalId = `manual-${Date.now()}`;
   const slug = slugify(input.title, externalId);
   const [listing] = await db

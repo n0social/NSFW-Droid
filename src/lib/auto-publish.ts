@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { candidates } from "@/db/schema";
 import { approveCandidate } from "@/lib/review";
 import {
@@ -55,6 +55,7 @@ async function markTosHold(
   existingPayload: unknown,
   screen: TosScreenResult,
 ) {
+  const db = await getDb();
   const base =
     existingPayload && typeof existingPayload === "object"
       ? { ...(existingPayload as Record<string, unknown>) }
@@ -85,6 +86,7 @@ function affiliateFromRaw(raw: unknown): string | null {
 export async function processCandidateAfterIngest(
   candidateId: string,
 ): Promise<CandidateIngestOutcome> {
+  const db = await getDb();
   const [c] = await db.select().from(candidates).where(eq(candidates.id, candidateId)).limit(1);
   if (!c || c.reviewStatus !== "pending") return "skipped";
 
@@ -116,6 +118,7 @@ export async function autoPublishPendingCandidates(limit = 100): Promise<{
   pending: number;
   skipped: number;
 }> {
+  const db = await getDb();
   const pending = await db
     .select()
     .from(candidates)

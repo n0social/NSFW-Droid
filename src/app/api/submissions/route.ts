@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createHash } from "crypto";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { developerSubmissions } from "@/db/schema";
 import { isIngestAutoPublishEnabled } from "@/lib/auto-publish";
 import { upsertCandidate } from "@/lib/submit-helper";
@@ -38,6 +38,7 @@ export async function POST(request: Request) {
     rawPayload: { platforms, contact_email: email, message },
   });
 
+  const db = await getDb();
   const [sub] = await db
     .insert(developerSubmissions)
     .values({ contactEmail: email, message, candidateId })

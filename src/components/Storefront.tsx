@@ -18,6 +18,7 @@ type Props = {
   all: Listing[];
   listingCount: number;
   rankingsFromAnalytics?: boolean;
+  catalogUnavailable?: boolean;
 };
 
 function matchesChip(game: Listing, chip: ChipId) {
@@ -35,6 +36,7 @@ export function Storefront({
   all,
   listingCount,
   rankingsFromAnalytics = false,
+  catalogUnavailable = false,
 }: Props) {
   const [blurCovers, setBlurCovers] = useState(initialBlur);
   const [chip, setChip] = useState<ChipId>("all");
@@ -95,10 +97,20 @@ export function Storefront({
         <SiteHeader listingCount={listingCount} blurToggle={blurToggle} ageVerified={ageVerified} />
 
         <main id="browse" className="mx-auto max-w-7xl px-4 pb-4 pt-4">
+          {catalogUnavailable && (
+            <div
+              role="alert"
+              className="mb-4 rounded-xl border border-amber-500/60 bg-amber-950/40 px-4 py-3 text-center text-sm font-semibold text-amber-100"
+            >
+              Catalog temporarily unavailable. Legal pages and site navigation still work — try
+              again in a few minutes.
+            </div>
+          )}
+
           <HeroCarousel featured={featured} blur={effectiveBlur} />
           <ChipRow active={chip} onChange={setChip} />
 
-          {listingCount === 0 ? (
+          {catalogUnavailable ? null : listingCount === 0 ? (
             <div className="rounded-2xl border-2 border-dashed border-[var(--theme-primary)]/50 p-12 text-center">
               <p className="font-bold text-[var(--theme-text-muted)]">No live listings yet.</p>
               <p className="mt-2 text-xs text-[var(--theme-text-muted)]/80">

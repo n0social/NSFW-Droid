@@ -15,30 +15,22 @@ export default async function HomePage() {
   const ageVerified = parseAgeVerified(jar.get(AGE_VERIFIED_COOKIE)?.value);
   const blurCovers = parseBlurCovers(jar.get(BLUR_COVERS_COOKIE)?.value);
 
-  let data: Awaited<ReturnType<typeof getListingsForStorefront>> = {
-    topGrossing: [],
-    newReleases: [],
-    all: [],
-    rankingsFromAnalytics: false,
-  };
-  let listingCount = 0;
-  try {
-    data = await getListingsForStorefront();
-    listingCount = await getPublishedListingCount();
-  } catch {
-    /* DB not up — empty state */
-  }
+  const storefront = await getListingsForStorefront();
+  const listingCount = storefront.catalogUnavailable
+    ? 0
+    : await getPublishedListingCount();
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       <Storefront
         ageVerified={ageVerified}
         blurCovers={blurCovers}
-        topGrossing={data.topGrossing}
-        newReleases={data.newReleases}
-        rankingsFromAnalytics={data.rankingsFromAnalytics}
-        all={data.all}
+        topGrossing={storefront.topGrossing}
+        newReleases={storefront.newReleases}
+        rankingsFromAnalytics={storefront.rankingsFromAnalytics}
+        all={storefront.all}
         listingCount={listingCount}
+        catalogUnavailable={storefront.catalogUnavailable}
       />
     </div>
   );

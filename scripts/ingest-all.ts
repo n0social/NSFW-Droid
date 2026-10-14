@@ -3,7 +3,7 @@ import { sql } from "drizzle-orm";
 import { autoPublishPendingCandidates } from "../src/lib/auto-publish";
 import { runItchIngest } from "./ingest-itch";
 import { runSteamIngest } from "./ingest-steam";
-import { db } from "../src/db";
+import { closeCatalogDb, getDb } from "../src/db";
 import { candidates } from "../src/db/schema";
 import {
   backfillCandidateTags,
@@ -25,6 +25,7 @@ function deriveTags(c: typeof candidates.$inferSelect) {
 }
 
 async function main() {
+  const db = await getDb();
   const itch = await runItchIngest();
   const steam = await runSteamIngest();
   const tagsBackfilled = await backfillCandidateTags(deriveTags);
@@ -51,6 +52,7 @@ async function main() {
       catalog: counts.rows[0],
     }),
   );
+  await closeCatalogDb();
 }
 
 main().catch((e) => {

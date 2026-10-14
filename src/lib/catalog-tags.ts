@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import {
   candidateTags,
   candidates,
@@ -11,6 +11,7 @@ import {
 export type CatalogTagInput = { slug: string; label: string; kind: string };
 
 export async function ensureTags(extracted: CatalogTagInput[]): Promise<string[]> {
+  const db = await getDb();
   const ids: string[] = [];
   for (const t of extracted) {
     const [row] = await db
@@ -27,6 +28,7 @@ export async function ensureTags(extracted: CatalogTagInput[]): Promise<string[]
 }
 
 export async function linkCandidateTags(candidateId: string, tagIds: string[]) {
+  const db = await getDb();
   for (const tagId of tagIds) {
     await db
       .insert(candidateTags)
@@ -39,6 +41,7 @@ export async function copyCandidateTagsToListing(
   candidateId: string,
   listingId: string,
 ) {
+  const db = await getDb();
   const rows = await db
     .select({ tagId: candidateTags.tagId })
     .from(candidateTags)
@@ -64,6 +67,7 @@ export async function backfillCandidateTags(
   derive: (c: typeof candidates.$inferSelect) => CatalogTagInput[],
   limit = 5000,
 ) {
+  const db = await getDb();
   const rows = await db.select().from(candidates).limit(limit);
   let updated = 0;
   for (const c of rows) {
@@ -76,6 +80,7 @@ export async function backfillCandidateTags(
 }
 
 export async function backfillListingTagsFromCandidates() {
+  const db = await getDb();
   const approved = await db
     .select()
     .from(candidates)
