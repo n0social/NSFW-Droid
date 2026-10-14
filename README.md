@@ -6,7 +6,8 @@ Planning repository for an adult (18+) game **catalog**: link-out first, license
 
 | Doc | Contents |
 | --- | --- |
-| [docs/architecture.md](docs/architecture.md) | **Website + app target architecture** (Phase 1 catalog, Phase 2 downloads) |
+| [docs/architecture.md](docs/architecture.md) | **Website + app target architecture** (Phase 1 catalog, Phase 2 downloads; **Vultr** hosting) |
+| [docs/design-layout.md](docs/design-layout.md) | **UI wireframes** — age gate, home, browse, detail, Android shell |
 | [docs/gaps.md](docs/gaps.md) | What blocks a public launch |
 | [docs/how_we_get_links.md](docs/how_we_get_links.md) | itch.io, Steam, affiliate, and developer ingestion |
 | [docs/considerations.md](docs/considerations.md) | Link vs promote vs distribute rights |

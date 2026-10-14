@@ -4,6 +4,8 @@
 **Status:** target architecture for implementation. Aligns with `docs/gaps.md`, `docs/how_we_get_links.md`, `docs/considerations.md`, `docs/revenue_streams.md`, and `docs/design-and-mascot.md`.  
 **Principle:** Phase 1 distributes **links only**. Phase 2 adds **licensed builds** via Object Storage and a sideloaded Android store app. Nothing in Phase 1 stores game binaries.
 
+**Hosting decision:** **Vultr** is the initial production platform for compute, TLS termination, and (when needed) Object Storage. The link catalog runs on a single Vultr Cloud Compute instance until traffic or compliance needs force a split. UI page layout is specified in `docs/design-layout.md`.
+
 ---
 
 ## System context
@@ -205,21 +207,91 @@ Public JSON enables a future Android client to reuse the same catalog before dow
 
 ---
 
-## Phase 1: infrastructure (Vultr)
+## Initial hosting on Vultr
 
-**Single region to start** (pick close to primary audience; document choice).
+All Phase 1 and Phase 2 services below run on **Vultr** first. Revisit multi-cloud or managed PaaS only if Vultr policy, payment-adjacent compliance, or egress economics block a requirement.
 
-| Piece | Suggestion |
-| --- | --- |
-| Compute | One small VM: web + worker + cron |
-| Database | Managed Postgres if available; else Postgres on VM with backups |
-| Cache | Redis for rate limits, age-gate session, optional ISR revalidation |
-| Object storage | **Off** in Phase 1 except maybe static assets (logo, typographic card templates, affiliate creatives we are licensed to host) |
-| TLS | Let’s Encrypt on nginx or Caddy reverse proxy |
-| Secrets | Env vars; Steam Web API key, affiliate keys, age vendor API key |
-| Backups | Daily DB snapshot; config in git |
+### Topology (Phase 1)
 
-**Environments:** `staging` (noindex, test age vendor sandbox) and `production`.
+```text
+                         Internet
+                             │
+                             ▼
+              ┌──────────────────────────────┐
+              │  Vultr Cloud Compute (VM)     │
+              │  ───────────────────────────  │
+              │  Caddy or nginx :443 TLS      │
+              │    ├─ Next.js (Node) :3000    │
+              │    ├─ ingest worker (cron)    │
+              │    └─ link-checker (weekly)   │
+              │  Postgres (same VM or         │
+              │    Vultr Managed DB)          │
+              │  Redis (same VM, small)       │
+              └──────────────────────────────┘
+                             │
+              optional Phase 1 ──► Vultr Object Storage
+              (static assets only: typographic templates,
+               affiliate creatives we may host locally)
+
+Phase 2 adds ──► Vultr Object Storage bucket(s)
+               game builds, APK, signed GET URLs
+```
+
+```mermaid
+flowchart TB
+  users[Players and staff browsers]
+  dns[Domain DNS A/AAAA to Vultr]
+  vm[Vultr Cloud Compute VM]
+  caddy[Caddy or nginx TLS]
+  app[Next.js app and API]
+  worker[Ingest and link-check workers]
+  pg[(Postgres)]
+  redis[(Redis)]
+  obj[(Vultr Object Storage)]
+  feeds[itch.io RSS Steam API affiliates]
+
+  users --> dns --> caddy
+  caddy --> app
+  app --> pg
+  app --> redis
+  worker --> pg
+  worker --> feeds
+  app -.->|Phase 1 static assets| obj
+  app -->|Phase 2 signed downloads| obj
+  vm --- caddy
+  vm --- app
+  vm --- worker
+  vm --- pg
+  vm --- redis
+```
+
+### Sizing and region (starting point)
+
+| Piece | Vultr product | Phase 1 note |
+| --- | --- | --- |
+| Compute | Cloud Compute, 2 vCPU / 4 GB RAM (adjust after metrics) | Runs web, workers, Redis; co-locate Postgres on same VM only for staging or very early prod |
+| Database | Managed PostgreSQL when prod traffic is real | Prefer managed backups and patches before launch marketing |
+| Cache | Redis on VM | Sessions, rate limits, age-gate flags |
+| Object Storage | Standard tier | Phase 1: optional static bucket; Phase 2: game binaries and APK |
+| Firewall | Vultr firewall group | 443 public; 22 restricted to admin IPs; Postgres not public |
+| DNS | Your registrar → Vultr VM IP | Staging subdomain optional (`staging.example.com`) |
+
+Pick one **region** close to the primary audience (e.g. US East or EU Amsterdam) and record it in deploy notes. Keep staging and production in the same region until latency requirements say otherwise.
+
+### Deploy flow on Vultr
+
+1. Provision VM + firewall + (optional) managed Postgres.
+2. Install Docker or run Node via systemd; pull release artifact from CI.
+3. Caddy obtains Let’s Encrypt certs for production domain.
+4. Environment variables on VM: database URL, Redis, Steam key, age vendor, affiliate secrets.
+5. Cron or systemd timers for ingest and link-check on the same VM as the app (Phase 1).
+6. Enable Vultr backups or scheduled DB snapshots.
+
+**Environments:** `staging` (noindex, age vendor sandbox) and `production` on separate VMs or the same VM with separate DB — prefer separate VMs before paid traffic.
+
+### Cost shape (order of magnitude)
+
+Link catalog only: one small VM + domain is enough (`docs/gaps.md`). Object Storage billing matters when hosting builds (`docs/revenue_streams.md`: storage + egress per download). Keep the bucket empty until a licensed binary exists (`docs/considerations.md`).
 
 ---
 
