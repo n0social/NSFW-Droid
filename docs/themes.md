@@ -11,7 +11,7 @@ Server-driven color packs for the storefront. Default branding stays the purple/
 | `data/themes/<id>/theme.json` | Name, UTC month schedule, color tokens |
 | `data/themes/<id>/icon.svg` | Optional mascot-style icon (served at `/api/theme/icon/<id>`) |
 | `src/lib/themes/` | Registry, `resolveActiveTheme()`, cookie preference |
-| `src/lib/user-session.ts` | `isSignedIn()` stub until accounts |
+| `src/lib/user-session.ts` | `isSignedIn()` via httpOnly session cookie (Firebase) |
 | `src/components/theme/ThemeProvider.tsx` | Signed-in-only opt-out banner |
 | `POST /api/theme/override` | `{ "preference": "default" \| "auto" }` → `theme_override` httpOnly cookie |
 
@@ -50,7 +50,7 @@ Storefront chrome (`SiteHeader`, home page shell, blur chip) reads these where p
 
 ## Signed-in UI
 
-`ThemeProvider` shows **Remove holiday theme** only when `isSignedIn()` is true. The stub returns `false` unless `USER_SESSION=1` is set for testing. The override API still works for any visitor (e.g. manual cookie or future account wiring).
+`ThemeProvider` shows **Remove holiday theme** only when `isSignedIn()` is true (Firebase session cookie). The override API still works for any visitor via the `theme_override` cookie. Account page duplicates the opt-out for signed-in users.
 
 ## Adding a theme
 

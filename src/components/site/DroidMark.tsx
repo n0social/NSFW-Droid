@@ -2,8 +2,11 @@ type Props = {
   className?: string;
 };
 
-/** NSFW Droid mascot — android bust with heart eyes (brand mark). */
-export function VesperMark({ className = "h-9 w-9" }: Props) {
+/**
+ * Header / layout android bust (heart eyes). Not the Vesper character mascot —
+ * Vesper is reserved for future in-app UI (updates, deal cards, subscription prompts).
+ */
+export function DroidMark({ className = "h-9 w-9" }: Props) {
   return (
     <svg
       viewBox="0 0 36 36"

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { VesperMark } from "@/components/site/VesperMark";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { DroidMark } from "@/components/site/DroidMark";
 
 type Props = {
   listingCount: number;
@@ -10,6 +11,8 @@ type Props = {
 };
 
 export function SiteHeader({ listingCount, blurToggle, ageVerified }: Props) {
+  const { configured, loading, user, signOut } = useAuth();
+
   function scrollBrowse() {
     document.getElementById("browse")?.scrollIntoView({ behavior: "smooth" });
   }
@@ -19,7 +22,7 @@ export function SiteHeader({ listingCount, blurToggle, ageVerified }: Props) {
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3">
         <Link href="/" className="flex items-center gap-2" aria-label="NSFW Droid home">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--theme-surface)] shadow-md ring-1 ring-[var(--theme-primary)]/50">
-            <VesperMark className="h-8 w-8" />
+            <DroidMark className="h-8 w-8" />
           </span>
           <span className="text-sm font-black tracking-tight text-[var(--foreground)]">
             NSFW<span className="text-[var(--theme-accent)]">Droid</span>
@@ -54,12 +57,37 @@ export function SiteHeader({ listingCount, blurToggle, ageVerified }: Props) {
           >
             {listingCount.toLocaleString()} games
           </span>
-          <span
-            className="hidden rounded-full border border-[var(--theme-surface)] px-3 py-1.5 text-[10px] font-semibold text-[var(--theme-text-muted)]/40 sm:inline"
-            title="Accounts ship in a later phase"
-          >
-            Sign in — soon
-          </span>
+          {!loading && configured && user ? (
+            <>
+              <Link
+                href="/account"
+                className="hidden rounded-full border border-[var(--theme-primary)]/40 px-3 py-1.5 text-[10px] font-bold text-[var(--theme-text-muted)] hover:bg-[var(--theme-surface)] sm:inline"
+              >
+                Account
+              </Link>
+              <button
+                type="button"
+                onClick={() => signOut()}
+                className="hidden rounded-full border border-[var(--theme-surface)] px-3 py-1.5 text-[10px] font-semibold text-[var(--theme-text-muted)] hover:bg-[var(--theme-surface)] sm:inline"
+              >
+                Sign out
+              </button>
+            </>
+          ) : !loading && configured ? (
+            <Link
+              href="/sign-in"
+              className="hidden rounded-full border border-[var(--theme-primary)]/40 px-3 py-1.5 text-[10px] font-bold text-[var(--theme-accent)] hover:bg-[var(--theme-surface)] sm:inline"
+            >
+              Sign in
+            </Link>
+          ) : (
+            <span
+              className="hidden rounded-full border border-[var(--theme-surface)] px-3 py-1.5 text-[10px] font-semibold text-[var(--theme-text-muted)]/40 sm:inline"
+              title="Set Firebase env vars to enable accounts"
+            >
+              Sign in — soon
+            </span>
+          )}
         </div>
       </div>
       {!ageVerified && (

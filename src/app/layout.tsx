@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { siteName, siteUrl } from "@/lib/site";
@@ -48,13 +49,15 @@ export default async function RootLayout({
     <html lang="en" data-theme={active.id} style={themeStyle}>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <GoogleAnalytics />
-        <ThemeProvider
-          activeThemeId={active.id}
-          activeThemeName={active.name}
-          scheduledThemeId={scheduled.id}
-          isSignedIn={signedIn}
-        />
-        {children}
+        <AuthProvider>
+          <ThemeProvider
+            activeThemeId={active.id}
+            activeThemeName={active.name}
+            scheduledThemeId={scheduled.id}
+            isSignedIn={signedIn}
+          />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

@@ -14,7 +14,7 @@ export type ThemeClientState = {
 type Props = ThemeClientState;
 
 /**
- * Holiday opt-out UI is shown only when isSignedIn is true (stub returns false until accounts).
+ * Holiday opt-out UI is shown only when isSignedIn is true (Firebase session cookie on the server).
  * Server-side theme_override cookie still works for all visitors via POST /api/theme/override.
  */
 export function ThemeProvider({
