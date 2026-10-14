@@ -8,7 +8,9 @@ User=www-data
 Group=www-data
 WorkingDirectory=/var/www/nsfwdroid
 EnvironmentFile=/etc/nsfwdroid.env
-ExecStart=/usr/bin/npm run start
+Environment=HOME=/var/www/nsfwdroid
+Environment=NPM_CONFIG_CACHE=/var/www/nsfwdroid/.npm-cache
+ExecStart=/usr/bin/node node_modules/next/dist/bin/next start -H 0.0.0.0 -p 3000
 Restart=on-failure
 RestartSec=5
 
