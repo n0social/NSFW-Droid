@@ -1,9 +1,26 @@
 # Deploy to DigitalOcean Droplet (www.nsfwdroid.com)
 
 **Droplet public IP:** `159.203.136.220`  
-**SSH key on droplet:** `icollar-droplet` (ed25519 — use the matching **private** key on your machine, not in git).
+**Your key on droplet:** `icollar-droplet` (for you from your laptop).
 
-This agent environment cannot SSH to your droplet unless you add its deploy key in DigitalOcean. Use the steps below from your laptop or paste the bootstrap script on the server after cloning the repo.
+**Cloud agent deploy key (add to droplet once):** public key in `deploy/nsfwdroid-deploy.pub`:
+
+```text
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMdIdQkh4DkAO9/giumJnatx9T2k0zkEmF/NuxKEPVmS nsfwdroid-cloud-agent-deploy
+```
+
+While logged in as **root** with your existing key, append it:
+
+```bash
+mkdir -p ~/.ssh && chmod 700 ~/.ssh
+grep -q 'nsfwdroid-cloud-agent-deploy' ~/.ssh/authorized_keys 2>/dev/null || \
+  echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMdIdQkh4DkAO9/giumJnatx9T2k0zkEmF/NuxKEPVmS nsfwdroid-cloud-agent-deploy' >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+```
+
+Or: DigitalOcean → **Settings → Security → SSH keys** → Add, then **Droplet → Access → Add SSH key** (or recreate with both keys).
+
+After that, the Cursor cloud agent can `ssh root@159.203.136.220` and run bootstrap. The **private** key never leaves the agent VM and is **not** in git.
 
 ---
 
