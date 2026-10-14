@@ -1,3 +1,9 @@
+# Until DNS points here, browse by IP over HTTP (no TLS on raw IP).
+http://159.203.136.220 {
+	encode gzip
+	reverse_proxy 127.0.0.1:3000
+}
+
 www.nsfwdroid.com, nsfwdroid.com {
 	encode gzip
 	reverse_proxy 127.0.0.1:3000
