@@ -1,5 +1,6 @@
 # Deploy to DigitalOcean Droplet (www.nsfwdroid.com)
 
+**Production URL:** https://www.nsfwdroid.com (HTTPS via Caddy + Let’s Encrypt). Admin: `/admin/login`.  
 **Droplet public IP:** `159.203.136.220`  
 **Your key on droplet:** `icollar-droplet` (for you from your laptop).
 
