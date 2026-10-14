@@ -86,6 +86,16 @@ export const developerSubmissions = pgTable("developer_submission", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const adminAuditLog = pgTable("admin_audit_log", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  action: text("action").notNull(),
+  actor: text("actor").notNull().default("admin"),
+  targetId: uuid("target_id"),
+  metadata: jsonb("metadata"),
+  ip: text("ip"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const analyticsEvents = pgTable("analytics_event", {
   id: uuid("id").defaultRandom().primaryKey(),
   eventType: analyticsEventTypeEnum("event_type").notNull(),

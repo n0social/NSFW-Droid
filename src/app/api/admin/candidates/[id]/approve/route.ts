@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { isAdminSession } from "@/lib/admin-auth";
+import { logAdminAction } from "@/lib/admin-audit";
+import { clientIp } from "@/lib/rate-limit";
 import { approveCandidate } from "@/lib/review";
 
 export async function POST(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   if (!(await isAdminSession())) {
@@ -14,5 +16,11 @@ export async function POST(
   if (!listing) {
     return NextResponse.json({ error: "not_found_or_not_pending" }, { status: 404 });
   }
+  await logAdminAction({
+    action: "candidate_approve",
+    targetId: id,
+    ip: clientIp(request),
+    metadata: { listing_id: listing.id, title: listing.title },
+  }).catch(() => {});
   return NextResponse.json({ ok: true, listing });
 }

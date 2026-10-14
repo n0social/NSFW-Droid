@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAdminSession } from "@/lib/admin-auth";
+import { logAdminAction } from "@/lib/admin-audit";
+import { clientIp } from "@/lib/rate-limit";
 import { createManualListing } from "@/lib/review";
 
 export async function POST(request: Request) {
@@ -19,5 +21,11 @@ export async function POST(request: Request) {
     platforms,
     reviewer: "admin",
   });
+  await logAdminAction({
+    action: "manual_listing",
+    targetId: listing.id,
+    ip: clientIp(request),
+    metadata: { title, official_url: officialUrl },
+  }).catch(() => {});
   return NextResponse.json({ ok: true, listing });
 }
