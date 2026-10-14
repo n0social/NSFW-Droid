@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { candidates, listings, type Candidate } from "@/db/schema";
 import { copyCandidateTagsToListing } from "@/lib/catalog-tags";
@@ -16,6 +16,24 @@ export async function approveCandidate(
 ) {
   const [c] = await db.select().from(candidates).where(eq(candidates.id, candidateId)).limit(1);
   if (!c || c.reviewStatus !== "pending") return null;
+
+  const [existingListing] = await db
+    .select()
+    .from(listings)
+    .where(and(eq(listings.source, c.source), eq(listings.externalId, c.externalId)))
+    .limit(1);
+  if (existingListing) {
+    await copyCandidateTagsToListing(candidateId, existingListing.id);
+    await db
+      .update(candidates)
+      .set({
+        reviewStatus: "approved",
+        reviewedAt: new Date(),
+        reviewedBy: reviewer,
+      })
+      .where(eq(candidates.id, candidateId));
+    return existingListing;
+  }
 
   const slug = slugify(c.title, c.externalId);
   const raw = c.rawPayload as { platforms?: string[]; affiliate_url?: string } | null;
