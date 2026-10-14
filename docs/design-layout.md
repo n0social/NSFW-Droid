@@ -33,6 +33,54 @@ Every catalog page shares the same shell so the store reads as one product, not 
 
 **Pre-gate:** no header catalog links, no game thumbnails, no footer ad slot. Only age assurance + legal minimum.
 
+**Age gate is not a “page” in the nav.** Players never pick “Age gate” from a menu. Routing sends first-time (or expired) sessions to `/enter` (or a full-screen overlay), the vendor runs, then the app drops them on **Home**. Design previews may simulate that flow with a **dev-only** “Simulate first visit” toggle — not a tab beside Browse.
+
+**PG preview mode (public demos):** wireframes, screenshots, and staging builds shown on open networks use neutral placeholder art, generic game titles, and copy like “Mature games catalog (18+)” — no explicit thumbnails or lewd sample text. Production after verification uses real listing art behind the gate.
+
+---
+
+## Storefront polish (catalog, not image board)
+
+The catalog should feel like a **specialist game store** (Nutaku-shaped: curated rails, hero, chips) — not a flat grid of same-size boxes (Reddit / booru / basic image board).
+
+| Image-board pattern (avoid) | Storefront pattern (target) |
+| --- | --- |
+| Uniform grid of bordered rectangles | **Mixed layout:** hero banner + horizontal **rails** with varied card widths |
+| Every tile equal weight | **One featured tile** large; rail cards ~180–220px wide with peek |
+| Metadata as plain text under box | **Art-first cards:** rounded cover, **gradient scrim** on art, title + platform **on or under** art |
+| Filters as a bare sidebar | **Chip row** under hero (Platform, New, Browser…) + sort on the right |
+| Hard outline on every cell | **Soft elevation:** `box-shadow` + optional **1px** inner highlight; reserve **thick** borders for CTAs and header rule |
+| Static page | **Horizontal scroll** sections with snap; subtle hover scale on cards |
+
+**Home structure (Nutaku-like)**
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  HEADER  glass/blur strip · logo · pill nav · search field · submit CTA        │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  HERO CAROUSEL  (1–3 slides, 21:9 crop, gradient overlay, single CTA pill)      │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  CHIP ROW   [ All ] [ New ] [ Windows ] [ Browser ] [ Android ]  → scroll      │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  Section: Popular now                    [ See all ]                            │
+│  ◀  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐  ▶   horizontal   │
+│     │ large  │ │        │ │        │ │        │ │        │       rail       │
+│     └────────┘ └────────┘ └────────┘ └────────┘ └────────┘                    │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  Section: New releases                   (second rail, same card component)    │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  FOOTER                                                                         │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Card component:** `rounded-2xl`, overflow hidden, art aspect **3:4** or **16:9** per section, bottom gradient `transparent → #14061C`, sponsored **pill** on art (top-left). Favorite heart top-right. No separate “title bar” box unless typographic fallback cover.
+
+**Browse** keeps chips + sort at top; results use the **same card** in a responsive grid (2 col mobile, 4–5 desktop) — still not a bare image board because cards share the store chrome and section context.
+
+**Detail:** wide hero art band (blurred edges optional), info panel as **surface card with thin border**, one primary gradient CTA — not a forum post layout.
+
+Vesper appears in **hero corner**, age overlay, and empty states — not on every thumbnail.
+
 ---
 
 ## Screen map
@@ -94,53 +142,31 @@ Stack: wordmark → card (copy + vendor CTA) → smaller Vesper below or as card
 
 ## 2. Home
 
-Purpose: orient new visitors — **New**, **Featured** (includes labeled sponsorships), path to **Browse**.
+Purpose: **curated storefront** — hero, chips, two or more scroll rails (Popular, New, Sponsored). PG demos use abstract gradient covers only.
 
 ### Desktop
 
-```text
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ HEADER                                                                        │
-├──────────────────────────────────────────────────────────────────────────────┤
-│  HERO ROW (optional, low height)                                              │
-│  One line + heart accent: “Find adult games for PC, browser, and Android.”   │
-├──────────────────────────────────────────────────────────────────────────────┤
-│  FEATURED  (#FF4D8D “Sponsored” pill when paid)                               │
-│  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐                 │
-│  │ card       │ │ card       │ │ card       │ │ card       │  horizontal     │
-│  │ surface    │ │ + Vesper   │ │            │ │            │  scroll OK      │
-│  │ #241033    │ │ corner crop│ │            │ │            │  on mobile      │
-│  └────────────┘ └────────────┘ └────────────┘ └────────────┘                 │
-├──────────────────────────────────────────────────────────────────────────────┤
-│  NEW THIS WEEK                                    [See all →]                 │
-│  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐                       │
-│  │ tile │ │ tile │ │ tile │ │ tile │ │ tile │ │ tile │   6-col grid          │
-│  └──────┘ └──────┘ └──────┘ └──────┘ └──────┘ └──────┘                       │
-│  each tile: typographic art OR licensed thumb, title, platform icons, ♥      │
-├──────────────────────────────────────────────────────────────────────────────┤
-│  AD SLOT (optional, labeled “Advertisement”)                                  │
-├──────────────────────────────────────────────────────────────────────────────┤
-│  FOOTER                                                                       │
-└──────────────────────────────────────────────────────────────────────────────┘
-```
+See **Storefront polish** diagram above. Copy example (PG): “Discover mature games for PC, browser, and Android.”
 
 ### Mobile
 
-- Featured → single-column swipe carousel.
-- New grid → **2 columns**; platform icons under title.
-- Sticky bottom optional: none in v1 (avoid covering outbound CTAs on detail).
+- Hero → single full-bleed slide with swipe dots.
+- Chips → horizontal scroll.
+- Rails → one row visible, snap scroll; card width ~42% viewport.
 
-**Game card anatomy**
+**Game card anatomy (store tile, not forum thumbnail)**
 
 ```text
 ┌─────────────────────┐
-│  ART  16:9 or 3:4   │  ← typographic default; affiliate art when licensed
-│  [Sponsored] badge  │
-├─────────────────────┤
-│  Title (#FFF1F7)    │
-│  Win · Browser      │  ← muted #E9D5FF
-│              [♥]    │
+│ ♥              [Ad] │  ← optional badges on art
+│                     │
+│   ART + gradient    │  ← 3:4; typographic or licensed
+│   scrim at bottom   │
+│                     │
+│  Title on scrim     │
+│  Win · Browser      │
 └─────────────────────┘
+   soft shadow, rounded-2xl — no heavy box border
 ```
 
 ---
@@ -271,10 +297,12 @@ Same palette and card anatomy as web. Bottom nav for thumb reach.
 
 | Component | Used on |
 | --- | --- |
-| `AgeGateLayout` | Pre-session routes |
+| `AgeGateOverlay` | Route guard / first visit only — **not** in site nav |
 | `SiteHeader` / `SiteFooter` | All post-gate |
-| `GameCard` | Home, browse |
-| `FeaturedRail` | Home |
+| `HeroCarousel` | Home |
+| `FilterChips` | Home, browse |
+| `GameCard` | Home rails, browse grid |
+| `ScrollRail` | Home sections |
 | `FilterPanel` | Browse |
 | `OutboundCTA` | Detail |
 | `SponsoredBadge` | Featured cards |
@@ -289,9 +317,10 @@ Same palette and card anatomy as web. Bottom nav for thumb reach.
 | Token | Value |
 | --- | --- |
 | Page padding | `16px` mobile, `24px` tablet, `32px` desktop |
-| Card radius | `12px` |
-| Card gap | `16px` mobile grid, `20px` desktop grid |
-| **Border — card / panel** | `2px solid` `--primary` on `--surface`, or `2px solid` `#3d2a52` surface edge on bg |
+| Card radius | **`16px` (`rounded-2xl`)** on catalog tiles; `12px` on forms |
+| Card gap | Rail: `12px`; grid: `16–20px` |
+| **Catalog tile border** | Prefer **none** + shadow `0 8px 24px #00000055`; optional `1px` `#ffffff14` inner edge |
+| **Border — panel / CTA** | `2–3px solid` `--primary` on info panels and primary buttons only |
 | **Border — header / footer rule** | `3px solid` `--primary` |
 | **Border — featured / sponsored tile** | `3px solid` `--accent-hot` |
 | **Border — primary button** | `3px solid` `#FF4D8D` (optional outer ring) or same as fill with `3px` bottom shadow edge |

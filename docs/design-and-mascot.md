@@ -6,7 +6,9 @@
 
 ## Look
 
-Modern, dark, and loud. The interface sits on near-black violet. Pink and magenta do the highlighting. Hearts are a system, not a sprinkle: they mark favorites, ratings, loading, empty states, the app icon, and the cursor hover. They should feel glossy and flashy, like a nightclub sign, and they should stay geometric so the UI still reads as a store.
+Modern, dark, and loud. The interface sits on near-black violet with **soft radial gradients** (magenta vignette), not a flat void. Pink and magenta do the highlighting. Hearts are a system, not a sprinkle: they mark favorites, ratings, loading, empty states, the app icon, and the cursor hover. They should feel glossy and flashy, like a nightclub sign, and they should stay geometric so the UI still reads as a store.
+
+**Layout reads as a game storefront, not an image board:** hero carousel, horizontal discovery rails, rounded art-forward cards with gradient scrims, and filter chips — similar polish to specialist platforms (e.g. Nutaku), not a uniform grid of outlined thumbnails. **Public previews stay PG:** placeholder gradients and neutral titles until age verification and real listing art apply in production.
 
 Working palette:
 
