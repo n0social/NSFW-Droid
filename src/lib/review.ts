@@ -6,13 +6,24 @@ import { slugify } from "@/lib/slug";
 export async function approveCandidate(
   candidateId: string,
   reviewer: string,
-  opts?: { platforms?: string[]; chartBucket?: string },
+  opts?: {
+    platforms?: string[];
+    chartBucket?: string;
+    chartRank?: number | null;
+    affiliateUrl?: string | null;
+  },
 ) {
   const [c] = await db.select().from(candidates).where(eq(candidates.id, candidateId)).limit(1);
   if (!c || c.reviewStatus !== "pending") return null;
 
   const slug = slugify(c.title, c.externalId);
-  const raw = c.rawPayload as { platforms?: string[] } | null;
+  const raw = c.rawPayload as { platforms?: string[]; affiliate_url?: string } | null;
+  const affiliateUrl =
+    opts?.affiliateUrl !== undefined
+      ? opts.affiliateUrl
+      : raw?.affiliate_url?.trim()
+        ? raw.affiliate_url.trim()
+        : null;
 
   const [listing] = await db
     .insert(listings)
@@ -21,10 +32,12 @@ export async function approveCandidate(
       title: c.title,
       platforms: opts?.platforms ?? raw?.platforms ?? defaultPlatforms(c.source),
       officialUrl: c.outboundUrl,
+      affiliateUrl,
       artworkSource: "typographic",
       source: c.source,
       externalId: c.externalId,
-      chartBucket: opts?.chartBucket ?? "new",
+      chartBucket: opts?.chartBucket ?? (opts?.chartRank ? "top_grossing" : "new"),
+      chartRank: opts?.chartRank ?? null,
     })
     .returning();
 

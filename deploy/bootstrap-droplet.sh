@@ -37,7 +37,7 @@ NODE_ENV=production
 NEXT_PUBLIC_SITE_URL=https://www.nsfwdroid.com
 NEXT_PUBLIC_GA_MEASUREMENT_ID=
 ADMIN_PASSWORD=
-DEMO_AUTO_PUBLISH=0
+AUTO_PUBLISH=1
 EOF
   chmod 600 "$ENV_FILE"
   echo "Created $ENV_FILE — edit ADMIN_PASSWORD and GA id before going live."

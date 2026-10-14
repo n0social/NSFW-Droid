@@ -1,12 +1,14 @@
 import "dotenv/config";
-import { autoPublishDemo } from "./lib/ingest-common";
+import { autoPublishPendingCandidates } from "../src/lib/auto-publish";
 import { runItchIngest } from "./ingest-itch";
 import { runSteamIngest } from "./ingest-steam";
 
 async function main() {
   const itch = await runItchIngest();
   const steam = await runSteamIngest();
-  const autoPublished = await autoPublishDemo(100);
+  const autoPublished = await autoPublishPendingCandidates(
+    Number(process.env.INGEST_AUTO_PUBLISH_LIMIT ?? "500"),
+  );
 
   console.log(JSON.stringify({ itch, steam, autoPublished }));
 }

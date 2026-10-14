@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { candidates } from "@/db/schema";
+import { processCandidateAfterIngest } from "@/lib/auto-publish";
 
 export async function upsertCandidate(input: {
   source: "itch" | "steam" | "developer_form" | "manual" | "affiliate_export";
@@ -21,7 +22,9 @@ export async function upsertCandidate(input: {
     .onConflictDoNothing()
     .returning({ id: candidates.id });
   if (result.length > 0) {
-    return { inserted: true, id: result[0].id };
+    const id = result[0].id;
+    await processCandidateAfterIngest(id).catch(() => {});
+    return { inserted: true, id };
   }
   const [existing] = await db
     .select({ id: candidates.id })

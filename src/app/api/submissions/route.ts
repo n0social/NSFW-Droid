@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { db } from "@/db";
 import { developerSubmissions } from "@/db/schema";
+import { isIngestAutoPublishEnabled } from "@/lib/auto-publish";
 import { upsertCandidate } from "@/lib/submit-helper";
 
 export async function POST(request: Request) {
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
     externalId,
     title,
     outboundUrl: officialUrl,
-    rawPayload: { platforms, contact_email: email },
+    rawPayload: { platforms, contact_email: email, message },
   });
 
   const [sub] = await db
@@ -42,10 +43,16 @@ export async function POST(request: Request) {
     .values({ contactEmail: email, message, candidateId })
     .returning();
 
+  const autoOn = isIngestAutoPublishEnabled();
+  const statusMessage = autoOn
+    ? "Received. TOS-clear submissions publish automatically; flagged items stay in the review queue."
+    : "Queued for review. Listings are not published automatically until staff approves.";
+
   return NextResponse.json({
     ok: true,
     duplicate: !inserted,
     submissionId: sub.id,
-    message: "Queued for review. Listings are not published automatically.",
+    autoPublishEnabled: autoOn,
+    message: statusMessage,
   });
 }

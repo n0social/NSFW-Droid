@@ -18,15 +18,15 @@ Live domain: **https://www.nsfwdroid.com** on droplet `159.203.136.220`. Deploy 
 
 ```bash
 npm install
-npm run ingest        # itch.io + Steam → candidate queue (admin review)
+npm run ingest        # itch.io + Steam → candidates (auto-publish when TOS-clear)
 npm run dev           # http://localhost:3847
 ```
 
 - **Age gate:** “Are you over 18?” **Yes** / **No** — backdrop is not dismissible.
 - **Blur:** Covers are **blurred by default**. If age is not confirmed, blur stays on (anti-bypass). After **Yes**, use **Blur covers: ON/OFF** in the header to test unblurred titles.
-- **Data:** itch.io RSS (+ optional `ITCH_FEED_URLS`) and Steam API → **candidates**. Approve at `/admin` (set `ADMIN_PASSWORD`). Developers submit at `/submit`.
+- **Data:** itch.io RSS (+ optional `ITCH_FEED_URLS`) and Steam API → **candidates**; production auto-publishes when TOS-clear (`docs/tos-review-policy.md`). **TOS holds** and strict mode: `/admin` (set `ADMIN_PASSWORD`). Developers submit at `/submit`.
 - **Rankings:** Outbound clicks (`/api/go/…`) and card views feed **Hottest** / **Trending** rails — your traffic, not store charts.
-- **Demo only:** `DEMO_AUTO_PUBLISH=1` auto-publishes ingest for local mockups; leave off in production.
+- **Auto-publish:** `AUTO_PUBLISH=1` on production droplet; `DEMO_AUTO_PUBLISH=1` for local mockups. `INGEST_REQUIRE_REVIEW=1` forces manual approval for everything.
 
 Local DB is **PGlite** (`data/catalog/`). Production target: **DigitalOcean Managed PostgreSQL** (`docs/data-and-ingest.md`).
 

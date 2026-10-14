@@ -109,10 +109,12 @@ flowchart LR
   form --> job
   manual --> list
   job --> cand
-  cand -->|human approve| list
+  cand -->|TOS hold or strict mode| admin[Admin queue]
+  cand -->|auto-publish if TOS clear| list
+  admin -->|approve| list
 ```
 
-**CLI:** `npm run ingest` runs itch + Steam into `candidate`. Optional `DEMO_AUTO_PUBLISH=1` for local auto-publish only. Per-source: `ingest:itch`, `ingest:steam`. **Admin:** `/admin` approve/reject; `/admin/listings/new` for curated partner URLs.
+**CLI:** `npm run ingest` runs itch + Steam into `candidate`, then auto-publishes TOS-clear rows when enabled (default in production). Per-source: `ingest:itch`, `ingest:steam`. **Admin:** `/admin` for TOS holds and strict manual mode; `/admin/listings/new` for curated partner URLs. Policy: [tos-review-policy.md](tos-review-policy.md).
 
 ### Job 1: itch.io (`itch_new_xml`)
 
@@ -131,7 +133,7 @@ Implemented in `scripts/ingest-steam.ts`.
 - **Without key (dev/demo):** merges `data/steam-seed-appids.json` + Steam **storesearch** JSON (`cc=us`) + `appdetails` filter.
 - **Adult filter:** Steam content descriptor **#3 (Adult Only Sexual Content)** only — not every game with mild nudity.
 - Rows → `candidate` (`source = steam`), `platforms` from Steam (windows/mac/linux).
-- Production still uses **human review** before public listings unless `DEMO_AUTO_PUBLISH=1`.
+- **Auto-publish:** TOS-clear Steam rows become `listing` when `AUTO_PUBLISH=1` or `NODE_ENV=production` (see [tos-review-policy.md](tos-review-policy.md)). Set `AUTO_PUBLISH=0` or `INGEST_REQUIRE_REVIEW=1` for all-manual review.
 
 #### Steam Web API key
 

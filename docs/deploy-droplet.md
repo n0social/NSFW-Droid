@@ -72,7 +72,12 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 # FIREBASE_SERVICE_ACCOUNT_JSON=   # minified service account JSON (one line)
 # SESSION_SECRET=
 ADMIN_PASSWORD=choose-a-long-secret
-DEMO_AUTO_PUBLISH=0
+# Auto-publish TOS-clear ingest (default on when NODE_ENV=production). Use 0 for all-manual review.
+AUTO_PUBLISH=1
+# Legacy local demo flag (also enables auto-publish in dev)
+# DEMO_AUTO_PUBLISH=0
+# Strict manual ingest (overrides AUTO_PUBLISH)
+# INGEST_REQUIRE_REVIEW=0
 STEAM_WEB_API_KEY=optional
 ```
 
@@ -113,8 +118,8 @@ Reliable pattern:
 
 ```bash
 cd /var/www/nsfwdroid
-npm run ingest          # candidates
-# set ADMIN_PASSWORD, visit https://www.nsfwdroid.com/admin
+npm run ingest          # candidates → auto-published when TOS-clear (AUTO_PUBLISH=1)
+# TOS holds: visit https://www.nsfwdroid.com/admin (set ADMIN_PASSWORD)
 ```
 
 Daily ingest (cron):

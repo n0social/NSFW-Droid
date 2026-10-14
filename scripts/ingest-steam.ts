@@ -158,11 +158,14 @@ export async function runSteamIngest() {
   return { source: "steam", mode, ...stats };
 }
 
-async function main() {
+async function cliMain() {
   console.log(JSON.stringify(await runSteamIngest()));
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+const isDirectRun = process.argv[1]?.replace(/\\/g, "/").endsWith("ingest-steam.ts");
+if (isDirectRun) {
+  cliMain().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
+}

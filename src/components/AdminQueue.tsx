@@ -12,6 +12,14 @@ type Candidate = {
   rawPayload: unknown;
 };
 
+function tosHoldFromPayload(rawPayload: unknown): { summary?: string; matchedRules?: string[] } | null {
+  if (!rawPayload || typeof rawPayload !== "object") return null;
+  const tos = (rawPayload as { tosScreen?: { hold?: boolean; summary?: string; matchedRules?: string[] } })
+    .tosScreen;
+  if (!tos?.hold) return null;
+  return { summary: tos.summary, matchedRules: tos.matchedRules };
+}
+
 export function AdminQueue() {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +38,13 @@ export function AdminQueue() {
       return;
     }
     const data = await res.json();
-    setCandidates(data.candidates ?? []);
+    const rows: Candidate[] = data.candidates ?? [];
+    rows.sort((a, b) => {
+      const aHold = tosHoldFromPayload(a.rawPayload) ? 1 : 0;
+      const bHold = tosHoldFromPayload(b.rawPayload) ? 1 : 0;
+      return bHold - aHold;
+    });
+    setCandidates(rows);
     setLoading(false);
   }, []);
 
@@ -84,8 +98,8 @@ export function AdminQueue() {
         </div>
 
         <p className="mt-2 text-xs text-[#E9D5FF]/80">
-          itch.io and Steam ingest stay pending until you approve. Developer submissions land here
-          too.
+          Pending items need a decision. With auto-publish on, only TOS-flagged or strict-mode
+          candidates appear here; approve to override a hold or reject to block listing.
         </p>
 
         {loading && <p className="mt-8 text-sm text-[#E9D5FF]">Loading…</p>}
@@ -98,15 +112,34 @@ export function AdminQueue() {
         )}
 
         <ul className="mt-6 space-y-4">
-          {candidates.map((c) => (
+          {candidates.map((c) => {
+            const tosHold = tosHoldFromPayload(c.rawPayload);
+            return (
             <li
               key={c.id}
-              className="rounded-xl border border-[#C026D3]/30 bg-[#241033] p-4"
+              className={`rounded-xl border bg-[#241033] p-4 ${
+                tosHold ? "border-amber-400/60" : "border-[#C026D3]/30"
+              }`}
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <span className="text-[10px] font-bold uppercase text-[#FF4D8D]">{c.source}</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[10px] font-bold uppercase text-[#FF4D8D]">{c.source}</span>
+                    {tosHold && (
+                      <span className="rounded bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-200">
+                        TOS hold
+                      </span>
+                    )}
+                  </div>
                   <h2 className="font-bold">{c.title}</h2>
+                  {tosHold && (
+                    <p className="mt-2 text-xs text-amber-100/90">
+                      {tosHold.summary ??
+                        (tosHold.matchedRules?.length
+                          ? `Rules: ${tosHold.matchedRules.join(", ")}`
+                          : "Flagged for manual TOS review")}
+                    </p>
+                  )}
                   <a
                     href={c.outboundUrl}
                     target="_blank"
@@ -137,7 +170,8 @@ export function AdminQueue() {
                 </div>
               </div>
             </li>
-          ))}
+          );
+          })}
         </ul>
       </div>
     </div>

@@ -73,12 +73,15 @@ export async function runItchIngest() {
   };
 }
 
-async function main() {
+async function cliMain() {
   const result = await runItchIngest();
   console.log(JSON.stringify(result));
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+const isDirectRun = process.argv[1]?.replace(/\\/g, "/").endsWith("ingest-itch.ts");
+if (isDirectRun) {
+  cliMain().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
+}
