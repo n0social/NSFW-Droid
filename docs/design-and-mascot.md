@@ -20,7 +20,9 @@ Working palette:
 | Text | `#FFF1F7` | Titles |
 | Muted text | `#E9D5FF` | Metadata |
 
-Type is a geometric sans. Titles are tight and heavy. Body copy stays small and quiet so the hearts and the key art can be the loud part.
+Type is a geometric sans. **Weight is part of the brand:** almost everything reads bold. Titles and nav use **800–900**. Buttons and card titles use **700**. Metadata and captions still use **600** on muted color — not regular/light weights. Body stays small in size but not faint in weight so blocks and borders feel as loud as the hearts.
+
+**Borders are thick and intentional**, not hairlines. Cards and panels use **2–3px** solid strokes in `#C026D3` or `#241033` (surface-on-bg). The header rule and primary CTAs can go **3px**. Featured/sponsored frames may use **3px** `#FF4D8D`. Wireframe-style dashed borders are for docs only; the live UI uses solid, high-contrast edges so each tile reads like a nightclub sign frame.
 
 The store icon and the home-screen artwork use the covered mascot. Explicit variants stay behind the age gate. A sideloaded APK whose icon is nude gets treated as a suspicious package by players and by on-device scanners. The brand can be adult without putting that on the launcher.
 

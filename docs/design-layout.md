@@ -12,7 +12,7 @@ Every catalog page shares the same shell so the store reads as one product, not 
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│  HEADER  (#14061C bg, bottom border #241033)                                  │
+│  HEADER  (#14061C bg, 3px bottom border #C026D3 or #241033)                   │
 │  [♥ Vesper bust]  WORDMARK ♥     New   Browse   Submit game   [♥] (later)    │
 │                                                      [Search……………]  (Phase 1b)│
 ├──────────────────────────────────────────────────────────────────────────────┤
@@ -284,17 +284,25 @@ Same palette and card anatomy as web. Bottom nav for thumb reach.
 
 ---
 
-## Spacing and type (implementation tokens)
+## Spacing, borders, and type (implementation tokens)
 
 | Token | Value |
 | --- | --- |
 | Page padding | `16px` mobile, `24px` tablet, `32px` desktop |
 | Card radius | `12px` |
 | Card gap | `16px` mobile grid, `20px` desktop grid |
-| Title | Geometric sans, `700`, tight tracking |
-| Body | `14–16px`, `#E9D5FF` for secondary |
+| **Border — card / panel** | `2px solid` `--primary` on `--surface`, or `2px solid` `#3d2a52` surface edge on bg |
+| **Border — header / footer rule** | `3px solid` `--primary` |
+| **Border — featured / sponsored tile** | `3px solid` `--accent-hot` |
+| **Border — primary button** | `3px solid` `#FF4D8D` (optional outer ring) or same as fill with `3px` bottom shadow edge |
+| **Border — viewport / modal** | `4px solid` `--primary` |
+| Display / page title | Geometric sans, **`800–900`**, tight tracking |
+| Nav links, section heads | **`700–800`**, `#FFF1F7` or `#FF4D8D` for section labels |
+| Card title | **`700`**, `#FFF1F7` |
+| Body / metadata | `14–16px`, **`600`**, `#E9D5FF` (muted but bold) |
+| Legal prose | **`500–600`** max — only place slightly lighter weight is allowed |
 
-Map colors to CSS variables: `--bg`, `--surface`, `--primary`, `--accent-hot`, `--text`, `--text-muted` per `docs/design-and-mascot.md`.
+Map colors to CSS variables: `--bg`, `--surface`, `--primary`, `--accent-hot`, `--text`, `--text-muted`, `--border`, `--border-strong` per `docs/design-and-mascot.md`.
 
 ---
 
