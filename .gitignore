@@ -35,6 +35,8 @@ yarn-error.log*
 /data/*
 !/data/themes/
 /data/affiliate-export.json
+!/data/steam-search-terms.json
+!/data/steam-seed-appids.json
 !.env.example
 
 # vercel
