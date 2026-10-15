@@ -7,6 +7,8 @@ import {
   parseBlurCovers,
 } from "@/lib/cookies";
 import { getListingsForStorefront, getPublishedListingCount } from "@/lib/listings";
+import { resolveThemeForRequest } from "@/lib/themes/preferences";
+import { themeDecorUrls } from "@/lib/themes/asset-url";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +16,9 @@ export default async function HomePage() {
   const jar = await cookies();
   const ageVerified = parseAgeVerified(jar.get(AGE_VERIFIED_COOKIE)?.value);
   const blurCovers = parseBlurCovers(jar.get(BLUR_COVERS_COOKIE)?.value);
+
+  const { active } = await resolveThemeForRequest();
+  const themeAssets = themeDecorUrls(active.id);
 
   const storefront = await getListingsForStorefront();
   const listingCount = storefront.catalogUnavailable
@@ -31,6 +36,7 @@ export default async function HomePage() {
         all={storefront.all}
         listingCount={listingCount}
         catalogUnavailable={storefront.catalogUnavailable}
+        themeAssets={themeAssets}
       />
     </div>
   );

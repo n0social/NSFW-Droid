@@ -17,6 +17,8 @@ type AppDetails = {
     name?: string;
     type?: string;
     short_description?: string;
+    header_image?: string;
+    steam_appid?: number;
     genres?: { id?: string; description?: string }[];
     categories?: { id?: number; description?: string }[];
     content_descriptors?: { ids?: number[] };

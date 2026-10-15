@@ -36,6 +36,13 @@
       "when": 1792003000000,
       "tag": "0004_listing_tags",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792004000000,
+      "tag": "0005_listing_cover",
+      "breakpoints": true
     }
   ]
 }

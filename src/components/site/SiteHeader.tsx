@@ -3,14 +3,17 @@
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { DroidMark } from "@/components/site/DroidMark";
+import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
+import { ThemeAssetImage } from "@/components/theme/ThemeAssetImage";
 
 type Props = {
   listingCount: number;
   blurToggle?: React.ReactNode;
   ageVerified: boolean;
+  themeAssets?: ThemeDecorFiles | null;
 };
 
-export function SiteHeader({ listingCount, blurToggle, ageVerified }: Props) {
+export function SiteHeader({ listingCount, blurToggle, ageVerified, themeAssets }: Props) {
   const { configured, loading, user, signOut } = useAuth();
 
   function scrollBrowse() {
@@ -18,8 +21,15 @@ export function SiteHeader({ listingCount, blurToggle, ageVerified }: Props) {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b-[3px] border-[var(--theme-primary)]/35 bg-[var(--background)]/95 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3">
+    <header className="relative sticky top-0 z-50 border-b-[3px] border-[var(--theme-primary)]/35 bg-[var(--background)]/95 backdrop-blur-md">
+      {themeAssets && (
+        <ThemeAssetImage
+          src={themeAssets.decor}
+          alt=""
+          className="pointer-events-none absolute bottom-0 left-0 right-0 z-0 h-8 w-full object-cover object-bottom opacity-70"
+        />
+      )}
+      <div className="relative z-[1] mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3">
         <Link href="/" className="flex items-center gap-2" aria-label="NSFW Droid home">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--theme-surface)] shadow-md ring-1 ring-[var(--theme-primary)]/50">
             <DroidMark className="h-8 w-8" />

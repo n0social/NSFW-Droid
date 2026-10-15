@@ -2,6 +2,10 @@ import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { candidates, listings, type Candidate } from "@/db/schema";
 import { copyCandidateTagsToListing } from "@/lib/catalog-tags";
+import {
+  artworkSourceForCover,
+  extractCoverImageUrl,
+} from "@/lib/listing-cover";
 import { slugify } from "@/lib/slug";
 
 export async function approveCandidate(
@@ -45,6 +49,8 @@ export async function approveCandidate(
         ? raw.affiliate_url.trim()
         : null;
 
+  const coverImageUrl = extractCoverImageUrl(c.source, c.rawPayload);
+
   const [listing] = await db
     .insert(listings)
     .values({
@@ -53,7 +59,8 @@ export async function approveCandidate(
       platforms: opts?.platforms ?? raw?.platforms ?? defaultPlatforms(c.source),
       officialUrl: c.outboundUrl,
       affiliateUrl,
-      artworkSource: "typographic",
+      artworkSource: artworkSourceForCover(coverImageUrl),
+      coverImageUrl,
       source: c.source,
       externalId: c.externalId,
       chartBucket: opts?.chartBucket ?? (opts?.chartRank ? "top_grossing" : "new"),

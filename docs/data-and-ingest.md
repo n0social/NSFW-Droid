@@ -60,7 +60,8 @@ Extends approved candidate fields plus:
 | `platforms` | text[] | `windows`, `browser`, `android`, … |
 | `official_url` | text | |
 | `affiliate_url` | text | nullable |
-| `artwork_source` | enum | `typographic`, `affiliate_kit`, `licensed_upload` |
+| `artwork_source` | enum | `typographic`, `affiliate_kit`, `licensed_upload`, `store_capsule` |
+| `cover_image_url` | text | nullable — allowlisted Steam / itch CDN URL from ingest |
 | `sponsorship` | jsonb | `{ "type": "featured", "until": "…" }` or null |
 | `link_status` | enum | `ok`, `broken` |
 | `published_at` | timestamptz | |

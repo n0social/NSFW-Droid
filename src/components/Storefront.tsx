@@ -9,10 +9,13 @@ import { HeroCarousel } from "./HeroCarousel";
 import { ChipRow, type ChipId } from "./ChipRow";
 import { SiteHeader } from "./site/SiteHeader";
 import { SiteFooter } from "./site/SiteFooter";
+import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
+import { ThemeAssetImage } from "@/components/theme/ThemeAssetImage";
 
 type Props = {
   ageVerified: boolean;
   blurCovers: boolean;
+  themeAssets?: ThemeDecorFiles | null;
   topGrossing: Listing[];
   newReleases: Listing[];
   all: Listing[];
@@ -37,6 +40,7 @@ export function Storefront({
   listingCount,
   rankingsFromAnalytics = false,
   catalogUnavailable = false,
+  themeAssets = null,
 }: Props) {
   const [blurCovers, setBlurCovers] = useState(initialBlur);
   const [chip, setChip] = useState<ChipId>("all");
@@ -94,7 +98,12 @@ export function Storefront({
       <AgeGate open={!ageVerified} />
 
       <div className={!ageVerified ? "pointer-events-none select-none" : ""}>
-        <SiteHeader listingCount={listingCount} blurToggle={blurToggle} ageVerified={ageVerified} />
+        <SiteHeader
+          listingCount={listingCount}
+          blurToggle={blurToggle}
+          ageVerified={ageVerified}
+          themeAssets={themeAssets}
+        />
 
         <main id="browse" className="mx-auto max-w-7xl px-4 pb-4 pt-4">
           {catalogUnavailable && (
@@ -107,11 +116,18 @@ export function Storefront({
             </div>
           )}
 
-          <HeroCarousel featured={featured} blur={effectiveBlur} />
-          <ChipRow active={chip} onChange={setChip} />
+          <HeroCarousel featured={featured} blur={effectiveBlur} themeAssets={themeAssets} />
+          <ChipRow active={chip} onChange={setChip} themeAssets={themeAssets} />
 
           {catalogUnavailable ? null : listingCount === 0 ? (
             <div className="rounded-2xl border-2 border-dashed border-[var(--theme-primary)]/50 p-12 text-center">
+              {themeAssets && (
+                <ThemeAssetImage
+                  src={themeAssets.empty}
+                  alt=""
+                  className="mx-auto mb-4 h-24 w-24 opacity-90"
+                />
+              )}
               <p className="font-bold text-[var(--theme-text-muted)]">No live listings yet.</p>
               <p className="mt-2 text-xs text-[var(--theme-text-muted)]/80">
                 Run ingest on the server, then approve titles in{" "}
@@ -125,8 +141,17 @@ export function Storefront({
             <>
               {filteredHot.length > 0 && (
                 <section className="mb-8">
-                  <div className="mb-3 flex items-center justify-between">
-                    <h2 className="text-sm font-black text-[#FFF1F7]">{hotTitle}</h2>
+                  <div className="mb-3 flex items-center justify-between gap-2">
+                    <h2 className="flex items-center gap-2 text-sm font-black text-[#FFF1F7]">
+                      {themeAssets && (
+                        <ThemeAssetImage
+                          src={themeAssets.rail}
+                          alt=""
+                          className="h-5 w-10 shrink-0"
+                        />
+                      )}
+                      {hotTitle}
+                    </h2>
                     <span className="text-[10px] font-bold text-[#FF4D8D]">See all</span>
                   </div>
                   <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
@@ -137,6 +162,7 @@ export function Storefront({
                         index={i}
                         rank={g.chartRank ?? i + 1}
                         blur={effectiveBlur}
+                        themeAssets={themeAssets}
                       />
                     ))}
                   </div>
@@ -145,13 +171,28 @@ export function Storefront({
 
               {filteredNew.length > 0 && (
                 <section className="mb-4">
-                  <div className="mb-3 flex items-center justify-between">
-                    <h2 className="text-sm font-black text-[#FFF1F7]">{newTitle}</h2>
+                  <div className="mb-3 flex items-center justify-between gap-2">
+                    <h2 className="flex items-center gap-2 text-sm font-black text-[#FFF1F7]">
+                      {themeAssets && (
+                        <ThemeAssetImage
+                          src={themeAssets.rail}
+                          alt=""
+                          className="h-5 w-10 shrink-0"
+                        />
+                      )}
+                      {newTitle}
+                    </h2>
                     <span className="text-[10px] font-bold text-[#FF4D8D]">See all</span>
                   </div>
                   <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
                     {filteredNew.map((g, i) => (
-                      <GameCard key={g.id} game={g} index={i + 2} blur={effectiveBlur} />
+                      <GameCard
+                        key={g.id}
+                        game={g}
+                        index={i + 2}
+                        blur={effectiveBlur}
+                        themeAssets={themeAssets}
+                      />
                     ))}
                   </div>
                 </section>

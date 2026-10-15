@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { Listing } from "@/db/schema";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useFavoritesContext } from "@/components/favorites/FavoritesProvider";
+import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
+import { ThemeAssetImage } from "@/components/theme/ThemeAssetImage";
 
 const gradients = [
   "linear-gradient(145deg, #4a1d6a 0%, #C026D3 45%, #14061C 100%)",
@@ -17,6 +19,7 @@ type Props = {
   rank?: number;
   wide?: boolean;
   blur: boolean;
+  themeAssets?: ThemeDecorFiles | null;
 };
 
 function platformLabel(game: Listing) {
@@ -34,11 +37,18 @@ function platformLabel(game: Listing) {
   return `${plats} · ${src}`;
 }
 
-export function GameCard({ game, index, rank, wide, blur }: Props) {
+export function GameCard({ game, index, rank, wide, blur, themeAssets }: Props) {
   const w = wide ? "w-[200px]" : "w-[140px]";
   const h = wide ? "h-[200px]" : "h-[168px]";
   const { user } = useAuth();
   const { favoriteIds, toggleFavorite } = useFavoritesContext();
+  const [coverFailed, setCoverFailed] = useState(false);
+  const coverUrl = game.coverImageUrl?.trim() || null;
+  const showCover = Boolean(coverUrl) && !coverFailed;
+
+  useEffect(() => {
+    setCoverFailed(false);
+  }, [coverUrl]);
 
   useEffect(() => {
     fetch("/api/analytics/view", {
@@ -49,6 +59,7 @@ export function GameCard({ game, index, rank, wide, blur }: Props) {
   }, [game.id]);
 
   const favorited = favoriteIds.has(game.id);
+  const gradient = gradients[index % gradients.length];
 
   return (
     <div
@@ -69,38 +80,60 @@ export function GameCard({ game, index, rank, wide, blur }: Props) {
         </button>
       )}
       <a href={`/api/go/${game.id}`} className="block">
-      <div className={`relative ${h}`} style={{ background: gradients[index % gradients.length] }}>
-        {rank !== undefined && (
-          <span
-            className="absolute left-2 top-2 flex h-7 min-w-7 items-center justify-center rounded-lg text-xs font-black shadow-md"
-            style={{
-              background: rank === 1 ? "#FBBF24" : rank === 2 ? "#E5E7EB" : rank === 3 ? "#D97706" : "#C026D3",
-              color: rank === 2 ? "#14061C" : "#FFF1F7",
-            }}
-          >
-            #{rank}
-          </span>
-        )}
         <div
-          className={`absolute inset-0 flex items-end p-3 transition-[filter] duration-300 ${blur ? "blur-xl scale-105" : ""}`}
+          className={`relative ${h}`}
+          style={{ background: showCover ? undefined : gradient }}
         >
+          {showCover && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={coverUrl!}
+              alt=""
+              className={`absolute inset-0 h-full w-full object-cover transition-[filter] duration-300 ${blur ? "blur-xl scale-105" : ""}`}
+              loading="lazy"
+              decoding="async"
+              onError={() => setCoverFailed(true)}
+            />
+          )}
+          {rank !== undefined && (
+            <span
+              className="absolute left-2 top-2 z-10 flex h-7 min-w-7 items-center justify-center rounded-lg text-xs font-black shadow-md overflow-hidden"
+              style={{
+                background:
+                  rank === 1 ? "#FBBF24" : rank === 2 ? "#E5E7EB" : rank === 3 ? "#D97706" : "#C026D3",
+                color: rank === 2 ? "#14061C" : "#FFF1F7",
+              }}
+            >
+              {themeAssets && rank <= 3 ? (
+                <ThemeAssetImage
+                  src={themeAssets.badge}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover opacity-35"
+                />
+              ) : null}
+              <span className="relative z-[1]">#{rank}</span>
+            </span>
+          )}
           <div
-            className="absolute inset-0 bg-gradient-to-t from-[#14061Cee] via-transparent to-transparent"
-            aria-hidden
-          />
-          <span className="relative z-10 text-xs font-extrabold leading-tight text-[#FFF1F7] line-clamp-3">
-            {game.title}
-          </span>
+            className={`absolute inset-0 z-[1] flex items-end p-3 transition-[filter] duration-300 ${blur && !showCover ? "blur-xl scale-105" : ""}`}
+          >
+            <div
+              className="absolute inset-0 bg-gradient-to-t from-[#14061Cee] via-transparent to-transparent"
+              aria-hidden
+            />
+            <span className="relative z-10 text-xs font-extrabold leading-tight text-[#FFF1F7] line-clamp-3 drop-shadow-md">
+              {game.title}
+            </span>
+          </div>
+          {blur && (
+            <span className="absolute right-2 top-2 z-20 rounded-full bg-black/50 px-2 py-0.5 text-[9px] font-bold text-[#F9A8D4]">
+              Blurred
+            </span>
+          )}
         </div>
-        {blur && (
-          <span className="absolute right-2 top-2 rounded-full bg-black/50 px-2 py-0.5 text-[9px] font-bold text-[#F9A8D4]">
-            Blurred
-          </span>
-        )}
-      </div>
-      <div className="px-2.5 py-2 text-[10px] font-bold text-[#E9D5FF]">
-        {platformLabel(game)}
-      </div>
+        <div className="px-2.5 py-2 text-[10px] font-bold text-[#E9D5FF]">
+          {platformLabel(game)}
+        </div>
       </a>
     </div>
   );
