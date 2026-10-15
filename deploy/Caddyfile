@@ -2,9 +2,21 @@
 http://159.203.136.220 {
 	encode gzip
 	reverse_proxy 127.0.0.1:3000
+
+	handle_errors 502 503 504 {
+		root * /var/www/nsfwdroid/deploy
+		rewrite * /maintenance.html
+		file_server
+	}
 }
 
 www.nsfwdroid.com, nsfwdroid.com {
 	encode gzip
 	reverse_proxy 127.0.0.1:3000
+
+	handle_errors 502 503 504 {
+		root * /var/www/nsfwdroid/deploy
+		rewrite * /maintenance.html
+		file_server
+	}
 }
