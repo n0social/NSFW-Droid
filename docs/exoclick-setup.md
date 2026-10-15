@@ -13,16 +13,35 @@ Until the cookie is set, `AdSlot` renders nothing and `ExoClickScript` does not 
 
 See `src/lib/cookies.ts` (`AGE_VERIFIED_COOKIE`) and `src/app/api/age-gate/route.ts`.
 
+## Site verification (meta tag)
+
+ExoClick may ask you to prove domain control before zones go live. The verification token is **public** (it appears in HTML like any search-console tag); it is **not** a server secret.
+
+NSFW Droid emits the tag on every page via Next.js root metadata in `src/app/layout.tsx`:
+
+```html
+<meta name="6a97888e-site-verification" content="8bb54aacf7c0714b30d3348ce1f1092c">
+```
+
+Implemented as `metadata.verification.other` so it lands in `<head>` without a client component. After deploy, confirm with:
+
+```bash
+curl -sL https://www.nsfwdroid.com/ | grep -o '6a97888e-site-verification'
+```
+
+Then click **Verify** in the ExoClick site settings. If you rotate the token in the dashboard, update `layout.tsx`, rebuild, and redeploy (see [deploy-droplet.md §4b](deploy-droplet.md#4b-cloud-agent-release-code--build)).
+
 ## Publisher signup checklist
 
 1. **Create a publisher account** at [ExoClick](https://www.exoclick.com/) (Publisher / webmaster flow).
 2. **Add your site** — use `https://www.nsfwdroid.com` (and apex if you serve it). Category: adult / games or entertainment as offered.
-3. **Wait for approval** — new adult sites are often reviewed manually; traffic and content policy must match their terms.
-4. **Create zones** (at least two):
+3. **Complete site verification** — ensure the meta tag above is live, then verify in ExoClick (step may appear before or with zone approval).
+4. **Wait for approval** — new adult sites are often reviewed manually; traffic and content policy must match their terms.
+5. **Create zones** (at least two):
    - **Banner** (728×90, 300×250, or responsive banner) → home placements `below-hero` and `between-rails`.
    - **Native / recommendation** (in-feed) → browse placement `browse-inline`.
-5. **Copy integration values** from each zone’s code snippet (see checklist at end of this doc).
-6. **Paste into `/etc/nsfwdroid.env`** on the droplet (never commit):
+6. **Copy integration values** from each zone’s code snippet (see checklist at end of this doc).
+7. **Paste into `/etc/nsfwdroid.env`** on the droplet (never commit):
    ```bash
    NEXT_PUBLIC_ADS_ENABLED=0          # flip to 1 only after legal + age vendor OK
    NEXT_PUBLIC_EXOCLICK_ZONE_ID_BANNER=1234567
@@ -30,15 +49,15 @@ See `src/lib/cookies.ts` (`AGE_VERIFIED_COOKIE`) and `src/app/api/age-gate/route
    NEXT_PUBLIC_EXOCLICK_AD_SCRIPT_URL=https://a.magsrv.com/ad-provider.js
    NEXT_PUBLIC_EXOCLICK_INS_CLASS=eas6a97888e2   # example — use yours from dashboard
    ```
-7. **Rebuild and restart** — Next.js inlines `NEXT_PUBLIC_*` at build time:
+8. **Rebuild and restart** — Next.js inlines `NEXT_PUBLIC_*` at build time:
    ```bash
    cd /var/www/nsfwdroid
    set -a && source /etc/nsfwdroid.env && set +a
    npm run build
    systemctl restart nsfwdroid
    ```
-8. **Verify** in a private window: without age confirmation, no ad script in Network tab; after 18+, script loads only when `ADS_ENABLED=1` and zone IDs + script URL are set.
-9. **Privacy** — `/privacy` notes that ad partners may set cookies when ads are enabled. Update counsel before enabling.
+9. **Verify** in a private window: without age confirmation, no ad script in Network tab; after 18+, script loads only when `ADS_ENABLED=1` and zone IDs + script URL are set.
+10. **Privacy** — `/privacy` notes that ad partners may set cookies when ads are enabled. Update counsel before enabling.
 
 ## App behavior
 

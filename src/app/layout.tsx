@@ -42,6 +42,11 @@ export const metadata: Metadata = {
     shortcut: "/icon.svg",
     apple: "/icon.svg",
   },
+  verification: {
+    other: {
+      "6a97888e-site-verification": "8bb54aacf7c0714b30d3348ce1f1092c",
+    },
+  },
 };
 
 export default async function RootLayout({
