@@ -13,14 +13,18 @@ type Props = {
 };
 
 const SLOT_MIN_H: Record<AdPlacement, string> = {
-  "below-hero": "min-h-[90px]",
-  "between-rails": "min-h-[72px]",
+  "footer-banner": "min-h-[50px] sm:min-h-[90px]",
   "browse-inline": "min-h-[72px]",
 };
 
+const SLOT_LAYOUT: Record<AdPlacement, string> = {
+  "footer-banner":
+    "mx-auto w-full max-w-[728px] px-4 overflow-hidden [&_ins]:mx-auto [&_ins]:block [&_ins]:max-w-full",
+  "browse-inline": "mx-auto w-full max-w-7xl",
+};
+
 const SKIP_LABEL: Record<AdPlacement, string> = {
-  "below-hero": "Skip sponsored content below hero",
-  "between-rails": "Skip sponsored content between rails",
+  "footer-banner": "Skip sponsored content in footer",
   "browse-inline": "Skip sponsored content in catalog",
 };
 
@@ -54,6 +58,9 @@ export function AdSlot({ placement, ageVerified }: Props) {
   }
 
   const slotId = `ad-slot-${placement}`;
+  const layout = SLOT_LAYOUT[placement];
+  const minH = SLOT_MIN_H[placement];
+  const margin = placement === "footer-banner" ? "my-0" : "my-4";
 
   if (!zoneId) {
     return (
@@ -61,7 +68,7 @@ export function AdSlot({ placement, ageVerified }: Props) {
         id={slotId}
         data-ad-slot={placement}
         aria-hidden
-        className={`relative mx-auto my-4 w-full max-w-7xl rounded-xl border border-dashed border-[#C026D3]/25 bg-[#241033]/40 ${SLOT_MIN_H[placement]}`}
+        className={`relative ${margin} ${layout} rounded-xl border border-dashed border-[#C026D3]/25 bg-[#241033]/40 ${minH}`}
       />
     );
   }
@@ -71,7 +78,7 @@ export function AdSlot({ placement, ageVerified }: Props) {
       id={slotId}
       data-ad-slot={placement}
       aria-label="Sponsored"
-      className={`relative mx-auto my-4 w-full max-w-7xl ${SLOT_MIN_H[placement]}`}
+      className={`relative ${margin} ${layout} ${minH}`}
     >
       <AdSkipLink placement={placement} />
       <ins

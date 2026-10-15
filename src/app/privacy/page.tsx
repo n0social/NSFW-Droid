@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { SiteFooter } from "@/components/site/SiteFooter";
+import { isAgeVerifiedRequest } from "@/lib/age-verified-server";
 
 export const metadata = { title: "Privacy" };
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const ageVerified = await isAgeVerifiedRequest();
+
   return (
     <div className="min-h-screen bg-[#14061C] text-[#FFF1F7]">
       <div className="mx-auto max-w-2xl px-4 py-12">
@@ -18,7 +21,7 @@ export default function PrivacyPage() {
           details for data requests will be published here before launch marketing.
         </p>
       </div>
-      <SiteFooter />
+      <SiteFooter ageVerified={ageVerified} />
     </div>
   );
 }

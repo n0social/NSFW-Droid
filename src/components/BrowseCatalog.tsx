@@ -15,7 +15,6 @@ import type { ResolvedLayoutDecorItem } from "@/lib/themes/types";
 import { ThemeLayoutDecor } from "@/components/theme/ThemeLayoutDecor";
 import { isPricingCatalogTagSlug } from "@/lib/listing-display";
 import { AdSlot } from "@/components/AdSlot";
-import { ExoClickScript } from "@/components/ExoClickScript";
 
 type Props = {
   ageVerified: boolean;
@@ -151,7 +150,6 @@ export function BrowseCatalog({
   return (
     <>
       <AgeGate open={!ageVerified} />
-      <ExoClickScript ageVerified={ageVerified} />
       <div className={`relative z-[1] ${!ageVerified ? "pointer-events-none select-none" : ""}`}>
         {layoutDecor.length > 0 && <ThemeLayoutDecor items={layoutDecor} />}
         <SiteHeader
@@ -245,7 +243,7 @@ export function BrowseCatalog({
             </div>
           )}
         </main>
-        <SiteFooter />
+        <SiteFooter ageVerified={ageVerified} />
       </div>
     </>
   );

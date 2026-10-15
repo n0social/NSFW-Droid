@@ -80,7 +80,7 @@ It fits live-service games with ongoing purchases, and it needs an SDK, fraud ch
 **Display ads (ExoClick prepared, not live)**
 
 - `NEXT_PUBLIC_ADS_ENABLED` defaults to `0`. **No ExoClick script is requested** until this is `1` and zone + script URL env vars are set at build time.
-- `AdSlot` placements: home `below-hero`, `between-rails`; browse `browse-inline`. While disabled they render nothing; when enabled without zone IDs, dashed placeholders only.
+- `AdSlot` placements: `footer-banner` (banner, site-wide in footer); optional `browse-inline` on catalog. While disabled they render nothing; when enabled without zone IDs, dashed placeholders only.
 - Ads require the age gate: server passes `ageVerified` from the `age_verified` cookie; `ExoClickScript` uses `next/script` with `afterInteractive` only when `ADS_ENABLED=1` **and** the visitor is age-verified.
 - Droplet: set vars in `/etc/nsfwdroid.env`, then `npm run build` and `systemctl restart nsfwdroid` (Next inlines `NEXT_PUBLIC_*` at build time). Full checklist: [exoclick-setup.md](exoclick-setup.md).
 

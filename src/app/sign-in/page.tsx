@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { SiteFooter } from "@/components/site/SiteFooter";
+import { SiteFooterClient } from "@/components/site/SiteFooterClient";
 import { getFirebaseAuth } from "@/lib/firebase/client";
 
 export default function SignInPage() {
@@ -158,7 +158,7 @@ export default function SignInPage() {
           </>
         )}
       </div>
-      <SiteFooter />
+      <SiteFooterClient />
     </div>
   );
 }

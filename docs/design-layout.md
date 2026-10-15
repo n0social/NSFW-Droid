@@ -324,7 +324,7 @@ Same palette and card anatomy as web. Bottom nav for thumb reach.
 | `SponsoredBadge` | Featured cards |
 | `TypographicCover` | Default art |
 | `LegalPageLayout` | Terms, privacy, DMCA |
-| `AdSlot` | Home below-hero / between-rails; browse inline (optional) |
+| `AdSlot` | Footer banner (`footer-banner`); browse inline (optional) |
 
 ---
 

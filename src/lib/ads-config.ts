@@ -1,4 +1,4 @@
-export type AdPlacement = "below-hero" | "between-rails" | "browse-inline";
+export type AdPlacement = "footer-banner" | "browse-inline";
 
 /** Build-time flag — Next inlines NEXT_PUBLIC_* at compile time. */
 export function isAdsEnabled(): boolean {

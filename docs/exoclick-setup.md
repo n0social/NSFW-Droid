@@ -37,9 +37,9 @@ Then click **Verify** in the ExoClick site settings. If you rotate the token in 
 2. **Add your site** — use `https://www.nsfwdroid.com` (and apex if you serve it). Category: adult / games or entertainment as offered.
 3. **Complete site verification** — ensure the meta tag above is live, then verify in ExoClick (step may appear before or with zone approval).
 4. **Wait for approval** — new adult sites are often reviewed manually; traffic and content policy must match their terms.
-5. **Create zones** (at least two):
-   - **Banner** (728×90, 300×250, or responsive banner) → home placements `below-hero` and `between-rails`.
-   - **Native / recommendation** (in-feed) → browse placement `browse-inline`.
+5. **Create zones** (at least one banner; optional native for browse):
+   - **Banner** (728×90, 300×250, or responsive banner) → site-wide placement `footer-banner` (centered above legal links in `SiteFooter`).
+   - **Native / recommendation** (in-feed, optional) → browse placement `browse-inline`.
 6. **Copy integration values** from each zone’s code snippet (see checklist at end of this doc).
 7. **Paste into `/etc/nsfwdroid.env`** on the droplet (never commit):
    ```bash
@@ -67,7 +67,7 @@ Then click **Verify** in the ExoClick site settings. If you rotate the token in 
 | `=1` + missing zones | Dashed placeholders on slots (still no script without script URL + zone) |
 | `=1` + zones + script URL + age cookie | `next/script` loads provider `afterInteractive`; `<ins data-zoneid="…">` per slot |
 
-Slots: `below-hero`, `between-rails` (banner zone), `browse-inline` (native zone).
+Slots: `footer-banner` (banner zone, all pages with `SiteFooter`), `browse-inline` (native zone, optional on `/browse`).
 
 Admin dashboard shows read-only **Ads enabled** from the same build flag.
 

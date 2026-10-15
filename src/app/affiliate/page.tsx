@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { SiteFooter } from "@/components/site/SiteFooter";
+import { isAgeVerifiedRequest } from "@/lib/age-verified-server";
 
 export const metadata = { title: "Affiliate disclosure" };
 
-export default function AffiliatePage() {
+export default async function AffiliatePage() {
+  const ageVerified = await isAgeVerifiedRequest();
+
   return (
     <div className="min-h-screen bg-[#14061C] text-[#FFF1F7]">
       <div className="mx-auto max-w-2xl px-4 py-12">
@@ -17,7 +20,7 @@ export default function AffiliatePage() {
           <Link href="/privacy" className="text-[#FF4D8D] underline">Privacy</Link> page.
         </p>
       </div>
-      <SiteFooter />
+      <SiteFooter ageVerified={ageVerified} />
     </div>
   );
 }

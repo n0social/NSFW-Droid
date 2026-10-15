@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { GameCard } from "@/components/GameCard";
-import { SiteFooter } from "@/components/site/SiteFooter";
+import { SiteFooterClient } from "@/components/site/SiteFooterClient";
 import { fetchAndSyncProfilePreferences } from "@/lib/sync-profile-preferences";
 import type { Listing } from "@/db/schema";
 import type { UserPreferences } from "@/db/schema";
@@ -257,7 +257,7 @@ export default function AccountPage() {
           </div>
         ) : null}
       </div>
-      <SiteFooter />
+      <SiteFooterClient />
     </div>
   );
 }

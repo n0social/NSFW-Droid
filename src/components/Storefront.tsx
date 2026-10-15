@@ -13,8 +13,6 @@ import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
 import type { ResolvedLayoutDecorItem } from "@/lib/themes/types";
 import { ThemeAssetImage } from "@/components/theme/ThemeAssetImage";
 import { ThemeLayoutDecor } from "@/components/theme/ThemeLayoutDecor";
-import { AdSlot } from "@/components/AdSlot";
-import { ExoClickScript } from "@/components/ExoClickScript";
 
 type Props = {
   ageVerified: boolean;
@@ -102,8 +100,6 @@ export function Storefront({
   return (
     <>
       <AgeGate open={!ageVerified} />
-      <ExoClickScript ageVerified={ageVerified} />
-
       <div className={`relative z-[1] ${!ageVerified ? "pointer-events-none select-none" : ""}`}>
         {layoutDecor.length > 0 && <ThemeLayoutDecor items={layoutDecor} />}
         <SiteHeader
@@ -133,7 +129,6 @@ export function Storefront({
             themeAssets={themeAssets}
             layoutDecor={layoutDecor}
           />
-          <AdSlot placement="below-hero" ageVerified={ageVerified} />
           <ChipRow active={chip} onChange={setChip} themeAssets={themeAssets} />
 
           {catalogUnavailable ? null : listingCount === 0 ? (
@@ -191,8 +186,6 @@ export function Storefront({
                 </section>
               )}
 
-              <AdSlot placement="between-rails" ageVerified={ageVerified} />
-
               {filteredNew.length > 0 && (
                 <section className="mb-4">
                   <div className="mb-3 flex items-center justify-between gap-2">
@@ -243,7 +236,7 @@ export function Storefront({
           )}
         </main>
 
-        <SiteFooter />
+        <SiteFooter ageVerified={ageVerified} />
       </div>
     </>
   );

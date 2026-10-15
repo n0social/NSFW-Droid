@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { SiteFooter } from "@/components/site/SiteFooter";
+import { SiteFooterClient } from "@/components/site/SiteFooterClient";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -105,7 +105,7 @@ export default function SignUpPage() {
           </>
         )}
       </div>
-      <SiteFooter />
+      <SiteFooterClient />
     </div>
   );
 }
