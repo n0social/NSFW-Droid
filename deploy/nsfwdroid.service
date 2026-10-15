@@ -1,6 +1,8 @@
 [Unit]
 Description=NSFW Droid Next.js catalog
 After=network.target
+StartLimitIntervalSec=300
+StartLimitBurst=10
 
 [Service]
 Type=simple
@@ -10,8 +12,10 @@ WorkingDirectory=/var/www/nsfwdroid
 EnvironmentFile=/etc/nsfwdroid.env
 Environment=HOME=/var/www/nsfwdroid
 Environment=NPM_CONFIG_CACHE=/var/www/nsfwdroid/.npm-cache
+# Remove stale PGlite lock file when no postmaster process is running (common after OOM/kill).
+ExecStartPre=/bin/bash -c 'pidf="/var/www/nsfwdroid/data/catalog/postmaster.pid"; if [[ -f "$pidf" ]]; then pid=$(head -1 "$pidf" 2>/dev/null || true); if [[ -z "$pid" ]] || ! kill -0 "$pid" 2>/dev/null; then rm -f "$pidf"; fi; fi'
 ExecStart=/usr/bin/node node_modules/next/dist/bin/next start -H 0.0.0.0 -p 3000
-Restart=on-failure
+Restart=always
 RestartSec=5
 
 [Install]

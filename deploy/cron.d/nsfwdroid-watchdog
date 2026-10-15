@@ -1,0 +1,3 @@
+# Copy to /etc/cron.d/nsfwdroid-watchdog on the droplet (chmod 644).
+# Restarts nsfwdroid if the service is down or /api/health fails.
+*/5 * * * * root /var/www/nsfwdroid/scripts/ensure-nsfwdroid.sh

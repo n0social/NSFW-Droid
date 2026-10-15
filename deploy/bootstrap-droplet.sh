@@ -45,12 +45,26 @@ fi
 
 chown -R www-data:www-data "$APP_DIR/data" 2>/dev/null || mkdir -p "$APP_DIR/data" && chown -R www-data:www-data "$APP_DIR/data"
 
+chmod +x "$APP_DIR/scripts/catalog-maintenance.sh" "$APP_DIR/scripts/ensure-nsfwdroid.sh" 2>/dev/null || true
+
 cp deploy/nsfwdroid.service /etc/systemd/system/nsfwdroid.service
 systemctl daemon-reload
 systemctl enable --now nsfwdroid
+
+if [[ -f deploy/cron.d/nsfwdroid-watchdog ]]; then
+  cp deploy/cron.d/nsfwdroid-watchdog /etc/cron.d/nsfwdroid-watchdog
+  chmod 644 /etc/cron.d/nsfwdroid-watchdog
+  touch /var/log/nsfwdroid-watchdog.log
+fi
+if [[ -f deploy/cron.d/nsfwdroid-ingest ]]; then
+  cp deploy/cron.d/nsfwdroid-ingest /etc/cron.d/nsfwdroid-ingest
+  chmod 644 /etc/cron.d/nsfwdroid-ingest
+  touch /var/log/nsfwdroid-ingest.log
+fi
 
 cp deploy/Caddyfile /etc/caddy/Caddyfile
 systemctl reload caddy || systemctl restart caddy
 
 echo "==> Done. Point DNS A records for @ and www to this droplet, then open https://www.nsfwdroid.com"
-echo "    Cron ingest example: 0 6 * * * cd $APP_DIR && npm run ingest >> /var/log/nsfwdroid-ingest.log 2>&1"
+echo "    Watchdog: /etc/cron.d/nsfwdroid-watchdog (every 5 min)"
+echo "    Ingest:   /etc/cron.d/nsfwdroid-ingest (daily 06:00 UTC) via scripts/catalog-maintenance.sh"

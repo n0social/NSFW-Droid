@@ -1,0 +1,3 @@
+# Copy to /etc/cron.d/nsfwdroid-ingest on the droplet (chmod 644).
+# Daily catalog refresh — uses catalog-maintenance.sh so the app is never left stopped.
+0 6 * * * root /var/www/nsfwdroid/scripts/catalog-maintenance.sh -- bash -c 'npx --yes tsx scripts/db-migrate.ts && npx --yes tsx scripts/ingest-all.ts' >> /var/log/nsfwdroid-ingest.log 2>&1

@@ -118,22 +118,38 @@ Reliable pattern:
 
 ## 5. After deploy
 
+### systemd (`nsfwdroid`)
+
+`deploy/nsfwdroid.service` runs as **`www-data`**, uses **`Restart=always`** (crash/OOM recovery; explicit `systemctl stop` still stays stopped until `start`), and **`ExecStartPre`** removes a **stale** `data/catalog/postmaster.pid` when the PID is not running. **StartLimitBurst=10** / **StartLimitIntervalSec=300** caps rapid restart loops.
+
+After pulling repo changes:
+
+```bash
+cp deploy/nsfwdroid.service /etc/systemd/system/nsfwdroid.service
+systemctl daemon-reload
+systemctl restart nsfwdroid
+```
+
+If the site shows **502**, check `systemctl is-active nsfwdroid` before debugging Caddy.
+
 ### Catalog ingest runbook (required)
 
 PGlite allows **one process** per `data/catalog` directory. If ingest or migrate runs while `nsfwdroid` is up, initialization fails (`PGlite failed to initialize`), `/api/health` returns **503**, and the homepage may show an empty catalog even though data on disk is fine.
 
-**Always stop the web service before any migrate/ingest:**
+**Use `scripts/catalog-maintenance.sh`** so the app is never left stopped (trap restarts on exit, including failures):
 
 ```bash
-systemctl stop nsfwdroid
-cd /var/www/nsfwdroid
-set -a && source /etc/nsfwdroid.env && set +a
-npx --yes tsx scripts/db-migrate.ts && npx --yes tsx scripts/ingest-all.ts
-chown -R www-data:www-data data/catalog
-systemctl start nsfwdroid
+chmod +x scripts/catalog-maintenance.sh scripts/ensure-nsfwdroid.sh
+./scripts/catalog-maintenance.sh -- bash -c 'npx --yes tsx scripts/db-migrate.ts && npx --yes tsx scripts/ingest-all.ts'
 ```
 
-Verify after start:
+One-off scripts (e.g. `unpublish-non-nsfw-listings.ts`, `backfill-listing-covers.ts`):
+
+```bash
+./scripts/catalog-maintenance.sh -- npx --yes tsx scripts/unpublish-non-nsfw-listings.ts
+```
+
+Verify after maintenance:
 
 ```bash
 curl -sf http://localhost:3000/api/health | jq .
@@ -143,17 +159,34 @@ curl -sI https://www.nsfwdroid.com/api/health
 
 (`npm run ingest` needs `tsx` from devDependencies; production `node_modules` from `npm ci --omit=dev` does not include it — use `npx tsx` as above.)
 
-**One-off maintenance scripts** (e.g. `unpublish-non-nsfw-listings.ts`, `backfill-listing-covers.ts`) use the same rule: `systemctl stop nsfwdroid` first, run as needed, `chown -R www-data:www-data data/catalog`, remove stale `data/catalog/postmaster.pid` if present, then **`systemctl start nsfwdroid`**. A manual stop does not auto-restart (`Restart=on-failure` only). If the site shows **502**, check `systemctl is-active nsfwdroid` before debugging Caddy.
-
 TOS holds: visit https://www.nsfwdroid.com/admin (set `ADMIN_PASSWORD`).
+
+### Watchdog cron (recommended)
+
+Catches **502** from a forgotten `systemctl stop`, failed ingest cron, or a wedged process. Every 5 minutes, restart if the unit is inactive or local health fails:
+
+```bash
+cp deploy/cron.d/nsfwdroid-watchdog /etc/cron.d/nsfwdroid-watchdog
+chmod 644 /etc/cron.d/nsfwdroid-watchdog
+touch /var/log/nsfwdroid-watchdog.log && chown root:root /var/log/nsfwdroid-watchdog.log
+```
+
+Logs: `/var/log/nsfwdroid-watchdog.log`. Script: `scripts/ensure-nsfwdroid.sh`.
 
 ### Daily ingest (cron)
 
-Cron must **stop** the app, ingest, then **start** — same as manual ingest:
+Use the maintenance wrapper (not raw `systemctl stop` chains):
 
 ```bash
-# /etc/cron.d/nsfwdroid-ingest (example)
-0 6 * * * root systemctl stop nsfwdroid && cd /var/www/nsfwdroid && set -a && . /etc/nsfwdroid.env && set +a && npx --yes tsx scripts/db-migrate.ts && npx --yes tsx scripts/ingest-all.ts && chown -R www-data:www-data data/catalog && systemctl start nsfwdroid >> /var/log/nsfwdroid-ingest.log 2>&1
+cp deploy/cron.d/nsfwdroid-ingest /etc/cron.d/nsfwdroid-ingest
+chmod 644 /etc/cron.d/nsfwdroid-ingest
+touch /var/log/nsfwdroid-ingest.log
+```
+
+Example line (also in `deploy/cron.d/nsfwdroid-ingest`):
+
+```cron
+0 6 * * * root /var/www/nsfwdroid/scripts/catalog-maintenance.sh -- bash -c 'npx --yes tsx scripts/db-migrate.ts && npx --yes tsx scripts/ingest-all.ts' >> /var/log/nsfwdroid-ingest.log 2>&1
 ```
 
 ---
