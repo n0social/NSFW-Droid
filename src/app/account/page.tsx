@@ -127,7 +127,7 @@ export default function AccountPage() {
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <div className="mx-auto max-w-3xl px-4 py-12">
+      <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12 md:px-6">
         <Link href="/" className="text-xs font-bold text-[var(--theme-accent)]">← Store</Link>
         <h1 className="mt-4 text-2xl font-black">Account</h1>
 
@@ -199,9 +199,9 @@ export default function AccountPage() {
                   Tap ♡ on a game card while signed in to save favorites here.
                 </p>
               ) : (
-                <div className="mt-4 flex flex-wrap gap-3">
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4">
                   {favorites.map((g, i) => (
-                    <GameCard key={g.id} game={g} index={i} blur={blurDefault} />
+                    <GameCard key={g.id} game={g} index={i} layout="grid" blur={blurDefault} />
                   ))}
                 </div>
               )}

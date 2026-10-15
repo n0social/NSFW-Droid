@@ -77,7 +77,7 @@ export default function SignInPage() {
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-md flex-col justify-center px-4 py-12">
+      <div className="mx-auto flex min-h-[calc(100dvh-6rem)] max-w-md flex-col justify-center px-4 py-8 sm:min-h-[calc(100vh-8rem)] sm:py-12">
         <Link href="/" className="text-xs font-bold text-[var(--theme-accent)]">← Store</Link>
         <h1 className="mt-4 text-2xl font-black">Sign in</h1>
 
@@ -118,7 +118,7 @@ export default function SignInPage() {
               <button
                 type="submit"
                 disabled={busy}
-                className="w-full rounded-xl bg-[var(--theme-primary)] py-2.5 text-sm font-black disabled:opacity-50"
+                className="min-h-[48px] w-full rounded-xl bg-[var(--theme-primary)] py-2.5 text-sm font-black disabled:opacity-50"
               >
                 Sign in with email
               </button>
@@ -127,7 +127,7 @@ export default function SignInPage() {
               type="button"
               disabled={busy}
               onClick={onGoogle}
-              className="mt-3 w-full rounded-xl border-2 border-[var(--theme-primary)]/50 py-2.5 text-sm font-bold disabled:opacity-50"
+              className="mt-3 min-h-[48px] w-full rounded-xl border-2 border-[var(--theme-primary)]/50 py-2.5 text-sm font-bold disabled:opacity-50"
             >
               Continue with Google
             </button>

@@ -35,7 +35,7 @@ export function HeroCarousel({ featured, blur, themeAssets }: Props) {
         />
       )}
       <div
-        className="relative aspect-[21/9] min-h-[140px] w-full sm:min-h-[200px]"
+        className="relative aspect-[21/9] min-h-[128px] w-full sm:min-h-[180px] md:min-h-[220px]"
         style={{ background: showCover ? "#14061C" : fallbackGradient }}
       >
         {showCover && (
@@ -48,7 +48,7 @@ export function HeroCarousel({ featured, blur, themeAssets }: Props) {
           />
         )}
         <div
-          className={`relative flex h-full min-h-[140px] flex-col justify-end p-6 sm:min-h-[200px] sm:p-10 ${blur && featured && !showCover ? "blur-md" : ""}`}
+          className={`relative flex h-full min-h-[128px] flex-col justify-end p-4 sm:min-h-[180px] sm:p-8 md:min-h-[220px] md:p-10 ${blur && featured && !showCover ? "blur-md" : ""}`}
         >
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#14061Cee] via-[#14061C66] to-transparent" />
           <div className="relative z-10 max-w-xl">

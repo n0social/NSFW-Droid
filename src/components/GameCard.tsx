@@ -18,6 +18,7 @@ type Props = {
   index: number;
   rank?: number;
   wide?: boolean;
+  layout?: "rail" | "grid";
   blur: boolean;
   themeAssets?: ThemeDecorFiles | null;
 };
@@ -37,9 +38,19 @@ function platformLabel(game: Listing) {
   return `${plats} · ${src}`;
 }
 
-export function GameCard({ game, index, rank, wide, blur, themeAssets }: Props) {
-  const w = wide ? "w-[200px]" : "w-[140px]";
-  const h = wide ? "h-[200px]" : "h-[168px]";
+export function GameCard({ game, index, rank, wide, layout = "rail", blur, themeAssets }: Props) {
+  const w =
+    layout === "grid"
+      ? "w-full"
+      : wide
+        ? "w-[min(48vw,220px)] md:w-[200px]"
+        : "w-[min(42vw,168px)] md:w-[140px]";
+  const h =
+    layout === "grid"
+      ? "aspect-[3/4] w-full"
+      : wide
+        ? "h-[min(52vw,220px)] md:h-[200px]"
+        : "h-[min(50vw,180px)] md:h-[168px]";
   const { user } = useAuth();
   const { favoriteIds, toggleFavorite } = useFavoritesContext();
   const [coverFailed, setCoverFailed] = useState(false);
@@ -63,7 +74,7 @@ export function GameCard({ game, index, rank, wide, blur, themeAssets }: Props) 
 
   return (
     <div
-      className={`${w} shrink-0 overflow-hidden rounded-2xl shadow-[0_10px_28px_rgba(0,0,0,0.45)] bg-[#241033] relative`}
+      className={`${w} ${layout === "rail" ? "shrink-0 snap-start" : ""} overflow-hidden rounded-2xl shadow-[0_10px_28px_rgba(0,0,0,0.45)] bg-[#241033] relative`}
     >
       {user && (
         <button

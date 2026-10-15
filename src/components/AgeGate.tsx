@@ -34,7 +34,7 @@ export function AgeGate({ open }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#14061C]/95 backdrop-blur-md"
+      className="fixed inset-0 z-[100] flex items-end justify-center overflow-y-auto bg-[#14061C]/95 p-3 backdrop-blur-md sm:items-center sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="age-gate-title"
@@ -45,22 +45,27 @@ export function AgeGate({ open }: Props) {
       <div className="absolute inset-0" aria-hidden />
 
       <div
-        className="relative z-10 mx-4 w-full max-w-sm rounded-2xl border-2 border-[#C026D3] bg-[#241033] p-8 text-center shadow-2xl"
+        className="relative z-10 my-auto w-full max-w-sm max-h-[min(90dvh,640px)] overflow-y-auto rounded-2xl border-2 border-[#C026D3] bg-[#241033] p-5 text-center shadow-2xl sm:p-8"
         onClick={(e) => e.stopPropagation()}
       >
         <p className="text-3xl" aria-hidden>♥</p>
-        <h2 id="age-gate-title" className="mt-3 text-xl font-black text-[#FFF1F7]">
+        <h2 id="age-gate-title" className="mt-3 text-lg font-black text-[#FFF1F7] sm:text-xl">
           Are you over 18?
         </h2>
-        <p className="mt-2 text-xs font-semibold text-[#E9D5FF]">
+        <p className="mt-2 text-xs font-semibold leading-relaxed text-[#E9D5FF]">
           You must be 18 or older to browse this catalog. Production will add verified age checks.
+        </p>
+        <p className="mt-3 text-[10px] font-semibold text-[#E9D5FF]/70">
+          <a href="/terms" className="underline hover:text-[#FF4D8D]">Terms</a>
+          {" · "}
+          <a href="/privacy" className="underline hover:text-[#FF4D8D]">Privacy</a>
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <button
             type="button"
             disabled={loading}
             onClick={() => answer("yes")}
-            className="rounded-full bg-[#C026D3] px-8 py-3 text-sm font-black text-[#FFF1F7] disabled:opacity-60"
+            className="min-h-[48px] w-full rounded-full bg-[#C026D3] px-8 py-3 text-sm font-black text-[#FFF1F7] disabled:opacity-60 sm:w-auto"
           >
             Yes
           </button>
@@ -68,7 +73,7 @@ export function AgeGate({ open }: Props) {
             type="button"
             disabled={loading}
             onClick={() => answer("no")}
-            className="rounded-full border-2 border-[#FF4D8D] px-8 py-3 text-sm font-black text-[#FFF1F7] disabled:opacity-60"
+            className="min-h-[48px] w-full rounded-full border-2 border-[#FF4D8D] px-8 py-3 text-sm font-black text-[#FFF1F7] disabled:opacity-60 sm:w-auto"
           >
             No
           </button>

@@ -17,7 +17,24 @@
   --font-sans: var(--font-geist-sans);
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
+  overflow-x: hidden;
+  min-width: 0;
+}
+
+.chip-scroll,
+.rail-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.chip-scroll::-webkit-scrollbar,
+.rail-scroll::-webkit-scrollbar {
+  display: none;
 }
