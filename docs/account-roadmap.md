@@ -7,7 +7,7 @@
 | Sign up | `/sign-up` |
 | Sign in + forgot password | `/sign-in` |
 | Account hub | `/account` (profile, favorites, preferences) |
-| Favorites | Heart on `GameCard`; `GET/POST/DELETE /api/account/favorites` |
+| Favorites | Heart on `GameCard` (signed-in toggle); `GET/POST/DELETE /api/account/favorites` — see [engagement-policy.md](engagement-policy.md) |
 | Profile | `GET/PATCH /api/account/profile` |
 | Session | `POST /api/auth/session` → upserts `user_profile` |
 

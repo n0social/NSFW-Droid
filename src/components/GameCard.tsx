@@ -1,7 +1,7 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import type { Listing } from "@/db/schema";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useFavoritesContext } from "@/components/favorites/FavoritesProvider";
@@ -52,10 +52,10 @@ export function GameCard({ game, index, rank, wide, layout = "rail", blur, theme
       : wide
         ? "h-[min(52vw,220px)] md:h-[200px]"
         : "h-[min(50vw,180px)] md:h-[168px]";
-  const router = useRouter();
   const { user, configured: authConfigured } = useAuth();
   const { favoriteIds, toggleFavorite } = useFavoritesContext();
   const [coverFailed, setCoverFailed] = useState(false);
+  const [signInPrompt, setSignInPrompt] = useState(false);
   const coverUrl = game.coverImageUrl?.trim() || null;
   const showCover = Boolean(coverUrl) && !coverFailed;
 
@@ -71,30 +71,52 @@ export function GameCard({ game, index, rank, wide, layout = "rail", blur, theme
     }).catch(() => {});
   }, [game.id]);
 
-  const favorited = favoriteIds.has(game.id);
+  const favorited = Boolean(user) && favoriteIds.has(game.id);
   const gradient = gradients[index % gradients.length];
+  const showFavoriteControl = Boolean(user);
 
   return (
     <div
       className={`${w} ${layout === "rail" ? "shrink-0 snap-start" : ""} overflow-hidden rounded-2xl shadow-[0_10px_28px_rgba(0,0,0,0.45)] bg-[#241033] relative`}
     >
-      {authConfigured && (
+      {showFavoriteControl && (
         <button
           type="button"
           aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            if (!user) {
-              router.push("/sign-in");
-              return;
-            }
             void toggleFavorite(game.id);
           }}
           className="absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/45 text-base leading-none hover:bg-black/60"
         >
           {favorited ? "♥" : "♡"}
         </button>
+      )}
+      {authConfigured && !user && (
+        <button
+          type="button"
+          aria-label="Sign in to save favorites"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setSignInPrompt(true);
+          }}
+          className="absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/45 text-base leading-none text-[#E9D5FF]/90 hover:bg-black/60"
+        >
+          ♡
+        </button>
+      )}
+      {signInPrompt && (
+        <div
+          role="status"
+          className="absolute inset-x-2 top-11 z-30 rounded-lg border border-[#C026D3]/50 bg-[#14061C]/95 px-2 py-1.5 text-center text-[9px] font-bold leading-snug text-[#F9A8D4] shadow-lg"
+        >
+          <Link href="/sign-in" className="underline hover:text-[#FFF1F7]">
+            Sign in
+          </Link>{" "}
+          to save favorites.
+        </div>
       )}
       <a href={`/api/go/${game.id}`} className="block">
         <div

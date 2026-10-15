@@ -28,21 +28,25 @@ export function useFavorites(user: User | null) {
     };
   }, [user]);
 
-  const toggleFavorite = useCallback(async (listingId: string) => {
-    const res = await fetch("/api/account/favorites", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ listing_id: listingId }),
-    });
-    if (!res.ok) return;
-    const data = await res.json();
-    setIds((prev) => {
-      const next = new Set(prev);
-      if (data.favorited) next.add(listingId);
-      else next.delete(listingId);
-      return next;
-    });
-  }, []);
+  const toggleFavorite = useCallback(
+    async (listingId: string) => {
+      if (!user) return;
+      const res = await fetch("/api/account/favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ listing_id: listingId }),
+      });
+      if (res.status === 401 || !res.ok) return;
+      const data = await res.json();
+      setIds((prev) => {
+        const next = new Set(prev);
+        if (data.favorited) next.add(listingId);
+        else next.delete(listingId);
+        return next;
+      });
+    },
+    [user],
+  );
 
   return { favoriteIds: ids, favoritesLoading: loading, toggleFavorite };
 }

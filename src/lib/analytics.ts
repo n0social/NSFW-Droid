@@ -36,6 +36,7 @@ export async function recordEvent(input: {
 
 const HOT_DAYS = 7;
 
+/** Leaderboard favorite signal: rows in `user_favorite` only (authenticated saves). */
 async function favoriteCountsSince(since: Date | null): Promise<Map<string, number>> {
   const db = await getDb();
   const query = db
