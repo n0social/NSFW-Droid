@@ -18,6 +18,23 @@ export type ThemeSchedule = {
   description: string;
 };
 
+/** Placement hints for optional full-page holiday accents (see docs/themes.md). */
+export type ThemeLayoutDecorSlot =
+  | "page-pattern"
+  | "corner-tl"
+  | "corner-tr"
+  | "corner-bl"
+  | "corner-br"
+  | "hero-accent-left"
+  | "hero-accent-right";
+
+export type ThemeLayoutDecorEntry = {
+  file: string;
+  slot: ThemeLayoutDecorSlot;
+  /** 0–1; UI defaults per slot when omitted. */
+  opacity?: number;
+};
+
 export type ThemeDefinition = {
   id: string;
   name: string;
@@ -27,6 +44,14 @@ export type ThemeDefinition = {
   icon?: string;
   /** Higher wins when multiple themes match the same month. */
   priority?: number;
+  /** Optional SVG filenames + slots for browse-page richness. */
+  layoutDecor?: ThemeLayoutDecorEntry[];
+};
+
+export type ResolvedLayoutDecorItem = {
+  url: string;
+  slot: ThemeLayoutDecorSlot;
+  opacity?: number;
 };
 
 export type ThemeOverridePreference = "default" | "auto";

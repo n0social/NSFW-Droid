@@ -17,6 +17,7 @@ Each holiday lives under `data/themes/<id>/` as a **theme package**:
 | `rail.svg` | Recommended | 80×40 end-cap for horizontal section headers |
 | `badge.svg` | Recommended | Corner badge (sale/event) with optional holiday motif |
 | `empty.svg` | Optional | Empty favorites / browse illustration for that month |
+| `layoutDecor` in `theme.json` | Optional | Extra SVG filenames + placement slots for full-page browse (see below) |
 | `README.md` | Yes | One-line description + asset list for operators |
 
 **Serving assets:** Any whitelisted SVG in the theme folder is available at  
@@ -31,7 +32,7 @@ Each holiday lives under `data/themes/<id>/` as a **theme package**:
 | `valentines` | `2` (February) | `theme.json`, `icon.svg`, `decor.svg`, `chip.svg`, `rail.svg`, `badge.svg`, `empty.svg`, `README.md` |
 | `easter` | `3`, `4` (March–April) | same asset set as above |
 | `summer` | `6`, `7`, `8` (June–August) | same asset set as above |
-| `halloween` | `10` (October) | same asset set as above |
+| `halloween` | `10` (October) | standard set + `layoutDecor` accents (`pattern`, skull/pumpkin corners) |
 | `thanksgiving` | `11` (November) | same asset set as above |
 | `christmas` | `12` (December) | same asset set as above |
 
@@ -138,6 +139,33 @@ Decor URLs come from `themeDecorUrls(active.id)` in `src/lib/themes/asset-url.ts
 | `icon.svg` | `ThemeProvider` | Signed-in holiday opt-out banner (`/api/theme/icon/<id>`) |
 
 All decor files load through `GET /api/theme/asset/<id>/<filename>` (see `src/app/api/theme/asset/[id]/[filename]/route.ts`).
+
+### Full-page layout decor (`layoutDecor`)
+
+For holidays that should feel festive **while the catalog has listings** (not only on empty states), add optional entries to `theme.json`:
+
+```json
+"layoutDecor": [
+  { "file": "pattern.svg", "slot": "page-pattern" },
+  { "file": "accent-left.svg", "slot": "corner-tl" },
+  { "file": "accent-right.svg", "slot": "corner-tr" },
+  { "file": "skull.svg", "slot": "corner-bl" },
+  { "file": "pumpkin-sm.svg", "slot": "corner-br" },
+  { "file": "skull.svg", "slot": "hero-accent-left", "opacity": 0.75 },
+  { "file": "pumpkin-sm.svg", "slot": "hero-accent-right", "opacity": 0.85 }
+]
+```
+
+| Slot | UI |
+| --- | --- |
+| `page-pattern` | Low-opacity repeating tile on the page background (masked toward the footer) |
+| `corner-tl` / `corner-tr` | Fixed corner accents below the header (hidden on very narrow viewports) |
+| `corner-bl` / `corner-br` | Subtle bottom corner motifs (tablet+) |
+| `hero-accent-left` / `hero-accent-right` | Small vectors inside the hero carousel |
+
+Shipped example: **Halloween** (`data/themes/halloween/`) includes `pattern.svg`, `accent-left.svg`, `accent-right.svg`, `skull.svg`, and `pumpkin-sm.svg`. Valentine’s or Christmas can add `hearts-pattern.svg`, `snowflake-sm.svg`, etc., with the same slots.
+
+Server: `resolveLayoutDecorForTheme()` in `src/lib/themes/layout-decor.ts` (home page passes `layoutDecor` into `Storefront`). Client: `ThemeLayoutDecor` renders slots; `HeroCarousel` renders hero slots only. Assets must exist on disk or they are skipped.
 
 ## Adding a theme
 

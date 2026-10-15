@@ -5,12 +5,12 @@
 import fs from "node:fs";
 import path from "node:path";
 import {
+  getThemeById,
   loadThemeRegistry,
   resetThemeRegistryCache,
   themeAssetPath,
   themeIconPath,
 } from "../src/lib/themes/registry";
-
 const THEMES_DIR = path.join(process.cwd(), "data", "themes");
 
 /** Matches docs/themes.md — same set wired via themeDecorUrls(). */
@@ -79,6 +79,21 @@ function main(): void {
       }
     }
 
+    const layoutDecor = getThemeById(theme.id).layoutDecor;
+    if (layoutDecor?.length) {
+      for (const entry of layoutDecor) {
+        if (!entry.file || !entry.slot) {
+          console.error(`[layoutDecor] ${theme.id}: entry missing file or slot`);
+          errors++;
+          continue;
+        }
+        if (themeAssetPath(theme.id, entry.file) === null) {
+          console.error(`[layoutDecor] ${theme.id}: missing ${entry.file} (${entry.slot})`);
+          errors++;
+        }
+      }
+    }
+
     rows.push({ id: theme.id, files, iconRoute, assetsResolvable });
   }
 
@@ -98,6 +113,7 @@ function main(): void {
   console.log("  badge.svg  → GameCard (rank ≤ 3)");
   console.log("  empty.svg  → Storefront empty favorites state");
   console.log("  icon.svg   → ThemeProvider banner, /api/theme/icon/<id>");
+  console.log("  layoutDecor → theme.json optional slots (pattern, corners, hero accents)");
 
   if (errors > 0) {
     console.error(`\nvalidate-theme-packages: ${errors} error(s)`);

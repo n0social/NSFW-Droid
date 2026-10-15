@@ -9,6 +9,7 @@ import {
 import { getListingsForStorefront, getPublishedListingCount } from "@/lib/listings";
 import { resolveThemeForRequest } from "@/lib/themes/preferences";
 import { themeDecorUrls } from "@/lib/themes/asset-url";
+import { resolveLayoutDecorForTheme } from "@/lib/themes/layout-decor";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,7 @@ export default async function HomePage() {
 
   const { active } = await resolveThemeForRequest();
   const themeAssets = themeDecorUrls(active.id);
+  const layoutDecor = resolveLayoutDecorForTheme(active);
 
   const storefront = await getListingsForStorefront();
   const listingCount = storefront.catalogUnavailable
@@ -26,8 +28,9 @@ export default async function HomePage() {
     : await getPublishedListingCount();
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+    <div className="relative min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       <Storefront
+        layoutDecor={layoutDecor}
         ageVerified={ageVerified}
         blurCovers={blurCovers}
         topGrossing={storefront.topGrossing}

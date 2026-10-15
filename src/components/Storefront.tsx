@@ -10,12 +10,15 @@ import { ChipRow, type ChipId } from "./ChipRow";
 import { SiteHeader } from "./site/SiteHeader";
 import { SiteFooter } from "./site/SiteFooter";
 import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
+import type { ResolvedLayoutDecorItem } from "@/lib/themes/types";
 import { ThemeAssetImage } from "@/components/theme/ThemeAssetImage";
+import { ThemeLayoutDecor } from "@/components/theme/ThemeLayoutDecor";
 
 type Props = {
   ageVerified: boolean;
   blurCovers: boolean;
   themeAssets?: ThemeDecorFiles | null;
+  layoutDecor?: ResolvedLayoutDecorItem[];
   topGrossing: Listing[];
   newReleases: Listing[];
   all: Listing[];
@@ -41,6 +44,7 @@ export function Storefront({
   rankingsFromAnalytics = false,
   catalogUnavailable = false,
   themeAssets = null,
+  layoutDecor = [],
 }: Props) {
   const [blurCovers, setBlurCovers] = useState(initialBlur);
   const [chip, setChip] = useState<ChipId>("all");
@@ -97,7 +101,8 @@ export function Storefront({
     <>
       <AgeGate open={!ageVerified} />
 
-      <div className={!ageVerified ? "pointer-events-none select-none" : ""}>
+      <div className={`relative z-[1] ${!ageVerified ? "pointer-events-none select-none" : ""}`}>
+        {layoutDecor.length > 0 && <ThemeLayoutDecor items={layoutDecor} />}
         <SiteHeader
           listingCount={listingCount}
           blurToggle={blurToggle}
@@ -116,7 +121,12 @@ export function Storefront({
             </div>
           )}
 
-          <HeroCarousel featured={featured} blur={effectiveBlur} themeAssets={themeAssets} />
+          <HeroCarousel
+            featured={featured}
+            blur={effectiveBlur}
+            themeAssets={themeAssets}
+            layoutDecor={layoutDecor}
+          />
           <ChipRow active={chip} onChange={setChip} themeAssets={themeAssets} />
 
           {catalogUnavailable ? null : listingCount === 0 ? (

@@ -16,5 +16,14 @@
     "textMuted": "#FDBA74",
     "border": "#F9731640",
     "borderStrong": "#EA580C"
-  }
+  },
+  "layoutDecor": [
+    { "file": "pattern.svg", "slot": "page-pattern" },
+    { "file": "accent-left.svg", "slot": "corner-tl" },
+    { "file": "accent-right.svg", "slot": "corner-tr" },
+    { "file": "skull.svg", "slot": "corner-bl" },
+    { "file": "pumpkin-sm.svg", "slot": "corner-br" },
+    { "file": "skull.svg", "slot": "hero-accent-left", "opacity": 0.75 },
+    { "file": "pumpkin-sm.svg", "slot": "hero-accent-right", "opacity": 0.85 }
+  ]
 }

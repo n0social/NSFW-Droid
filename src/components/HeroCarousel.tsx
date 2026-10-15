@@ -3,15 +3,18 @@
 import { useState } from "react";
 import type { Listing } from "@/db/schema";
 import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
+import type { ResolvedLayoutDecorItem } from "@/lib/themes/types";
 import { ThemeAssetImage } from "@/components/theme/ThemeAssetImage";
+import { HERO_LAYOUT_DECOR_SLOTS, ThemeLayoutDecor } from "@/components/theme/ThemeLayoutDecor";
 
 type Props = {
   featured: Listing | null;
   blur: boolean;
   themeAssets?: ThemeDecorFiles | null;
+  layoutDecor?: ResolvedLayoutDecorItem[];
 };
 
-export function HeroCarousel({ featured, blur, themeAssets }: Props) {
+export function HeroCarousel({ featured, blur, themeAssets, layoutDecor = [] }: Props) {
   const title = featured?.title ?? "Mature games catalog";
   const subtitle = featured
     ? "Featured pick from the catalog — open the store page after you confirm 18+."
@@ -27,6 +30,9 @@ export function HeroCarousel({ featured, blur, themeAssets }: Props) {
 
   return (
     <section className="relative mb-6 overflow-hidden rounded-2xl border border-[var(--theme-primary)]/25 shadow-[0_20px_50px_rgba(0,0,0,0.45)]">
+      {layoutDecor.length > 0 && (
+        <ThemeLayoutDecor items={layoutDecor} slots={HERO_LAYOUT_DECOR_SLOTS} />
+      )}
       {themeAssets && (
         <ThemeAssetImage
           src={themeAssets.decor}
@@ -34,6 +40,10 @@ export function HeroCarousel({ featured, blur, themeAssets }: Props) {
           className="pointer-events-none absolute right-0 top-0 z-[2] h-24 w-auto max-w-[45%] opacity-90 sm:h-32"
         />
       )}
+      <div
+        className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-br from-[var(--theme-primary)]/10 via-transparent to-[var(--theme-accent)]/15"
+        aria-hidden
+      />
       <div
         className="relative aspect-[21/9] min-h-[128px] w-full sm:min-h-[180px] md:min-h-[220px]"
         style={{ background: showCover ? "#14061C" : fallbackGradient }}
