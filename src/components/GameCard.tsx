@@ -178,7 +178,7 @@ export function GameCard({ game, index, rank, wide, layout = "rail", blur, theme
           <span className="block truncate">{platformLabel(game)}</span>
           {showAffiliateDisclosure && (
             <span className="mt-0.5 block truncate text-[9px] font-semibold text-[#E9D5FF]/55">
-              Affiliate link
+              Affiliate
             </span>
           )}
         </div>
