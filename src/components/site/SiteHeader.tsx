@@ -19,11 +19,6 @@ export function SiteHeader({ listingCount, blurToggle, ageVerified, themeAssets 
   const [menuOpen, setMenuOpen] = useState(false);
   const menuId = useId();
 
-  function scrollBrowse() {
-    setMenuOpen(false);
-    document.getElementById("browse")?.scrollIntoView({ behavior: "smooth" });
-  }
-
   function scrollNew() {
     setMenuOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -84,13 +79,9 @@ export function SiteHeader({ listingCount, blurToggle, ageVerified, themeAssets 
           >
             New
           </button>
-          <button
-            type="button"
-            onClick={scrollBrowse}
-            className="rounded-full px-3 py-2 hover:bg-[var(--theme-surface)]"
-          >
+          <Link href="/browse" className="rounded-full px-3 py-2 hover:bg-[var(--theme-surface)]">
             Browse
-          </button>
+          </Link>
           <Link href="/submit" className="rounded-full px-3 py-2 hover:bg-[var(--theme-surface)]">
             Submit game
           </Link>
@@ -197,13 +188,13 @@ export function SiteHeader({ listingCount, blurToggle, ageVerified, themeAssets 
               </button>
             </li>
             <li>
-              <button
-                type="button"
-                onClick={scrollBrowse}
+              <Link
+                href="/browse"
+                onClick={() => setMenuOpen(false)}
                 className="flex min-h-[44px] w-full items-center rounded-xl px-3 hover:bg-[var(--theme-surface)]"
               >
                 Browse
-              </button>
+              </Link>
             </li>
             <li>
               <Link

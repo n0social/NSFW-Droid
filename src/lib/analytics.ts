@@ -1,7 +1,8 @@
-import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNotNull, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { analyticsEvents, listings } from "@/db/schema";
 import { createHash } from "crypto";
+import { ANALYTICS_RANK_POOL } from "@/lib/listings-ranking";
 
 export async function recordEvent(input: {
   eventType: "outbound_click" | "listing_view" | "page_view";
@@ -29,10 +30,32 @@ export async function recordEvent(input: {
 
 const HOT_DAYS = 7;
 
-export async function getHotListings(limit = 10) {
+async function listingsByAnalyticsIds(
+  rows: { listingId: string | null }[],
+): Promise<(typeof listings.$inferSelect)[]> {
+  const ids = rows.map((r) => r.listingId).filter(Boolean) as string[];
+  if (!ids.length) return [];
+
+  const db = await getDb();
+  const games = await db.select().from(listings).where(inArray(listings.id, ids));
+  const byId = new Map(games.map((g) => [g.id, g]));
+  const ordered: (typeof games)[0][] = [];
+  const seen = new Set<string>();
+  for (const r of rows) {
+    if (!r.listingId || seen.has(r.listingId)) continue;
+    const game = byId.get(r.listingId);
+    if (!game) continue;
+    seen.add(r.listingId);
+    ordered.push(game);
+  }
+  return ordered;
+}
+
+export async function getHotListings(limit = ANALYTICS_RANK_POOL) {
   try {
     const db = await getDb();
     const since = new Date(Date.now() - HOT_DAYS * 24 * 60 * 60 * 1000);
+    const pool = Math.max(limit, ANALYTICS_RANK_POOL);
     const rows = await db
       .select({
         listingId: analyticsEvents.listingId,
@@ -43,34 +66,28 @@ export async function getHotListings(limit = 10) {
         and(
           eq(analyticsEvents.eventType, "outbound_click"),
           gte(analyticsEvents.createdAt, since),
+          isNotNull(analyticsEvents.listingId),
         ),
       )
       .groupBy(analyticsEvents.listingId)
       .orderBy(desc(sql`count(*)`))
-      .limit(limit);
+      .limit(pool);
 
-    const ids = rows.map((r) => r.listingId).filter(Boolean) as string[];
-    if (!ids.length) return [];
-
-    const games = await db.select().from(listings);
-    const byId = new Map(games.map((g) => [g.id, g]));
-    return rows
-      .map((r, i) => {
-        const game = r.listingId ? byId.get(r.listingId) : undefined;
-        if (!game) return null;
-        return { ...game, chartRank: i + 1, clickCount: r.clicks };
-      })
-      .filter(Boolean) as (typeof games)[0][];
+    const games = await listingsByAnalyticsIds(rows);
+    return games
+      .slice(0, limit)
+      .map((game, i) => ({ ...game, chartRank: i + 1 }));
   } catch (err) {
     console.error("[analytics] getHotListings failed:", err);
     return [];
   }
 }
 
-export async function getRecentPopular(limit = 12) {
+export async function getRecentPopular(limit = ANALYTICS_RANK_POOL) {
   try {
     const db = await getDb();
     const since = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    const pool = Math.max(limit, ANALYTICS_RANK_POOL);
     const rows = await db
       .select({
         listingId: analyticsEvents.listingId,
@@ -81,17 +98,15 @@ export async function getRecentPopular(limit = 12) {
         and(
           eq(analyticsEvents.eventType, "listing_view"),
           gte(analyticsEvents.createdAt, since),
+          isNotNull(analyticsEvents.listingId),
         ),
       )
       .groupBy(analyticsEvents.listingId)
       .orderBy(desc(sql`count(*)`))
-      .limit(limit);
+      .limit(pool);
 
-    const games = await db.select().from(listings);
-    const byId = new Map(games.map((g) => [g.id, g]));
-    return rows
-      .map((r) => (r.listingId ? byId.get(r.listingId) : undefined))
-      .filter(Boolean) as (typeof games)[0][];
+    const games = await listingsByAnalyticsIds(rows);
+    return games.slice(0, limit);
   } catch (err) {
     console.error("[analytics] getRecentPopular failed:", err);
     return [];

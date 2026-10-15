@@ -1,6 +1,13 @@
 import { desc, asc, isNotNull, sql } from "drizzle-orm";
 import { listings, type Listing } from "@/db/schema";
 import { getHotListings, getRecentPopular } from "@/lib/analytics";
+import { getTagSlugsByListingIds } from "@/lib/listing-tags";
+import {
+  ANALYTICS_RANK_POOL,
+  fillFeaturedRail,
+  RAIL_HOT_LIMIT,
+  RAIL_TRENDING_LIMIT,
+} from "@/lib/listings-ranking";
 import { safeCatalogQuery } from "@/lib/db-safe";
 
 const emptyStorefront = {
@@ -25,33 +32,61 @@ export async function getListingsForStorefront(): Promise<StorefrontListings> {
         .orderBy(desc(listings.publishedAt))
         .limit(48);
 
-      const hot = await getHotListings(10);
-      const trending = await getRecentPopular(12);
+      const hotRaw = await getHotListings(ANALYTICS_RANK_POOL);
+      const trendingRaw = await getRecentPopular(ANALYTICS_RANK_POOL);
+
+      const tagListingIds = [
+        ...new Set([
+          ...all.map((l) => l.id),
+          ...hotRaw.map((l) => l.id),
+          ...trendingRaw.map((l) => l.id),
+        ]),
+      ];
+      const tagsByListingId = await getTagSlugsByListingIds(db, tagListingIds);
 
       const topGrossingFromChart = await db
         .select()
         .from(listings)
         .where(isNotNull(listings.chartRank))
         .orderBy(asc(listings.chartRank))
-        .limit(10);
+        .limit(RAIL_HOT_LIMIT);
 
-      const topGrossing: Listing[] =
-        hot.length > 0
-          ? hot
-          : topGrossingFromChart.length > 0
-            ? topGrossingFromChart
-            : all.slice(0, 8).map((l, i) => ({ ...l, chartRank: i + 1 }));
+      const hotFallback =
+        topGrossingFromChart.length > 0
+          ? topGrossingFromChart
+          : all.slice(0, RAIL_HOT_LIMIT).map((l, i) => ({ ...l, chartRank: i + 1 }));
 
-      const newReleases: Listing[] =
-        trending.length > 0
-          ? trending
-          : all.filter((l) => l.chartBucket !== "top_grossing").slice(0, 12);
+      const trendingFallback = all
+        .filter((l) => l.chartBucket !== "top_grossing")
+        .slice(0, RAIL_TRENDING_LIMIT);
+      const trendingFallbackOrAll =
+        trendingFallback.length > 0 ? trendingFallback : all.slice(0, RAIL_TRENDING_LIMIT);
+
+      const hotSource = hotRaw.length > 0 ? hotRaw : hotFallback;
+      const trendingSource = trendingRaw.length > 0 ? trendingRaw : trendingFallbackOrAll;
+
+      const hotIds = new Set(hotSource.map((l) => l.id));
+      const trendingBackfillPool = all.filter((l) => !hotIds.has(l.id));
+
+      const topGrossing = fillFeaturedRail(
+        hotSource,
+        hotFallback,
+        RAIL_HOT_LIMIT,
+        tagsByListingId,
+      ).map((l, i) => ({ ...l, chartRank: l.chartRank ?? i + 1 }));
+
+      const newReleases = fillFeaturedRail(
+        trendingSource,
+        trendingBackfillPool.length ? trendingBackfillPool : all,
+        RAIL_TRENDING_LIMIT,
+        tagsByListingId,
+      );
 
       return {
         topGrossing,
-        newReleases: newReleases.length ? newReleases : all.slice(0, 12),
+        newReleases,
         all,
-        rankingsFromAnalytics: hot.length > 0 || trending.length > 0,
+        rankingsFromAnalytics: hotRaw.length > 0 || trendingRaw.length > 0,
       };
     },
   );

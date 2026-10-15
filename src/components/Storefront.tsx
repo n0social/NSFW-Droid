@@ -162,7 +162,12 @@ export function Storefront({
                       )}
                       {hotTitle}
                     </h2>
-                    <span className="text-[10px] font-bold text-[#FF4D8D]">See all</span>
+                    <Link
+                      href="/browse?rail=hot"
+                      className="min-h-[44px] shrink-0 rounded-full px-2 py-2 text-[10px] font-bold text-[#FF4D8D] hover:underline md:min-h-0 md:py-0"
+                    >
+                      See all
+                    </Link>
                   </div>
                   <div className="rail-scroll -mx-4 flex gap-3 overflow-x-auto overscroll-x-contain px-4 pb-2 scroll-smooth snap-x snap-mandatory touch-pan-x md:mx-0 md:px-0">
                     {filteredHot.map((g, i) => (
@@ -192,7 +197,12 @@ export function Storefront({
                       )}
                       {newTitle}
                     </h2>
-                    <span className="text-[10px] font-bold text-[#FF4D8D]">See all</span>
+                    <Link
+                      href="/browse?rail=trending"
+                      className="min-h-[44px] shrink-0 rounded-full px-2 py-2 text-[10px] font-bold text-[#FF4D8D] hover:underline md:min-h-0 md:py-0"
+                    >
+                      See all
+                    </Link>
                   </div>
                   <div className="rail-scroll -mx-4 flex gap-3 overflow-x-auto overscroll-x-contain px-4 pb-2 scroll-smooth snap-x snap-mandatory touch-pan-x md:mx-0 md:px-0">
                     {filteredNew.map((g, i) => (
