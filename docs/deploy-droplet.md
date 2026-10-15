@@ -140,7 +140,7 @@ PGlite allows **one process** per `data/catalog` directory. If ingest or migrate
 **Use `scripts/catalog-maintenance.sh`** so the app is never left stopped (trap restarts on exit, including failures):
 
 ```bash
-chmod +x scripts/catalog-maintenance.sh scripts/ensure-nsfwdroid.sh
+chmod +x scripts/catalog-maintenance.sh scripts/catalog-ingest-cron.sh scripts/ensure-nsfwdroid.sh
 ./scripts/catalog-maintenance.sh -- ./scripts/catalog-ingest-cron.sh
 ```
 
