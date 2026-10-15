@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>NSFW Droid — Maintenance</title>
+    <style>
+      :root {
+        --background: #14061c;
+        --foreground: #fff1f7;
+        --primary: #22ff88;
+        --accent: #39ff14;
+        --surface: #241033;
+        --muted: #86efac;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          Ubuntu,
+          sans-serif;
+        background: radial-gradient(ellipse 120% 80% at 50% 0%, #2a1540 0%, var(--background) 55%);
+        color: var(--foreground);
+        line-height: 1.5;
+      }
+      main {
+        max-width: 28rem;
+        width: 100%;
+        text-align: center;
+        padding: 2rem 1.75rem;
+        border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
+        border-radius: 1rem;
+        background: color-mix(in srgb, var(--surface) 92%, black);
+        box-shadow: 0 0 40px color-mix(in srgb, var(--primary) 12%, transparent);
+      }
+      .logo {
+        font-size: 1.5rem;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--primary);
+        margin: 0 0 0.25rem;
+      }
+      h1 {
+        font-size: 1.125rem;
+        font-weight: 700;
+        margin: 0 0 0.75rem;
+      }
+      p {
+        margin: 0 0 1.25rem;
+        font-size: 0.9375rem;
+        color: var(--muted);
+      }
+      a.button {
+        display: inline-block;
+        padding: 0.625rem 1.25rem;
+        font-size: 0.875rem;
+        font-weight: 700;
+        text-decoration: none;
+        color: var(--background);
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        border-radius: 0.5rem;
+      }
+      a.button:hover {
+        filter: brightness(1.08);
+      }
+      .hint {
+        margin-top: 1.25rem;
+        font-size: 0.75rem;
+        opacity: 0.75;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="logo">NSFW Droid</p>
+      <h1>Down for maintenance</h1>
+      <p>
+        We are updating the catalog or restarting the app. This is temporary — no account or
+        purchase data is stored here.
+      </p>
+      <a class="button" href="/">Try again</a>
+      <p class="hint">If this persists, check back in a few minutes.</p>
+    </main>
+  </body>
+</html>

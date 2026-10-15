@@ -133,6 +133,18 @@ systemctl restart nsfwdroid
 
 If the site shows **502**, check `systemctl is-active nsfwdroid` before debugging Caddy.
 
+### Maintenance page vs in-app “catalog unavailable”
+
+| Situation | What visitors see |
+| --- | --- |
+| **`nsfwdroid` stopped** or Caddy cannot connect to `127.0.0.1:3000` | Caddy serves `deploy/maintenance.html` (HTTP **502/503/504**). Blank gateway errors should not appear. |
+| **App running** but PGlite/catalog read fails (e.g. ingest ran without `catalog-maintenance.sh`) | Normal site (**HTTP 200**). Amber **“Catalog temporarily unavailable”** banner on home/browse; legal pages and nav still work. |
+| **`/api/health`** while catalog is wedged | **503** JSON from Next — not the Caddy maintenance HTML (upstream responded). |
+
+The maintenance page is wired in `deploy/Caddyfile` via `handle_errors 502 503 504` and `deploy/maintenance.html` on the droplet at `/var/www/nsfwdroid/deploy/`. After changing either file: `cp deploy/Caddyfile /etc/caddy/Caddyfile && systemctl reload caddy`.
+
+**Optional `MAINTENANCE_MODE=1`:** not implemented in app middleware. To force the static page while Next stays up, you could add a Caddy `handle` route that serves `maintenance.html` when an env var is set (same `root`/`rewrite` as `handle_errors`); otherwise rely on stopping `nsfwdroid` or a failed upstream during deploys.
+
 ### Catalog ingest runbook (required)
 
 PGlite allows **one process** per `data/catalog` directory. If ingest or migrate runs while `nsfwdroid` is up, initialization fails (`PGlite failed to initialize`), `/api/health` returns **503**, and the homepage may show an empty catalog even though data on disk is fine.
