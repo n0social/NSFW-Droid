@@ -143,6 +143,8 @@ curl -sI https://www.nsfwdroid.com/api/health
 
 (`npm run ingest` needs `tsx` from devDependencies; production `node_modules` from `npm ci --omit=dev` does not include it — use `npx tsx` as above.)
 
+**One-off maintenance scripts** (e.g. `unpublish-non-nsfw-listings.ts`, `backfill-listing-covers.ts`) use the same rule: `systemctl stop nsfwdroid` first, run as needed, `chown -R www-data:www-data data/catalog`, remove stale `data/catalog/postmaster.pid` if present, then **`systemctl start nsfwdroid`**. A manual stop does not auto-restart (`Restart=on-failure` only). If the site shows **502**, check `systemctl is-active nsfwdroid` before debugging Caddy.
+
 TOS holds: visit https://www.nsfwdroid.com/admin (set `ADMIN_PASSWORD`).
 
 ### Daily ingest (cron)
