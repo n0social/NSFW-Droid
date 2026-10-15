@@ -12,7 +12,9 @@ export default function PrivacyPage() {
         <p className="mt-4 text-sm leading-relaxed text-[#E9D5FF]/90">
           We use first-party analytics (outbound clicks and listing views) to rank catalog rails. When
           configured, Google Analytics may also collect usage data per Google&apos;s policies. Age
-          verification cookies are used to remember your 18+ confirmation on this device. Contact
+          verification cookies are used to remember your 18+ confirmation on this device. When
+          display ads are enabled, our ad partners (such as ExoClick) may set their own cookies or
+          use similar technologies to measure and serve ads. Contact
           details for data requests will be published here before launch marketing.
         </p>
       </div>

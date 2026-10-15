@@ -12,7 +12,9 @@ export default function AffiliatePage() {
         <p className="mt-4 text-sm leading-relaxed text-[#E9D5FF]/90">
           Some outbound links may include affiliate parameters after program approval (itch.io, Steam,
           Nutaku, and others). Sponsored or featured rows will be labeled on the storefront. Prices
-          and checkout always occur on the partner site.
+          and checkout always occur on the partner site. When display ads are enabled on the
+          storefront, ad partners may set cookies per their policies; see our{" "}
+          <Link href="/privacy" className="text-[#FF4D8D] underline">Privacy</Link> page.
         </p>
       </div>
       <SiteFooter />

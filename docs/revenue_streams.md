@@ -77,12 +77,12 @@ It fits live-service games with ongoing purchases, and it needs an SDK, fraud ch
 - Catalog tiles show a small **Affiliate link** line when an affiliate URL is set. Full policy: `/affiliate`.
 - Ingest: `npm run ingest:affiliate` (or bundled in `ingest-all` / `catalog-ingest-cron.sh` when `AFFILIATE_EXPORT_PATH` points at a JSON export file).
 
-**Display ads (prepared, not live)**
+**Display ads (ExoClick prepared, not live)**
 
-- `NEXT_PUBLIC_ADS_ENABLED` defaults to `0`. No third-party ad network scripts ship in production builds until you deliberately add them.
-- `AdSlot` components reserve surfaces on the home page (`below-hero`, `between-rails`, `footer-band`). They render **nothing** while disabled; when set to `1`, they show an empty dashed placeholder only — still no ExoClick/TrafficJunky tags until wired in a follow-up change.
-- Slots must stay behind the age gate (`ageVerified`); do not enable ads for visitors who have not confirmed 18+.
-- On the droplet, add `NEXT_PUBLIC_ADS_ENABLED=0` to `/etc/nsfwdroid.env`, rebuild, and restart after any change (Next inlines public env at build time).
+- `NEXT_PUBLIC_ADS_ENABLED` defaults to `0`. **No ExoClick script is requested** until this is `1` and zone + script URL env vars are set at build time.
+- `AdSlot` placements: home `below-hero`, `between-rails`; browse `browse-inline`. While disabled they render nothing; when enabled without zone IDs, dashed placeholders only.
+- Ads require the age gate: server passes `ageVerified` from the `age_verified` cookie; `ExoClickScript` uses `next/script` with `afterInteractive` only when `ADS_ENABLED=1` **and** the visitor is age-verified.
+- Droplet: set vars in `/etc/nsfwdroid.env`, then `npm run build` and `systemctl restart nsfwdroid` (Next inlines `NEXT_PUBLIC_*` at build time). Full checklist: [exoclick-setup.md](exoclick-setup.md).
 
 3. A labeled featured row sold as a flat fee.
 4. A download commission only for games under a distribution license, priced so the share clears processor fees and Object Storage egress.

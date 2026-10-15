@@ -14,6 +14,8 @@ import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
 import type { ResolvedLayoutDecorItem } from "@/lib/themes/types";
 import { ThemeLayoutDecor } from "@/components/theme/ThemeLayoutDecor";
 import { isPricingCatalogTagSlug } from "@/lib/listing-display";
+import { AdSlot } from "@/components/AdSlot";
+import { ExoClickScript } from "@/components/ExoClickScript";
 
 type Props = {
   ageVerified: boolean;
@@ -149,6 +151,7 @@ export function BrowseCatalog({
   return (
     <>
       <AgeGate open={!ageVerified} />
+      <ExoClickScript ageVerified={ageVerified} />
       <div className={`relative z-[1] ${!ageVerified ? "pointer-events-none select-none" : ""}`}>
         {layoutDecor.length > 0 && <ThemeLayoutDecor items={layoutDecor} />}
         <SiteHeader
@@ -222,6 +225,8 @@ export function BrowseCatalog({
               </button>
             </form>
           </div>
+
+          <AdSlot placement="browse-inline" ageVerified={ageVerified} />
 
           {listings.length === 0 ? (
             <p className="py-12 text-center text-sm text-[#E9D5FF]/80">No titles match this filter.</p>

@@ -11,6 +11,9 @@ import {
 
 export type AdminDashboardSnapshot = {
   generatedAt: string;
+  revenue: {
+    adsEnabled: boolean;
+  };
   catalog: {
     listings: number;
     staleListings: number;
@@ -127,6 +130,9 @@ export async function getAdminDashboardSnapshot(): Promise<AdminDashboardSnapsho
 
   return {
     generatedAt: new Date().toISOString(),
+    revenue: {
+      adsEnabled: process.env.NEXT_PUBLIC_ADS_ENABLED === "1",
+    },
     catalog: {
       listings: catalog.listings ?? 0,
       staleListings: catalog.stale_listings ?? 0,

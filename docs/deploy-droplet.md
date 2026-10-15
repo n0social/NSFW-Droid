@@ -81,8 +81,12 @@ AUTO_PUBLISH=1
 STEAM_WEB_API_KEY=optional
 ITCH_NSFW_ONLY=1
 CATALOG_NSFW_ONLY=1
-# Display ads — keep 0 until an adult network is approved and age-gate verified
+# Display ads (ExoClick) — keep 0 until publisher approval + counsel OK (see docs/exoclick-setup.md)
 NEXT_PUBLIC_ADS_ENABLED=0
+NEXT_PUBLIC_EXOCLICK_ZONE_ID_BANNER=
+NEXT_PUBLIC_EXOCLICK_ZONE_ID_NATIVE=
+# NEXT_PUBLIC_EXOCLICK_AD_SCRIPT_URL=https://a.magsrv.com/ad-provider.js
+# NEXT_PUBLIC_EXOCLICK_INS_CLASS=
 # Optional: AFFILIATE_EXPORT_PATH=/var/www/nsfwdroid/data/affiliate-export.json
 ```
 

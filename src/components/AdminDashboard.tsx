@@ -135,9 +135,14 @@ export function AdminDashboard() {
             />
           </div>
 
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <StatCard label="Sign-ups (7d)" value={data.users.signups7d} />
             <StatCard label="Total favorites" value={data.users.favoritesTotal} />
+            <StatCard
+              label="Ads enabled"
+              value={data.revenue.adsEnabled ? "Yes" : "No"}
+              hint="NEXT_PUBLIC_ADS_ENABLED at last build"
+            />
           </div>
 
           <div className="mt-6 grid gap-4 lg:grid-cols-3">
