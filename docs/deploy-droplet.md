@@ -79,6 +79,8 @@ AUTO_PUBLISH=1
 # Strict manual ingest (overrides AUTO_PUBLISH)
 # INGEST_REQUIRE_REVIEW=0
 STEAM_WEB_API_KEY=optional
+ITCH_NSFW_ONLY=1
+CATALOG_NSFW_ONLY=1
 ```
 
 - **Google Analytics:** use the Firebase web app **measurementId** (`G-…`) in `NEXT_PUBLIC_GA_MEASUREMENT_ID` (see [firebase-setup.md](firebase-setup.md)). Rebuild (`npm run build`), restart `nsfwdroid`.

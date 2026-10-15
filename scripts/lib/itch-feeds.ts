@@ -1,20 +1,19 @@
-/** Default itch.io RSS feeds when ITCH_FEED_URLS is unset (see docs/how_we_get_links.md). */
+import { isItchNsfwOnlyMode } from "../../src/lib/catalog-maturity";
+
+/** Site-wide itch feeds (all genres) — omitted when ITCH_NSFW_ONLY is on (default). */
 export const ITCH_GLOBAL_FEEDS = [
   "https://itch.io/feed/new.xml",
   "https://itch.io/feed/featured.xml",
   "https://itch.io/feed/sales.xml",
 ];
 
-/** Tag/genre browse feeds — each returns ~36 top items; dedupe by (source, external_id). */
+/** Adult-tagged browse feeds — each returns ~36 top items; dedupe by (source, external_id). */
 export const ITCH_NSFW_BROWSE_FEEDS = [
   "https://itch.io/games/tag-nsfw.xml",
   "https://itch.io/games/tag-adult.xml",
   "https://itch.io/games/tag-erotic.xml",
   "https://itch.io/games/tag-lewd.xml",
   "https://itch.io/games/tag-hentai.xml",
-  "https://itch.io/games/tag-dating-sim.xml",
-  "https://itch.io/games/tag-dating.xml",
-  "https://itch.io/games/tag-visual-novel.xml",
   "https://itch.io/games/genre-visual-novel/tag-nsfw.xml",
   "https://itch.io/games/platform-windows/tag-nsfw.xml",
   "https://itch.io/games/platform-android/tag-nsfw.xml",
@@ -23,12 +22,14 @@ export const ITCH_NSFW_BROWSE_FEEDS = [
 
 export function defaultItchFeedUrls(): string[] {
   if (process.env.ITCH_MINIMAL_FEEDS === "1") {
-    return ["https://itch.io/feed/new.xml"];
+    const nsfwOnly = isItchNsfwOnlyMode();
+    return nsfwOnly ? [ITCH_NSFW_BROWSE_FEEDS[0]] : ["https://itch.io/feed/new.xml"];
   }
   const extra = process.env.ITCH_EXTRA_FEED_URLS?.split(",")
     .map((u) => u.trim())
     .filter(Boolean);
-  const base = [...ITCH_GLOBAL_FEEDS, ...ITCH_NSFW_BROWSE_FEEDS];
+  const nsfwOnly = isItchNsfwOnlyMode();
+  const base = nsfwOnly ? [...ITCH_NSFW_BROWSE_FEEDS] : [...ITCH_GLOBAL_FEEDS, ...ITCH_NSFW_BROWSE_FEEDS];
   return extra?.length ? [...base, ...extra] : base;
 }
 

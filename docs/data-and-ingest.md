@@ -122,7 +122,9 @@ flowchart LR
 - **GET** `https://itch.io/feed/new.xml` (public RSS).
 - Parse `item` → `title`, `link`, `guid`, `pubDate`.
 - `INSERT … ON CONFLICT (source, external_id) DO NOTHING` into `candidate`.
-- Default feeds: `new.xml`, `featured.xml`, `sales.xml`, plus NSFW **tag browse** URLs (`games/tag-nsfw.xml`, etc. — `scripts/lib/itch-feeds.ts`). Override with `ITCH_FEED_URLS`; append with `ITCH_EXTRA_FEED_URLS`; `ITCH_MINIMAL_FEEDS=1` for legacy single-feed behavior.
+- Default feeds (**`ITCH_NSFW_ONLY=1`**, on unless set to `0`): NSFW **tag browse** URLs only (`games/tag-nsfw.xml`, etc. — `scripts/lib/itch-feeds.ts`). Global `new.xml` / `featured.xml` / `sales.xml` are **not** used in NSFW-only mode. Override with `ITCH_FEED_URLS`; append with `ITCH_EXTRA_FEED_URLS`; `ITCH_MINIMAL_FEEDS=1` uses one NSFW feed when NSFW-only is on.
+- Per-item filter: skip itch rows without an adult feed context, mature tag slug, or adult keyword (`src/lib/catalog-maturity.ts`).
+- Auto-publish: `CATALOG_NSFW_ONLY=1` (default) rejects non-mature candidates before listing. Existing bad rows: `npm run catalog:unpublish-non-nsfw` (dry-run) then `-- --apply`.
 - Tags land in `tag` / `candidate_tag` (RSS title brackets, feed context, platforms, keywords). Approved listings copy to `listing_tag`.
 - Rate: once per day (or every 6h); polite `User-Agent` identifying the catalog.
 - **No** HTML scrape of project pages.

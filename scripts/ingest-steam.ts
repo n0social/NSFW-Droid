@@ -108,7 +108,7 @@ async function loadSearchTerms(): Promise<string[]> {
     const raw = await readFile("data/steam-search-terms.json", "utf8");
     return JSON.parse(raw) as string[];
   } catch {
-    return ["nsfw", "adult only", "visual novel", "dating sim"];
+    return ["nsfw", "adult only", "hentai", "erotic"];
   }
 }
 

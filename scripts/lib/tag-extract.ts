@@ -16,7 +16,11 @@ const PLATFORM_SLUGS = new Set([
 const KEYWORD_TAGS: { re: RegExp; slug: string; label: string }[] = [
   { re: /\bnsfw\b/i, slug: "nsfw", label: "NSFW" },
   { re: /\b18\+\b/, slug: "18-plus", label: "18+" },
+  { re: /\badult\b/i, slug: "adult", label: "Adult" },
+  { re: /\berotic\b/i, slug: "erotic", label: "Erotic" },
+  { re: /\blewd\b/i, slug: "lewd", label: "Lewd" },
   { re: /\bhentai\b/i, slug: "hentai", label: "Hentai" },
+  { re: /\bmature\b/i, slug: "mature", label: "Mature" },
   { re: /\bvisual novel\b/i, slug: "visual-novel", label: "Visual Novel" },
   { re: /\bdating sim\b/i, slug: "dating-sim", label: "Dating Sim" },
   { re: /\bharem\b/i, slug: "harem", label: "Harem" },

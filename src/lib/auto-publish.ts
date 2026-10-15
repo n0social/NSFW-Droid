@@ -1,14 +1,23 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import { candidates } from "@/db/schema";
-import { approveCandidate } from "@/lib/review";
+import { candidateTags, candidates, tags } from "@/db/schema";
+import {
+  isCatalogNsfwEnforcementEnabled,
+  isMatureCatalogCandidate,
+} from "@/lib/catalog-maturity";
+import { approveCandidate, rejectCandidate } from "@/lib/review";
 import {
   screenCandidateFields,
   tosRuleLabel,
   type TosScreenResult,
 } from "@/lib/tos-screen";
 
-export type CandidateIngestOutcome = "published" | "held" | "pending" | "skipped";
+export type CandidateIngestOutcome =
+  | "published"
+  | "held"
+  | "pending"
+  | "skipped"
+  | "rejected_non_mature";
 
 function parseEnvBool(value: string | undefined): boolean | undefined {
   if (value === undefined || value === "") return undefined;
@@ -73,6 +82,16 @@ async function markTosHold(
     .where(eq(candidates.id, candidateId));
 }
 
+async function tagSlugsForCandidate(candidateId: string): Promise<string[]> {
+  const db = await getDb();
+  const rows = await db
+    .select({ slug: tags.slug })
+    .from(candidateTags)
+    .innerJoin(tags, eq(candidateTags.tagId, tags.id))
+    .where(eq(candidateTags.candidateId, candidateId));
+  return rows.map((r) => r.slug);
+}
+
 function affiliateFromRaw(raw: unknown): string | null {
   if (!raw || typeof raw !== "object") return null;
   const url = (raw as { affiliate_url?: string }).affiliate_url;
@@ -101,6 +120,14 @@ export async function processCandidateAfterIngest(
     return "held";
   }
 
+  if (isCatalogNsfwEnforcementEnabled()) {
+    const tagSlugs = await tagSlugsForCandidate(candidateId);
+    if (!isMatureCatalogCandidate(c, tagSlugs)) {
+      await rejectCandidate(candidateId, "catalog_maturity", "not_mature_catalog");
+      return "rejected_non_mature";
+    }
+  }
+
   if (!isIngestAutoPublishEnabled()) return "pending";
 
   const raw = c.rawPayload as { platforms?: string[] } | null;
@@ -117,6 +144,7 @@ export async function autoPublishPendingCandidates(limit = 100): Promise<{
   held: number;
   pending: number;
   skipped: number;
+  rejectedNonMature: number;
 }> {
   const db = await getDb();
   const pending = await db
@@ -129,14 +157,16 @@ export async function autoPublishPendingCandidates(limit = 100): Promise<{
   let held = 0;
   let stillPending = 0;
   let skipped = 0;
+  let rejectedNonMature = 0;
 
   for (const c of pending) {
     const outcome = await processCandidateAfterIngest(c.id);
     if (outcome === "published") published += 1;
     else if (outcome === "held") held += 1;
     else if (outcome === "pending") stillPending += 1;
+    else if (outcome === "rejected_non_mature") rejectedNonMature += 1;
     else skipped += 1;
   }
 
-  return { published, held, pending: stillPending, skipped };
+  return { published, held, pending: stillPending, skipped, rejectedNonMature };
 }

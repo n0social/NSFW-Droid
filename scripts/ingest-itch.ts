@@ -6,6 +6,10 @@ import {
   touchIngestSource,
   sleep,
 } from "./lib/ingest-common";
+import {
+  isItchNsfwOnlyMode,
+  isMatureItchItem,
+} from "../src/lib/catalog-maturity";
 import { defaultItchFeedUrls } from "./lib/itch-feeds";
 import { extractItchItemTags, itchPlatformsFromItem } from "./lib/tag-extract";
 
@@ -54,6 +58,7 @@ async function ingestFeed(url: string) {
 
   let inserted = 0;
   let tagged = 0;
+  let skippedNonMature = 0;
   for (const item of list) {
     const title = String(item.title ?? item.plainTitle ?? "").trim();
     const link = String(item.link ?? "").trim();
@@ -62,6 +67,11 @@ async function ingestFeed(url: string) {
 
     const platforms = itchPlatformsFromItem(item as Record<string, unknown>);
     const tagList = extractItchItemTags(item as Record<string, unknown>, url);
+    const tagSlugs = tagList.map((t) => t.slug);
+    if (isItchNsfwOnlyMode() && !isMatureItchItem(item as Record<string, unknown>, url, tagSlugs)) {
+      skippedNonMature += 1;
+      continue;
+    }
 
     const ok = await upsertCandidate({
       source: "itch",
@@ -75,7 +85,12 @@ async function ingestFeed(url: string) {
     if (tagList.length) tagged += 1;
   }
 
-  return { feedItems: list.length, newCandidates: inserted, itemsWithTags: tagged };
+  return {
+    feedItems: list.length,
+    newCandidates: inserted,
+    itemsWithTags: tagged,
+    skippedNonMature,
+  };
 }
 
 export async function runItchIngest() {
@@ -83,6 +98,7 @@ export async function runItchIngest() {
   let totalItems = 0;
   let totalInserted = 0;
   let totalTagged = 0;
+  let totalSkippedNonMature = 0;
   const feedErrors: { url: string; error: string }[] = [];
   for (const url of urls) {
     const r = await ingestFeed(url);
@@ -94,6 +110,7 @@ export async function runItchIngest() {
     totalItems += r.feedItems;
     totalInserted += r.newCandidates;
     totalTagged += r.itemsWithTags;
+    totalSkippedNonMature += r.skippedNonMature ?? 0;
     await sleep(feedDelayMs());
   }
 
@@ -102,6 +119,8 @@ export async function runItchIngest() {
     fetched: totalItems,
     inserted: totalInserted,
     tagged: totalTagged,
+    skippedNonMature: totalSkippedNonMature,
+    itchNsfwOnly: isItchNsfwOnlyMode(),
     feedErrors,
   });
   return {
@@ -110,6 +129,8 @@ export async function runItchIngest() {
     feedItems: totalItems,
     newCandidates: totalInserted,
     itemsWithTags: totalTagged,
+    skippedNonMature: totalSkippedNonMature,
+    itchNsfwOnly: isItchNsfwOnlyMode(),
     feedErrors,
   };
 }
