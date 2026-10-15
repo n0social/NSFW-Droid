@@ -45,7 +45,7 @@ fi
 
 chown -R www-data:www-data "$APP_DIR/data" 2>/dev/null || mkdir -p "$APP_DIR/data" && chown -R www-data:www-data "$APP_DIR/data"
 
-chmod +x "$APP_DIR/scripts/catalog-maintenance.sh" "$APP_DIR/scripts/ensure-nsfwdroid.sh" 2>/dev/null || true
+chmod +x "$APP_DIR/scripts/catalog-maintenance.sh" "$APP_DIR/scripts/catalog-ingest-cron.sh" "$APP_DIR/scripts/ensure-nsfwdroid.sh" 2>/dev/null || true
 
 cp deploy/nsfwdroid.service /etc/systemd/system/nsfwdroid.service
 systemctl daemon-reload
@@ -67,4 +67,4 @@ systemctl reload caddy || systemctl restart caddy
 
 echo "==> Done. Point DNS A records for @ and www to this droplet, then open https://www.nsfwdroid.com"
 echo "    Watchdog: /etc/cron.d/nsfwdroid-watchdog (every 5 min)"
-echo "    Ingest:   /etc/cron.d/nsfwdroid-ingest (daily 06:00 UTC) via scripts/catalog-maintenance.sh"
+echo "    Ingest:   /etc/cron.d/nsfwdroid-ingest (06:00, 14:00, 22:00 UTC) via scripts/catalog-maintenance.sh"

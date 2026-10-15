@@ -64,6 +64,7 @@ Extends approved candidate fields plus:
 | `cover_image_url` | text | nullable — allowlisted Steam / itch CDN URL from ingest |
 | `sponsorship` | jsonb | `{ "type": "featured", "until": "…" }` or null |
 | `link_status` | enum | `ok`, `broken` |
+| `catalog_stale` | boolean | `true` = deprioritized / hidden from default rails (recycle job) |
 | `published_at` | timestamptz | |
 | `chart_rank` | int | nullable — **editorial / affiliate “top”** until real revenue data exists |
 | `chart_bucket` | text | nullable — `top_grossing`, `new`, … for home rails |
@@ -155,6 +156,22 @@ Optional for production-style deltas. Register the key in Steamworks using your 
 
 - HEAD/GET `official_url` / `affiliate_url` on `listing`.
 - Set `link_status = broken` on repeated failures.
+
+### Job 6: Stale recycle (before each ingest cron)
+
+**Script:** `scripts/recycle-stale-listings.ts` (dry-run default; `--apply` on the droplet cron).
+
+**Policy (production defaults):**
+
+| Rule | Behavior |
+| --- | --- |
+| **Freshness signal** | `listing.updated_at` — bumped when itch/Steam feeds re-hit an existing `(source, external_id)` during ingest (`scripts/lib/ingest-common.ts`). |
+| **Stale threshold** | `CATALOG_STALE_DAYS` (default **14**): itch/Steam listings with `catalog_stale = false`, `link_status = ok`, and `updated_at` older than the cutoff are recycled. |
+| **Recycle action** | Set `catalog_stale = true`, clear `chart_rank` / `chart_bucket` (drops off home/browse rails). Row stays in DB for direct URLs/admin. |
+| **Re-seen in feed** | On next ingest hit, listing is refreshed (`title`, `official_url`, `updated_at`); if it was stale, set `catalog_stale = false` and bump `published_at` for trending. |
+| **NSFW** | When `CATALOG_NSFW_ONLY=1` (default), non-mature rows are skipped by recycle (use `npm run catalog:unpublish-non-nsfw` to remove them). |
+
+**Cron:** `deploy/cron.d/nsfwdroid-ingest` runs **06:00, 14:00, 22:00 UTC** via `scripts/catalog-maintenance.sh` → `scripts/catalog-ingest-cron.sh` (migrate → recycle `--apply` → `ingest-all.ts`). Logs: `/var/log/nsfwdroid-ingest.log` on the droplet.
 
 ### Review → publish
 

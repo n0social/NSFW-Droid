@@ -3,6 +3,7 @@ import { getDb } from "@/db";
 import { analyticsEvents, listings } from "@/db/schema";
 import { createHash } from "crypto";
 import { ANALYTICS_RANK_POOL } from "@/lib/listings-ranking";
+import { publicCatalogLinkStatus } from "@/lib/catalog-visibility";
 
 export async function recordEvent(input: {
   eventType: "outbound_click" | "listing_view" | "page_view";
@@ -37,7 +38,10 @@ async function listingsByAnalyticsIds(
   if (!ids.length) return [];
 
   const db = await getDb();
-  const games = await db.select().from(listings).where(inArray(listings.id, ids));
+  const games = await db
+    .select()
+    .from(listings)
+    .where(and(inArray(listings.id, ids), publicCatalogLinkStatus()));
   const byId = new Map(games.map((g) => [g.id, g]));
   const ordered: (typeof games)[0][] = [];
   const seen = new Set<string>();

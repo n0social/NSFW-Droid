@@ -72,6 +72,7 @@ export const listings = pgTable("listing", {
   coverImageUrl: text("cover_image_url"),
   sponsorship: jsonb("sponsorship"),
   linkStatus: linkStatusEnum("link_status").notNull().default("ok"),
+  catalogStale: boolean("catalog_stale").notNull().default(false),
   publishedAt: timestamp("published_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   chartRank: integer("chart_rank"),

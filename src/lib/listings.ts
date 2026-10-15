@@ -1,4 +1,5 @@
-import { desc, asc, isNotNull, sql } from "drizzle-orm";
+import { and, desc, asc, isNotNull, sql } from "drizzle-orm";
+import { publicCatalogLinkStatus } from "@/lib/catalog-visibility";
 import { listings, type Listing } from "@/db/schema";
 import { getHotListings, getRecentPopular } from "@/lib/analytics";
 import { getTagSlugsByListingIds } from "@/lib/listing-tags";
@@ -29,6 +30,7 @@ export async function getListingsForStorefront(): Promise<StorefrontListings> {
       const all = await db
         .select()
         .from(listings)
+        .where(publicCatalogLinkStatus())
         .orderBy(desc(listings.publishedAt))
         .limit(48);
 
@@ -47,7 +49,7 @@ export async function getListingsForStorefront(): Promise<StorefrontListings> {
       const topGrossingFromChart = await db
         .select()
         .from(listings)
-        .where(isNotNull(listings.chartRank))
+        .where(and(publicCatalogLinkStatus(), isNotNull(listings.chartRank)))
         .orderBy(asc(listings.chartRank))
         .limit(RAIL_HOT_LIMIT);
 

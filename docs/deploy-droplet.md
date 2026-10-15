@@ -140,7 +140,7 @@ PGlite allows **one process** per `data/catalog` directory. If ingest or migrate
 
 ```bash
 chmod +x scripts/catalog-maintenance.sh scripts/ensure-nsfwdroid.sh
-./scripts/catalog-maintenance.sh -- bash -c 'npx --yes tsx scripts/db-migrate.ts && npx --yes tsx scripts/ingest-all.ts'
+./scripts/catalog-maintenance.sh -- ./scripts/catalog-ingest-cron.sh
 ```
 
 One-off scripts (e.g. `unpublish-non-nsfw-listings.ts`, `backfill-listing-covers.ts`):
@@ -173,21 +173,28 @@ touch /var/log/nsfwdroid-watchdog.log && chown root:root /var/log/nsfwdroid-watc
 
 Logs: `/var/log/nsfwdroid-watchdog.log`. Script: `scripts/ensure-nsfwdroid.sh`.
 
-### Daily ingest (cron)
+### Catalog ingest cron (3× daily)
 
-Use the maintenance wrapper (not raw `systemctl stop` chains):
+Use the maintenance wrapper (not raw `systemctl stop` chains). Each run migrates, recycles stale feed-backed listings, then ingests itch + Steam:
 
 ```bash
 cp deploy/cron.d/nsfwdroid-ingest /etc/cron.d/nsfwdroid-ingest
 chmod 644 /etc/cron.d/nsfwdroid-ingest
 touch /var/log/nsfwdroid-ingest.log
+chmod +x scripts/catalog-ingest-cron.sh
 ```
 
-Example line (also in `deploy/cron.d/nsfwdroid-ingest`):
+Schedule (UTC): **06:00, 14:00, 22:00** — see `deploy/cron.d/nsfwdroid-ingest`.
 
-```cron
-0 6 * * * root /var/www/nsfwdroid/scripts/catalog-maintenance.sh -- bash -c 'npx --yes tsx scripts/db-migrate.ts && npx --yes tsx scripts/ingest-all.ts' >> /var/log/nsfwdroid-ingest.log 2>&1
+**Verify logs:**
+
+```bash
+tail -n 80 /var/log/nsfwdroid-ingest.log
+grep -E 'catalog-maintenance|recycle-stale|ingest-all' /var/log/nsfwdroid-ingest.log | tail -20
+journalctl -u nsfwdroid -n 30 --no-pager
 ```
+
+Expect `[catalog-maintenance]` stop/start lines, JSON from `recycle-stale-listings.ts`, then ingest summary JSON with `itch` / `steam` counts.
 
 ---
 

@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { getDb } from "../../src/db";
-import { candidates, ingestSources } from "../../src/db/schema";
+import { candidates, ingestSources, listings } from "../../src/db/schema";
 import {
   autoPublishPendingCandidates,
   processCandidateAfterIngest,
@@ -59,11 +59,56 @@ export async function upsertCandidate(input: {
     await syncTagsForCandidate(candidateId, input.tags);
   }
 
+  if (!inserted && candidateId) {
+    await touchListingOnIngestReseen(input.source, input.externalId, {
+      title: input.title,
+      outboundUrl: input.outboundUrl,
+    });
+  }
+
   if (inserted && candidateId) {
     await processCandidateAfterIngest(candidateId).catch(() => {});
   }
 
   return inserted;
+}
+
+/** Bump listing freshness when a feed item matches an existing candidate. */
+async function touchListingOnIngestReseen(
+  source: "itch" | "steam" | "affiliate_export" | "developer_form",
+  externalId: string,
+  patch: { title: string; outboundUrl: string },
+) {
+  if (source !== "itch" && source !== "steam") return;
+
+  const db = await getDb();
+  const [listing] = await db
+    .select()
+    .from(listings)
+    .where(
+      and(eq(listings.source, source), eq(listings.externalId, externalId)),
+    )
+    .limit(1);
+  if (!listing) return;
+
+  const now = new Date();
+  const wasStale = listing.catalogStale;
+
+  await db
+    .update(listings)
+    .set({
+      title: patch.title,
+      officialUrl: patch.outboundUrl,
+      updatedAt: now,
+      ...(wasStale
+        ? {
+            catalogStale: false,
+            publishedAt: now,
+            chartBucket: listing.chartBucket ?? "new",
+          }
+        : {}),
+    })
+    .where(eq(listings.id, listing.id));
 }
 
 export async function touchIngestSource(

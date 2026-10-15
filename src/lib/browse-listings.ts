@@ -7,6 +7,7 @@ import {
 } from "@/lib/listings-ranking";
 import { getTagSlugsByListingIds, listBrowseTags } from "@/lib/listing-tags";
 import { safeCatalogQuery } from "@/lib/db-safe";
+import { publicCatalogLinkStatus } from "@/lib/catalog-visibility";
 
 export type BrowseFilters = {
   rail?: "hot" | "trending" | null;
@@ -42,7 +43,7 @@ export async function getBrowseListings(filters: BrowseFilters): Promise<BrowseR
         : await db
             .select()
             .from(listings)
-            .where(isNotNull(listings.chartRank))
+            .where(and(publicCatalogLinkStatus(), isNotNull(listings.chartRank)))
             .orderBy(asc(listings.chartRank))
             .limit(48);
     } else if (filters.rail === "trending") {
@@ -50,7 +51,12 @@ export async function getBrowseListings(filters: BrowseFilters): Promise<BrowseR
       base =
         trending.length > 0
           ? trending
-          : await db.select().from(listings).orderBy(desc(listings.publishedAt)).limit(48);
+          : await db
+              .select()
+              .from(listings)
+              .where(publicCatalogLinkStatus())
+              .orderBy(desc(listings.publishedAt))
+              .limit(48);
     } else {
       const conditions = [];
       if (q) {
@@ -67,6 +73,7 @@ export async function getBrowseListings(filters: BrowseFilters): Promise<BrowseR
           .innerJoin(listingTags, eq(listingTags.listingId, listings.id))
           .where(
             and(
+              publicCatalogLinkStatus(),
               eq(listingTags.tagId, tagRow.id),
               ...(q ? [ilike(listings.title, `%${q}%`)] : []),
             ),
@@ -78,7 +85,11 @@ export async function getBrowseListings(filters: BrowseFilters): Promise<BrowseR
         base = await db
           .select()
           .from(listings)
-          .where(conditions.length ? and(...conditions) : undefined)
+          .where(
+            conditions.length
+              ? and(publicCatalogLinkStatus(), ...conditions)
+              : publicCatalogLinkStatus(),
+          )
           .orderBy(desc(listings.publishedAt))
           .limit(BROWSE_PAGE_LIMIT);
       }
