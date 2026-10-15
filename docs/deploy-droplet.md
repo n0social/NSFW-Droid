@@ -81,6 +81,9 @@ AUTO_PUBLISH=1
 STEAM_WEB_API_KEY=optional
 ITCH_NSFW_ONLY=1
 CATALOG_NSFW_ONLY=1
+# Display ads — keep 0 until an adult network is approved and age-gate verified
+NEXT_PUBLIC_ADS_ENABLED=0
+# Optional: AFFILIATE_EXPORT_PATH=/var/www/nsfwdroid/data/affiliate-export.json
 ```
 
 - **Google Analytics:** use the Firebase web app **measurementId** (`G-…`) in `NEXT_PUBLIC_GA_MEASUREMENT_ID` (see [firebase-setup.md](firebase-setup.md)). Rebuild (`npm run build`), restart `nsfwdroid`.

@@ -16,6 +16,7 @@ export async function recordEvent(input: {
   path?: string;
   referrer?: string;
   sessionId?: string;
+  metadata?: Record<string, unknown>;
 }) {
   try {
     const db = await getDb();
@@ -28,6 +29,7 @@ export async function recordEvent(input: {
       path: input.path ?? null,
       referrer: input.referrer ?? null,
       sessionHash,
+      metadata: input.metadata ?? null,
     });
   } catch (err) {
     console.error("[analytics] recordEvent failed:", err);

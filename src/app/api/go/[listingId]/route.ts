@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { listings } from "@/db/schema";
 import { recordEvent } from "@/lib/analytics";
+import { isValidOutboundUrl, resolveOutboundLink } from "@/lib/outbound-link";
 import { cookies } from "next/headers";
 
 export async function GET(
@@ -21,6 +22,11 @@ export async function GET(
       return NextResponse.redirect(new URL("/", request.url));
     }
 
+    const { url, linkKind } = resolveOutboundLink(row);
+    if (!isValidOutboundUrl(url)) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+
     const jar = await cookies();
     const sessionId = jar.get("age_verified")?.value ?? "anon";
 
@@ -30,9 +36,10 @@ export async function GET(
       path: `/go/${listingId}`,
       referrer: request.headers.get("referer") ?? undefined,
       sessionId,
+      metadata: { linkKind },
     });
 
-    return NextResponse.redirect(row.officialUrl, 302);
+    return NextResponse.redirect(url, 302);
   } catch (err) {
     console.error("[go] redirect failed:", err);
     return NextResponse.redirect(new URL("/", request.url));

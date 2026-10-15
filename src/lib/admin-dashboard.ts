@@ -25,6 +25,10 @@ export type AdminDashboardSnapshot = {
   analytics: {
     outboundClicks24h: number;
     outboundClicks7d: number;
+    affiliateClicks24h: number;
+    affiliateClicks7d: number;
+    officialClicks24h: number;
+    officialClicks7d: number;
     listingViews24h: number;
     listingViews7d: number;
     pageViews24h: number;
@@ -92,6 +96,10 @@ export async function getAdminDashboardSnapshot(): Promise<AdminDashboardSnapsho
     SELECT
       (SELECT count(*)::int FROM analytics_event WHERE event_type = 'outbound_click' AND created_at >= ${since24h}) AS clicks_24h,
       (SELECT count(*)::int FROM analytics_event WHERE event_type = 'outbound_click' AND created_at >= ${since7d}) AS clicks_7d,
+      (SELECT count(*)::int FROM analytics_event WHERE event_type = 'outbound_click' AND created_at >= ${since24h} AND metadata->>'linkKind' = 'affiliate') AS affiliate_clicks_24h,
+      (SELECT count(*)::int FROM analytics_event WHERE event_type = 'outbound_click' AND created_at >= ${since7d} AND metadata->>'linkKind' = 'affiliate') AS affiliate_clicks_7d,
+      (SELECT count(*)::int FROM analytics_event WHERE event_type = 'outbound_click' AND created_at >= ${since24h} AND (metadata->>'linkKind' = 'official' OR metadata->>'linkKind' IS NULL)) AS official_clicks_24h,
+      (SELECT count(*)::int FROM analytics_event WHERE event_type = 'outbound_click' AND created_at >= ${since7d} AND (metadata->>'linkKind' = 'official' OR metadata->>'linkKind' IS NULL)) AS official_clicks_7d,
       (SELECT count(*)::int FROM analytics_event WHERE event_type = 'listing_view' AND created_at >= ${since24h}) AS views_24h,
       (SELECT count(*)::int FROM analytics_event WHERE event_type = 'listing_view' AND created_at >= ${since7d}) AS views_7d,
       (SELECT count(*)::int FROM analytics_event WHERE event_type = 'page_view' AND created_at >= ${since24h}) AS page_views_24h
@@ -133,6 +141,10 @@ export async function getAdminDashboardSnapshot(): Promise<AdminDashboardSnapsho
     analytics: {
       outboundClicks24h: analytics.clicks_24h ?? 0,
       outboundClicks7d: analytics.clicks_7d ?? 0,
+      affiliateClicks24h: analytics.affiliate_clicks_24h ?? 0,
+      affiliateClicks7d: analytics.affiliate_clicks_7d ?? 0,
+      officialClicks24h: analytics.official_clicks_24h ?? 0,
+      officialClicks7d: analytics.official_clicks_7d ?? 0,
       listingViews24h: analytics.views_24h ?? 0,
       listingViews7d: analytics.views_7d ?? 0,
       pageViews24h: analytics.page_views_24h ?? 0,

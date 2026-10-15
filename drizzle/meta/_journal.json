@@ -64,6 +64,13 @@
       "when": 1792006100000,
       "tag": "0008_ingest_run_index",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792006200000,
+      "tag": "0009_analytics_metadata",
+      "breakpoints": true
     }
   ]
 }

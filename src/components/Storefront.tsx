@@ -13,6 +13,7 @@ import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
 import type { ResolvedLayoutDecorItem } from "@/lib/themes/types";
 import { ThemeAssetImage } from "@/components/theme/ThemeAssetImage";
 import { ThemeLayoutDecor } from "@/components/theme/ThemeLayoutDecor";
+import { AdSlot } from "@/components/AdSlot";
 
 type Props = {
   ageVerified: boolean;
@@ -130,6 +131,7 @@ export function Storefront({
             themeAssets={themeAssets}
             layoutDecor={layoutDecor}
           />
+          <AdSlot placement="below-hero" ageVerified={ageVerified} />
           <ChipRow active={chip} onChange={setChip} themeAssets={themeAssets} />
 
           {catalogUnavailable ? null : listingCount === 0 ? (
@@ -187,6 +189,8 @@ export function Storefront({
                 </section>
               )}
 
+              <AdSlot placement="between-rails" ageVerified={ageVerified} />
+
               {filteredNew.length > 0 && (
                 <section className="mb-4">
                   <div className="mb-3 flex items-center justify-between gap-2">
@@ -237,6 +241,7 @@ export function Storefront({
           )}
         </main>
 
+        <AdSlot placement="footer-band" ageVerified={ageVerified} />
         <SiteFooter />
       </div>
     </>

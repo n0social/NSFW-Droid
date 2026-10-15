@@ -117,6 +117,7 @@ export const analyticsEvents = pgTable("analytics_event", {
   path: text("path"),
   referrer: text("referrer"),
   sessionHash: text("session_hash"),
+  metadata: jsonb("metadata"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

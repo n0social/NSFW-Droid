@@ -8,6 +8,7 @@ import { useFavoritesContext } from "@/components/favorites/FavoritesProvider";
 import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
 import { ThemeAssetImage } from "@/components/theme/ThemeAssetImage";
 import { displayListingTitle } from "@/lib/listing-display";
+import { listingHasAffiliateLink } from "@/lib/outbound-link";
 
 const gradients = [
   "linear-gradient(145deg, #4a1d6a 0%, #C026D3 45%, #14061C 100%)",
@@ -76,6 +77,7 @@ export function GameCard({ game, index, rank, wide, layout = "rail", blur, theme
   const gradient = gradients[index % gradients.length];
   const showFavoriteControl = Boolean(user);
   const displayTitle = displayListingTitle(game.title);
+  const showAffiliateDisclosure = listingHasAffiliateLink(game);
 
   return (
     <div
@@ -173,7 +175,12 @@ export function GameCard({ game, index, rank, wide, layout = "rail", blur, theme
           )}
         </div>
         <div className="px-2.5 py-2 text-[10px] font-bold text-[#E9D5FF]">
-          {platformLabel(game)}
+          <span className="block truncate">{platformLabel(game)}</span>
+          {showAffiliateDisclosure && (
+            <span className="mt-0.5 block truncate text-[9px] font-semibold text-[#E9D5FF]/55">
+              Affiliate link
+            </span>
+          )}
         </div>
       </a>
     </div>

@@ -4,6 +4,7 @@ import { autoPublishPendingCandidates } from "../src/lib/auto-publish";
 import { recordIngestRun } from "../src/lib/ingest-run";
 import { runItchIngest } from "./ingest-itch";
 import { runSteamIngest } from "./ingest-steam";
+import { runAffiliateIngest } from "./ingest-affiliate";
 import { closeCatalogDb, getDb } from "../src/db";
 import { candidates } from "../src/db/schema";
 import {
@@ -31,6 +32,7 @@ async function main() {
   try {
     const itch = await runItchIngest();
     const steam = await runSteamIngest();
+    const affiliate = await runAffiliateIngest();
     const tagsBackfilled = await backfillCandidateTags(deriveTags);
     const listingTagsLinked = await backfillListingTagsFromCandidates();
     const autoPublished = await autoPublishPendingCandidates(
@@ -48,6 +50,7 @@ async function main() {
     const summary = {
       itch,
       steam,
+      affiliate,
       tagsBackfilled,
       listingTagsLinked,
       autoPublished,

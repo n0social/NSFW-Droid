@@ -68,6 +68,22 @@ It fits live-service games with ongoing purchases, and it needs an SDK, fraud ch
 
 1. Affiliate links on every game that has a program, with the paid relationship disclosed.
 2. One adult ad network, after the age gate, once there is traffic to show them.
+
+### Shipped in the app (Phase 1)
+
+**Affiliate**
+
+- Outbound clicks go through `/api/go/[listingId]`. When `listing.affiliate_url` is a valid `http(s)` URL, the redirect uses it and analytics records `metadata.linkKind = affiliate`; otherwise the redirect uses `official_url` with `linkKind = official`.
+- Catalog tiles show a small **Affiliate link** line when an affiliate URL is set. Full policy: `/affiliate`.
+- Ingest: `npm run ingest:affiliate` (or bundled in `ingest-all` / `catalog-ingest-cron.sh` when `AFFILIATE_EXPORT_PATH` points at a JSON export file).
+
+**Display ads (prepared, not live)**
+
+- `NEXT_PUBLIC_ADS_ENABLED` defaults to `0`. No third-party ad network scripts ship in production builds until you deliberately add them.
+- `AdSlot` components reserve surfaces on the home page (`below-hero`, `between-rails`, `footer-band`). They render **nothing** while disabled; when set to `1`, they show an empty dashed placeholder only — still no ExoClick/TrafficJunky tags until wired in a follow-up change.
+- Slots must stay behind the age gate (`ageVerified`); do not enable ads for visitors who have not confirmed 18+.
+- On the droplet, add `NEXT_PUBLIC_ADS_ENABLED=0` to `/etc/nsfwdroid.env`, rebuild, and restart after any change (Next inlines public env at build time).
+
 3. A labeled featured row sold as a flat fee.
 4. A download commission only for games under a distribution license, priced so the share clears processor fees and Object Storage egress.
 5. A currency wallet only after free-to-play partners are actually shipping on the store.

@@ -126,7 +126,7 @@ export function AdminDashboard() {
             <StatCard
               label="Outbound clicks"
               value={data.analytics.outboundClicks24h}
-              hint={`${data.analytics.outboundClicks7d} / 7d`}
+              hint={`${data.analytics.outboundClicks7d} / 7d · affiliate ${data.analytics.affiliateClicks24h} / official ${data.analytics.officialClicks24h} (24h)`}
             />
             <StatCard
               label="Listing views"
