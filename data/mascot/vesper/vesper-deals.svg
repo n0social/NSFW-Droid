@@ -1,0 +1,44 @@
+<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="vesper-deals-title">
+  <title id="vesper-deals-title">Vesper  deals and steals (storefront, SFW)</title>
+  <defs>
+    <radialGradient id="bg" cx="55%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#5B1B4E" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#14061C"/>
+    </radialGradient>
+    <linearGradient id="tag" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FF4D8D"/>
+      <stop offset="100%" stop-color="#DB2777"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" rx="16" fill="url(#bg)"/>
+  <!-- deal tag stack -->
+  <g transform="translate(118 36) rotate(8)">
+    <rect x="0" y="0" width="58" height="34" rx="6" fill="url(#tag)" stroke="#FFF1F7" stroke-width="2"/>
+    <text x="29" y="22" text-anchor="middle" fill="#14061C" font-family="system-ui,sans-serif" font-size="14" font-weight="900">DEAL</text>
+    <circle cx="6" cy="17" r="4" fill="#14061C"/>
+  </g>
+  <g transform="translate(108 78) rotate(-6)">
+    <rect x="0" y="0" width="52" height="30" rx="6" fill="#241033" stroke="#C026D3" stroke-width="2"/>
+    <text x="26" y="20" text-anchor="middle" fill="#F9A8D4" font-family="system-ui,sans-serif" font-size="11" font-weight="800">-30%</text>
+  </g>
+  <!-- Vesper bust -->
+  <path d="M36 88c-4 16 0 34 12 44 6 5 14 7 22 7s16-2 22-7c12-10 16-28 12-44" fill="#0D0A12"/>
+  <path d="M78 52c-2-8 4-16 14-16 6 0 11 3 14 8" stroke="#FF4D8D" stroke-width="3" stroke-linecap="round"/>
+  <rect x="38" y="56" width="84" height="76" rx="24" fill="#1E0A28" stroke="#C026D3" stroke-width="2.5"/>
+  <path d="M52 56V46c0-2.2 1.8-4 4-4h3c2.2 0 4 1.8 4 4v10" stroke="#C026D3" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="58" cy="42" r="3" fill="#22C55E"/>
+  <path d="M104 56V46c0-2.2 1.8-4 4-4h3c2.2 0 4 1.8 4 4v10" stroke="#C026D3" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="110" cy="42" r="3" fill="#22C55E"/>
+  <rect x="46" y="72" width="68" height="52" rx="14" fill="#14061C" stroke="#C026D3" stroke-width="1.5"/>
+  <path d="M58 84c0-2.7 2.1-4.3 4.1-2.7 1.1.9 1.5 1.9 1.5 2.7 0-.8.4-1.8 1.5-2.7 2-1.6 4.1 0 4.1 2.7 0 1.7-1.9 4.2-5.6 6.9-3.7-2.7-5.6-5.2-5.6-6.9z" fill="#FF4D8D"/>
+  <path d="M88 84c0-2.7 2.1-4.3 4.1-2.7 1.1.9 1.5 1.9 1.5 2.7 0-.8.4-1.8 1.5-2.7 2-1.6 4.1 0 4.1 2.7 0 1.7-1.9 4.2-5.6 6.9-3.7-2.7-5.6-5.2-5.6-6.9z" fill="#FF4D8D"/>
+  <path d="M62 108c6 4 16 4 22 0" stroke="#F9A8D4" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- jacket + heart clasp -->
+  <path d="M34 132h92l-6 48c-1 7-7 12-15 12H55c-8 0-14-5-15-12l-6-48z" fill="#A21CAF" stroke="#C026D3" stroke-width="2.5"/>
+  <path d="M76 152c0-4 3.1-6.3 5.9-3.9 1.6 1.3 2.2 2.8 2.2 3.9 0-1.1.6-2.6 2.2-3.9 2.8-2.4 5.9 0 5.9 3.9 0 2.6-2.8 6.3-8.1 10.4-5.3-4.1-8.1-7.8-8.1-10.4z" fill="#FF4D8D" stroke="#FFF1F7" stroke-width="1"/>
+  <!-- arm presenting tag -->
+  <path d="M118 140c18-6 32-4 42 8" stroke="#2A1838" stroke-width="10" stroke-linecap="round"/>
+  <path d="M118 140c18-6 32-4 42 8" stroke="#C026D3" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="162" cy="150" r="8" fill="#241033" stroke="#FF4D8D" stroke-width="2"/>
+  <path d="M28 164c0-1.6 1.2-2.6 2.4-1.6.65.5.9 1.05.9 1.6 0-.55.25-1.1.9-1.6 1.2-1 2.4 0 2.4 1.6 0 1-1.1 2.5-3.3 4.1-2.2-1.6-3.3-3.1-3.3-4.1z" fill="#F9A8D4" opacity="0.6"/>
+</svg>
