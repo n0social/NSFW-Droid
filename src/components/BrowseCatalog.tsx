@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { browsePrefsFromSearchParams } from "@/lib/browse-preferences";
 import type { Listing, Tag } from "@/db/schema";
 import { GameCard } from "@/components/GameCard";
 import { AgeGate } from "@/components/AgeGate";
@@ -42,6 +44,7 @@ export function BrowseCatalog({
   initialQ = null,
 }: Props) {
   const router = useRouter();
+  const { user } = useAuth();
   const [blurCovers, setBlurCovers] = useState(initialBlur);
   const [q, setQ] = useState(initialQ ?? "");
 
@@ -68,6 +71,31 @@ export function BrowseCatalog({
     return "Browse catalog";
   }, [initialRail, initialTag, initialVanilla, initialQ, tags]);
 
+  const persistBrowsePrefs = useCallback(
+    async (filter: string, search: string) => {
+      if (!user) return;
+      let rail: string | null = null;
+      let tag: string | null = null;
+      let vanilla = false;
+      if (filter === "vanilla") vanilla = true;
+      else if (filter.startsWith("tag:")) tag = filter.slice(4);
+      else if (filter === "rail:hot") rail = "hot";
+      else if (filter === "rail:trending") rail = "trending";
+      const browse = browsePrefsFromSearchParams({
+        rail,
+        tag,
+        q: search || null,
+        vanilla,
+      });
+      await fetch("/api/account/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ preferences: { browse: browse ?? { vanilla: false } } }),
+      });
+    },
+    [user],
+  );
+
   const applyFilters = useCallback(
     (next: { filter?: string; search?: string }) => {
       const params = new URLSearchParams();
@@ -81,9 +109,10 @@ export function BrowseCatalog({
 
       if (search) params.set("q", search);
       const qs = params.toString();
+      void persistBrowsePrefs(filter, search);
       router.push(qs ? `/browse?${qs}` : "/browse");
     },
-    [filterValue, q, router],
+    [filterValue, q, router, persistBrowsePrefs],
   );
 
   async function toggleBlur() {

@@ -28,7 +28,7 @@ ingest_source          -- config: name, enabled, cursor, last_run_at, last_error
 candidate              -- pre-public rows from any source (review queue)
 listing                -- public catalog (approved)
 analytics_event        -- outbound_click, listing_view, page_view
-ingest_run             -- optional audit log per job execution
+ingest_run             -- per-job audit (ingest_all, recycle_stale) for admin dashboard
 developer_submission   -- form PII, links to candidate
 ```
 
@@ -69,7 +69,17 @@ Extends approved candidate fields plus:
 | `chart_rank` | int | nullable — **editorial / affiliate “top”** until real revenue data exists |
 | `chart_bucket` | text | nullable — `top_grossing`, `new`, … for home rails |
 
-**Home rails (UI):** **Hottest** = outbound clicks in the last 7 days (`analytics_event`). **Trending** = listing views in the last 48 hours. Falls back to editorial `chart_rank` / publish date until traffic exists.
+**Home rails (UI):** **Hottest** = outbound clicks (7d) blended with all-time `user_favorite` counts (weight 3 per favorite). **Trending** = listing views (48h) blended with favorites added in 48h (weight 2). Falls back to editorial `chart_rank` / publish date until traffic exists. Weights: `src/lib/listings-ranking.ts`.
+
+### `ingest_run`
+
+| Column | Notes |
+| --- | --- |
+| `job` | `ingest_all`, `recycle_stale`, … |
+| `status` | `ok` or `error` |
+| `summary` | JSON stats (itch/steam counts, recycle tallies) |
+
+Written by `scripts/ingest-all.ts` and `scripts/recycle-stale-listings.ts`. Staff UI: `/admin` dashboard.
 
 ### `ingest_source` (cursor state)
 

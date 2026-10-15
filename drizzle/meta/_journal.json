@@ -50,6 +50,20 @@
       "when": 1792005000000,
       "tag": "0006_listing_catalog_stale",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792006000000,
+      "tag": "0007_ingest_run",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792006100000,
+      "tag": "0008_ingest_run_index",
+      "breakpoints": true
     }
   ]
 }

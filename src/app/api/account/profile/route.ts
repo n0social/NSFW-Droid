@@ -44,6 +44,16 @@ export async function PATCH(request: Request) {
     if (typeof p.blur_covers === "boolean") {
       preferences!.blur_covers = p.blur_covers;
     }
+    if (p.browse !== undefined && typeof p.browse === "object" && p.browse !== null) {
+      const b = p.browse as Record<string, unknown>;
+      preferences!.browse = {};
+      if (b.rail === "hot" || b.rail === "trending") preferences!.browse!.rail = b.rail;
+      else if (b.rail === null) preferences!.browse!.rail = null;
+      if (typeof b.tag === "string") preferences!.browse!.tag = b.tag.trim() || null;
+      else if (b.tag === null) preferences!.browse!.tag = null;
+      if (typeof b.q === "string") preferences!.browse!.q = b.q.trim() || null;
+      if (typeof b.vanilla === "boolean") preferences!.browse!.vanilla = b.vanilla;
+    }
   }
 
   let displayName: string | null | undefined;

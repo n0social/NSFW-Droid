@@ -41,6 +41,16 @@ export const ingestSources = pgTable("ingest_source", {
   lastError: text("last_error"),
 });
 
+export const ingestRuns = pgTable("ingest_run", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  job: text("job").notNull(),
+  status: text("status").notNull().default("ok"),
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+  finishedAt: timestamp("finished_at", { withTimezone: true }),
+  summary: jsonb("summary"),
+  errorMessage: text("error_message"),
+});
+
 export const candidates = pgTable(
   "candidate",
   {
@@ -169,6 +179,13 @@ export type UserProfile = typeof userProfiles.$inferSelect;
 export type UserPreferences = {
   theme_preference?: "default" | "auto";
   blur_covers?: boolean;
+  /** Signed-in only: last browse filters (see docs/engagement-policy.md). */
+  browse?: {
+    rail?: "hot" | "trending" | null;
+    tag?: string | null;
+    q?: string | null;
+    vanilla?: boolean;
+  };
 };
 
 export type Listing = typeof listings.$inferSelect;

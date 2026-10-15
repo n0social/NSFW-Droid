@@ -7,6 +7,7 @@ import {
   type UserPreferences,
   type UserProfile,
 } from "@/db/schema";
+import { parseBrowseSavedPrefs } from "@/lib/browse-preferences";
 
 export async function upsertUserProfileFromSession(
   firebaseUid: string,
@@ -50,6 +51,8 @@ export function parseUserPreferences(raw: unknown): UserPreferences {
   if (typeof o.blur_covers === "boolean") {
     prefs.blur_covers = o.blur_covers;
   }
+  const browse = parseBrowseSavedPrefs(o.browse);
+  if (browse) prefs.browse = browse;
   return prefs;
 }
 

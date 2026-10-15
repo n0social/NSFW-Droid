@@ -14,13 +14,20 @@ log() {
   echo "[$(date -Is)] [$LOG_TAG] $*"
 }
 
+# PGlite writes postmaster.pid with a negative placeholder PID while embedded; only remove
+# when the first line is a positive PID and that process is not running.
 remove_stale_postmaster_pid() {
   local pidf="$CATALOG_DIR/postmaster.pid"
   [[ -f "$pidf" ]] || return 0
   local pid
   pid=$(head -1 "$pidf" 2>/dev/null || true)
-  if [[ -z "$pid" ]] || ! kill -0 "$pid" 2>/dev/null; then
-    log "removing stale $pidf (pid=${pid:-empty})"
+  if [[ -z "$pid" ]]; then
+    log "removing empty $pidf"
+    rm -f "$pidf"
+    return 0
+  fi
+  if [[ "$pid" =~ ^[0-9]+$ ]] && ! kill -0 "$pid" 2>/dev/null; then
+    log "removing stale $pidf (pid=$pid)"
     rm -f "$pidf"
   fi
 }

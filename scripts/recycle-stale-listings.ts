@@ -8,6 +8,7 @@ import "dotenv/config";
 import { and, eq, inArray, lt, sql } from "drizzle-orm";
 import { closeCatalogDb, getDb } from "../src/db";
 import { candidates, listingTags, listings, tags } from "../src/db/schema";
+import { recordIngestRun } from "../src/lib/ingest-run";
 import {
   isCatalogNsfwEnforcementEnabled,
   isMatureCatalogCandidate,
@@ -40,6 +41,7 @@ async function tagSlugsByListingId(
 }
 
 async function main() {
+  const startedAt = new Date();
   const apply = process.argv.includes("--apply");
   const days = staleDays();
   const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
@@ -119,23 +121,26 @@ async function main() {
       (SELECT count(*)::int FROM listing WHERE link_status = 'ok') AS ok_listings
   `);
 
-  console.log(
-    JSON.stringify(
-      {
-        apply,
-        staleDays: days,
-        cutoff: cutoff.toISOString(),
-        candidates: rows.length,
-        wouldStale: toStale.length,
-        staled: apply ? toStale.length : 0,
-        skippedNonMature,
-        catalog: counts.rows[0],
-        sample: toStale.slice(0, 20),
-      },
-      null,
-      2,
-    ),
-  );
+  const summary = {
+    apply,
+    staleDays: days,
+    cutoff: cutoff.toISOString(),
+    candidates: rows.length,
+    wouldStale: toStale.length,
+    staled: apply ? toStale.length : 0,
+    skippedNonMature,
+    catalog: counts.rows[0],
+    sample: toStale.slice(0, 20),
+  };
+
+  console.log(JSON.stringify(summary, null, 2));
+
+  await recordIngestRun({
+    job: "recycle_stale",
+    status: "ok",
+    startedAt,
+    summary: summary as Record<string, unknown>,
+  });
 
   await closeCatalogDb();
 }

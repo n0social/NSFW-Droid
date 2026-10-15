@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { AdminShell } from "@/components/AdminShell";
 
 type Candidate = {
   id: string;
@@ -67,37 +67,9 @@ export function AdminQueue() {
     if (res.ok) await load();
   }
 
-  async function logout() {
-    await fetch("/api/admin/logout", { method: "POST" });
-    window.location.href = "/admin/login";
-  }
-
   return (
-    <div className="min-h-screen bg-[#14061C] px-4 py-8 text-[#FFF1F7]">
-      <div className="mx-auto max-w-3xl">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <Link href="/" className="text-xs font-bold text-[#FF4D8D]">← Store</Link>
-            <h1 className="mt-2 text-xl font-black">Review queue</h1>
-          </div>
-          <div className="flex gap-2">
-            <Link
-              href="/admin/listings/new"
-              className="rounded-full border border-[#C026D3] px-4 py-2 text-xs font-bold"
-            >
-              Manual listing
-            </Link>
-            <button
-              type="button"
-              onClick={logout}
-              className="rounded-full border border-[#C026D3]/50 px-4 py-2 text-xs font-bold text-[#E9D5FF]"
-            >
-              Log out
-            </button>
-          </div>
-        </div>
-
-        <p className="mt-2 text-xs text-[#E9D5FF]/80">
+    <AdminShell title="Review queue">
+        <p className="text-xs text-[#E9D5FF]/80">
           Pending items need a decision. With auto-publish on, only TOS-flagged or strict-mode
           candidates appear here; approve to override a hold or reject to block listing.
         </p>
@@ -173,7 +145,6 @@ export function AdminQueue() {
           );
           })}
         </ul>
-      </div>
-    </div>
+    </AdminShell>
   );
 }

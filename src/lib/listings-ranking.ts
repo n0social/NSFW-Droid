@@ -28,6 +28,67 @@ export const RAIL_TRENDING_LIMIT = 12;
 /** Pull extra analytics rows before niche deprioritization and backfill. */
 export const ANALYTICS_RANK_POOL = 48;
 
+/** Added to outbound-click score for homepage “hottest” rail (all-time favorites). */
+export const RANK_WEIGHT_FAVORITE_ON_HOT = 3;
+/** Added per recent favorite on “trending” (48h views + 48h favorites). */
+export const RANK_WEIGHT_FAVORITE_ON_TRENDING = 2;
+
+export function blendedEngagementScore(
+  primaryCount: number,
+  favoriteCount: number,
+  favoriteWeight: number,
+): number {
+  return primaryCount + favoriteCount * favoriteWeight;
+}
+
+export type EngagementRankRow = {
+  listingId: string;
+  primary: number;
+  favorites: number;
+};
+
+export function sortEngagementRows(
+  rows: EngagementRankRow[],
+  favoriteWeight: number,
+): EngagementRankRow[] {
+  return [...rows].sort((a, b) => {
+    const scoreA = blendedEngagementScore(a.primary, a.favorites, favoriteWeight);
+    const scoreB = blendedEngagementScore(b.primary, b.favorites, favoriteWeight);
+    if (scoreB !== scoreA) return scoreB - scoreA;
+    if (b.primary !== a.primary) return b.primary - a.primary;
+    return a.listingId.localeCompare(b.listingId);
+  });
+}
+
+/** Merge click/view aggregates with favorite counts into one ranked id list. */
+export function mergeEngagementSignals(
+  primaryRows: { listingId: string | null; count: number }[],
+  favoriteByListingId: ReadonlyMap<string, number>,
+  favoriteWeight: number,
+  limit: number,
+): EngagementRankRow[] {
+  const byId = new Map<string, EngagementRankRow>();
+
+  for (const row of primaryRows) {
+    if (!row.listingId) continue;
+    const existing = byId.get(row.listingId) ?? {
+      listingId: row.listingId,
+      primary: 0,
+      favorites: favoriteByListingId.get(row.listingId) ?? 0,
+    };
+    existing.primary += row.count;
+    byId.set(row.listingId, existing);
+  }
+
+  for (const [listingId, favCount] of favoriteByListingId) {
+    if (!byId.has(listingId) && favCount > 0) {
+      byId.set(listingId, { listingId, primary: 0, favorites: favCount });
+    }
+  }
+
+  return sortEngagementRows([...byId.values()], favoriteWeight).slice(0, limit);
+}
+
 export function listingHasNicheTag(tagSlugs: readonly string[]): boolean {
   return tagSlugs.some((s) => FEATURED_RAIL_NICHE_TAG_SLUGS.has(s));
 }

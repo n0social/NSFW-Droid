@@ -85,6 +85,7 @@ CATALOG_NSFW_ONLY=1
 
 - **Google Analytics:** use the Firebase web app **measurementId** (`G-…`) in `NEXT_PUBLIC_GA_MEASUREMENT_ID` (see [firebase-setup.md](firebase-setup.md)). Rebuild (`npm run build`), restart `nsfwdroid`.
 - First-party rails still use `analytics_event` in Postgres/PGlite; GA is for marketing and funnel views.
+- **Favorites** need full Firebase client env vars **and** `FIREBASE_SERVICE_ACCOUNT_JSON` + `SESSION_SECRET` on the droplet. Without them, hearts are hidden (`isFirebaseConfigured()`). Set all keys in `/etc/nsfwdroid.env`, then `systemctl restart nsfwdroid`.
 
 ---
 

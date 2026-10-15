@@ -18,6 +18,14 @@ export const ITCH_NSFW_BROWSE_FEEDS = [
   "https://itch.io/games/platform-windows/tag-nsfw.xml",
   "https://itch.io/games/platform-android/tag-nsfw.xml",
   "https://itch.io/games/price-free/tag-nsfw.xml",
+  "https://itch.io/games/platform-linux/tag-nsfw.xml",
+  "https://itch.io/games/platform-mac/tag-nsfw.xml",
+  "https://itch.io/games/platform-web/tag-nsfw.xml",
+  "https://itch.io/games/genre-simulation/tag-nsfw.xml",
+  "https://itch.io/games/genre-rpg/tag-nsfw.xml",
+  "https://itch.io/games/genre-adventure/tag-nsfw.xml",
+  "https://itch.io/games/tag-mature/tag-nsfw.xml",
+  "https://itch.io/games/tag-18/tag-nsfw.xml",
 ];
 
 export function defaultItchFeedUrls(): string[] {

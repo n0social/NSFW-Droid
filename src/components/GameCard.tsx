@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Listing } from "@/db/schema";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useFavoritesContext } from "@/components/favorites/FavoritesProvider";
@@ -51,7 +52,8 @@ export function GameCard({ game, index, rank, wide, layout = "rail", blur, theme
       : wide
         ? "h-[min(52vw,220px)] md:h-[200px]"
         : "h-[min(50vw,180px)] md:h-[168px]";
-  const { user } = useAuth();
+  const router = useRouter();
+  const { user, configured: authConfigured } = useAuth();
   const { favoriteIds, toggleFavorite } = useFavoritesContext();
   const [coverFailed, setCoverFailed] = useState(false);
   const coverUrl = game.coverImageUrl?.trim() || null;
@@ -76,13 +78,17 @@ export function GameCard({ game, index, rank, wide, layout = "rail", blur, theme
     <div
       className={`${w} ${layout === "rail" ? "shrink-0 snap-start" : ""} overflow-hidden rounded-2xl shadow-[0_10px_28px_rgba(0,0,0,0.45)] bg-[#241033] relative`}
     >
-      {user && (
+      {authConfigured && (
         <button
           type="button"
           aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
+            if (!user) {
+              router.push("/sign-in");
+              return;
+            }
             void toggleFavorite(game.id);
           }}
           className="absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/45 text-base leading-none hover:bg-black/60"

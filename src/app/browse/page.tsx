@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { BrowseCatalog } from "@/components/BrowseCatalog";
 import {
   AGE_VERIFIED_COOKIE,
@@ -11,6 +12,13 @@ import { getPublishedListingCount } from "@/lib/listings";
 import { resolveThemeForRequest } from "@/lib/themes/preferences";
 import { themeDecorUrls } from "@/lib/themes/asset-url";
 import { resolveLayoutDecorForTheme } from "@/lib/themes/layout-decor";
+import {
+  browseHasValues,
+  browsePrefsFromUserPreferences,
+  browsePrefsToQueryString,
+} from "@/lib/browse-preferences";
+import { getUserProfile, parseUserPreferences } from "@/lib/user-profile";
+import { getSessionUserId } from "@/lib/user-session";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +35,21 @@ export default async function BrowsePage({ searchParams }: { searchParams: Searc
   const tag = paramOne(sp.tag);
   const q = paramOne(sp.q);
   const vanilla = paramOne(sp.vanilla) === "1";
+
+  const hasUrlFilters = Boolean(
+    (rail === "hot" || rail === "trending") || tag || q || vanilla,
+  );
+  if (!hasUrlFilters) {
+    const uid = await getSessionUserId();
+    if (uid) {
+      const profile = await getUserProfile(uid);
+      const saved = browsePrefsFromUserPreferences(parseUserPreferences(profile?.preferences));
+      if (saved && browseHasValues(saved)) {
+        const qs = browsePrefsToQueryString(saved);
+        redirect(qs ? `/browse?${qs}` : "/browse");
+      }
+    }
+  }
 
   const jar = await cookies();
   const ageVerified = parseAgeVerified(jar.get(AGE_VERIFIED_COOKIE)?.value);

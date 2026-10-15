@@ -2,6 +2,14 @@
 
 **Current (Phase 1):** `/admin/login` with `ADMIN_PASSWORD` from server env. Sessions use signed random cookies (`Secure` in production), login rate limiting, and `admin_audit_log` for moderation actions.
 
+After login:
+
+| Path | Purpose |
+| --- | --- |
+| `/admin` | Dashboard — catalog counts, sign-ups, analytics (24h/7d), top clicks/views/favorites, `ingest_source` + `ingest_run` history, audit tail. Polls `/api/admin/dashboard` every 30s. |
+| `/admin/queue` | TOS / manual candidate review |
+| `/admin/listings/new` | Curated partner URL |
+
 ## What most sites do next
 
 | Approach | When |
