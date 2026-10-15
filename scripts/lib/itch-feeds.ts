@@ -47,8 +47,7 @@ export function feedTagsFromUrl(feedUrl: string): string[] {
   if (tagMatch) tags.push(normalizeTagSlug(tagMatch[1]));
   if (feedUrl.includes("/feed/new")) tags.push("itch-new");
   if (feedUrl.includes("/feed/featured")) tags.push("itch-featured");
-  if (feedUrl.includes("/feed/sales")) tags.push("itch-sale");
-  if (feedUrl.includes("price-free")) tags.push("free");
+  // No itch-sale / price-free feed tags — store pricing is not shown on the catalog.
   if (feedUrl.includes("platform-windows")) tags.push("windows");
   if (feedUrl.includes("platform-android")) tags.push("android");
   if (feedUrl.includes("genre-visual-novel")) tags.push("visual-novel");

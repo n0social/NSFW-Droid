@@ -13,6 +13,7 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
 import type { ResolvedLayoutDecorItem } from "@/lib/themes/types";
 import { ThemeLayoutDecor } from "@/components/theme/ThemeLayoutDecor";
+import { isPricingCatalogTagSlug } from "@/lib/listing-display";
 
 type Props = {
   ageVerified: boolean;
@@ -141,7 +142,9 @@ export function BrowseCatalog({
     </button>
   );
 
-  const tagOptions = tags.filter((t) => t.kind !== "platform");
+  const tagOptions = tags.filter(
+    (t) => t.kind !== "platform" && !isPricingCatalogTagSlug(t.slug),
+  );
 
   return (
     <>

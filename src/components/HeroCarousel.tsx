@@ -6,6 +6,7 @@ import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
 import type { ResolvedLayoutDecorItem } from "@/lib/themes/types";
 import { ThemeAssetImage } from "@/components/theme/ThemeAssetImage";
 import { HERO_LAYOUT_DECOR_SLOTS, ThemeLayoutDecor } from "@/components/theme/ThemeLayoutDecor";
+import { displayListingTitle } from "@/lib/listing-display";
 
 type Props = {
   featured: Listing | null;
@@ -15,7 +16,7 @@ type Props = {
 };
 
 export function HeroCarousel({ featured, blur, themeAssets, layoutDecor = [] }: Props) {
-  const title = featured?.title ?? "Mature games catalog";
+  const title = featured ? displayListingTitle(featured.title) : "Mature games catalog";
   const subtitle = featured
     ? "Featured pick from the catalog — open the store page after you confirm 18+."
     : "Discover adult titles on itch.io, Steam, and partner stores. Rankings from real traffic on this site.";

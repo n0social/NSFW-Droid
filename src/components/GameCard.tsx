@@ -7,6 +7,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useFavoritesContext } from "@/components/favorites/FavoritesProvider";
 import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
 import { ThemeAssetImage } from "@/components/theme/ThemeAssetImage";
+import { displayListingTitle } from "@/lib/listing-display";
 
 const gradients = [
   "linear-gradient(145deg, #4a1d6a 0%, #C026D3 45%, #14061C 100%)",
@@ -74,6 +75,7 @@ export function GameCard({ game, index, rank, wide, layout = "rail", blur, theme
   const favorited = Boolean(user) && favoriteIds.has(game.id);
   const gradient = gradients[index % gradients.length];
   const showFavoriteControl = Boolean(user);
+  const displayTitle = displayListingTitle(game.title);
 
   return (
     <div
@@ -161,7 +163,7 @@ export function GameCard({ game, index, rank, wide, layout = "rail", blur, theme
               aria-hidden
             />
             <span className="relative z-10 text-xs font-extrabold leading-tight text-[#FFF1F7] line-clamp-3 drop-shadow-md">
-              {game.title}
+              {displayTitle}
             </span>
           </div>
           {blur && (

@@ -60,7 +60,9 @@ async function ingestFeed(url: string) {
   let tagged = 0;
   let skippedNonMature = 0;
   for (const item of list) {
-    const title = String(item.title ?? item.plainTitle ?? "").trim();
+    const plainTitle = String(item.plainTitle ?? "").trim();
+    const rssTitle = String(item.title ?? "").trim();
+    const title = plainTitle || rssTitle;
     const link = String(item.link ?? "").trim();
     const guid = String(item.guid?.["#text"] ?? item.guid ?? link).trim();
     if (!title || !link) continue;

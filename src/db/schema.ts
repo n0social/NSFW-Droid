@@ -71,6 +71,7 @@ export const candidates = pgTable(
   (t) => [uniqueIndex("candidate_source_external_idx").on(t.source, t.externalId)],
 );
 
+/** Public catalog rows — no price columns; store pricing lives on outbound URLs only. */
 export const listings = pgTable("listing", {
   id: uuid("id").defaultRandom().primaryKey(),
   slug: text("slug").notNull().unique(),
