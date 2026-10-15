@@ -175,7 +175,7 @@ export function Storefront({
                         key={g.id}
                         game={g}
                         index={i}
-                        rank={g.chartRank ?? i + 1}
+                        rank={i + 1}
                         blur={effectiveBlur}
                         themeAssets={themeAssets}
                       />
@@ -210,6 +210,7 @@ export function Storefront({
                         key={g.id}
                         game={g}
                         index={i + 2}
+                        rank={i + 1}
                         blur={effectiveBlur}
                         themeAssets={themeAssets}
                       />
