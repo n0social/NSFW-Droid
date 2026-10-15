@@ -29,36 +29,46 @@ export function HeroCarousel({ featured, blur, themeAssets, layoutDecor = [] }: 
     "linear-gradient(135deg, #2d1b4e 0%, #C026D3 40%, #FF4D8D 70%, #14061C 100%)";
 
   return (
-    <section className="relative mb-6 overflow-hidden rounded-2xl border border-[var(--theme-primary)]/25 shadow-[0_20px_50px_rgba(0,0,0,0.45)]">
-      {layoutDecor.length > 0 && (
-        <ThemeLayoutDecor items={layoutDecor} slots={HERO_LAYOUT_DECOR_SLOTS} />
-      )}
-      {themeAssets && (
-        <ThemeAssetImage
-          src={themeAssets.decor}
-          alt=""
-          className="pointer-events-none absolute right-0 top-0 z-[2] h-12 w-auto max-w-[34%] object-contain object-right opacity-75 sm:h-24 sm:max-w-[42%] sm:opacity-90 md:h-32 md:max-w-[45%]"
-        />
-      )}
+    <section className="relative mb-6 rounded-2xl border border-[var(--theme-primary)]/25 shadow-[0_20px_50px_rgba(0,0,0,0.45)]">
       <div
-        className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-br from-[var(--theme-primary)]/10 via-transparent to-[var(--theme-accent)]/15"
-        aria-hidden
-      />
-      <div
-        className="relative aspect-[21/9] w-full min-h-0"
+        className="relative w-full overflow-hidden rounded-2xl aspect-[4/3] min-h-[12.75rem] sm:aspect-[2/1] sm:min-h-[11rem] md:aspect-[21/9] md:min-h-0"
         style={{ background: showCover ? "#14061C" : fallbackGradient }}
       >
         {showCover && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={coverUrl!}
+          <div className="absolute inset-0 z-0 overflow-hidden" aria-hidden>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={coverUrl!}
+              alt=""
+              className={`h-full w-full object-cover object-center ${blur ? "scale-105 blur-md" : ""}`}
+              onError={() => setCoverFailed(true)}
+            />
+          </div>
+        )}
+
+        <div
+          className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-br from-[var(--theme-primary)]/10 via-transparent to-[var(--theme-accent)]/15"
+          aria-hidden
+        />
+
+        {themeAssets && (
+          <ThemeAssetImage
+            src={themeAssets.decor}
             alt=""
-            className={`absolute inset-0 h-full w-full object-cover object-center ${blur ? "blur-md scale-105" : ""}`}
-            onError={() => setCoverFailed(true)}
+            className="pointer-events-none absolute right-1 top-1 z-[2] h-10 w-auto max-h-[28%] max-w-[30%] object-contain object-right opacity-75 sm:right-2 sm:top-2 sm:h-16 sm:max-h-[32%] sm:max-w-[38%] sm:opacity-90 md:h-24 md:max-w-[42%]"
           />
         )}
+
+        {layoutDecor.length > 0 && (
+          <ThemeLayoutDecor
+            items={layoutDecor}
+            slots={HERO_LAYOUT_DECOR_SLOTS}
+            className="absolute inset-0 z-[3] overflow-hidden"
+          />
+        )}
+
         <div
-          className={`relative flex h-full min-h-0 flex-col justify-end p-3 sm:p-6 md:p-10 ${blur && featured && !showCover ? "blur-md" : ""}`}
+          className={`absolute inset-0 z-[4] flex flex-col justify-end p-3 sm:p-6 md:p-10 ${blur && featured && !showCover ? "blur-md" : ""}`}
         >
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#14061Cee] via-[#14061C55] to-transparent" />
           <div className="relative z-10 min-w-0 max-w-[70%] sm:max-w-md md:max-w-xl">
