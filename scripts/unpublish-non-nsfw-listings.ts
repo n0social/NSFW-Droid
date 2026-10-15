@@ -3,7 +3,7 @@
  * Dry-run by default — pass --apply to delete rows.
  */
 import "dotenv/config";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "../src/db";
 import { candidates, listingTags, listings, tags } from "../src/db/schema";
 import {
@@ -12,14 +12,23 @@ import {
 } from "../src/lib/catalog-maturity";
 import { rejectCandidate } from "../src/lib/review";
 
-async function tagSlugsForListing(listingId: string): Promise<string[]> {
+async function tagSlugsByListingId(
+  listingIds: string[],
+): Promise<Map<string, string[]>> {
+  const map = new Map<string, string[]>();
+  if (!listingIds.length) return map;
   const db = await getDb();
   const rows = await db
-    .select({ slug: tags.slug })
+    .select({ listingId: listingTags.listingId, slug: tags.slug })
     .from(listingTags)
     .innerJoin(tags, eq(listingTags.tagId, tags.id))
-    .where(eq(listingTags.listingId, listingId));
-  return rows.map((r) => r.slug);
+    .where(inArray(listingTags.listingId, listingIds));
+  for (const row of rows) {
+    const list = map.get(row.listingId) ?? [];
+    list.push(row.slug);
+    map.set(row.listingId, list);
+  }
+  return map;
 }
 
 async function main() {
@@ -36,24 +45,27 @@ async function main() {
 
   const db = await getDb();
   const all = await db.select().from(listings);
+  const tagMap = await tagSlugsByListingId(all.map((l) => l.id));
+
+  const candidateKeys = all
+    .filter((l) => l.source && l.externalId)
+    .map((l) => ({ source: l.source!, externalId: l.externalId! }));
+  const candidateByKey = new Map<string, typeof candidates.$inferSelect>();
+  if (candidateKeys.length) {
+    const candidateRows = await db.select().from(candidates);
+    for (const c of candidateRows) {
+      candidateByKey.set(`${c.source}:${c.externalId}`, c);
+    }
+  }
+
   const toRemove: { id: string; title: string; source: string | null }[] = [];
 
   for (const listing of all) {
-    const tagSlugs = await tagSlugsForListing(listing.id);
-    let candidate = null;
-    if (listing.source && listing.externalId) {
-      const [c] = await db
-        .select()
-        .from(candidates)
-        .where(
-          and(
-            eq(candidates.source, listing.source),
-            eq(candidates.externalId, listing.externalId),
-          ),
-        )
-        .limit(1);
-      candidate = c ?? null;
-    }
+    const tagSlugs = tagMap.get(listing.id) ?? [];
+    const candidate =
+      listing.source && listing.externalId
+        ? candidateByKey.get(`${listing.source}:${listing.externalId}`)
+        : undefined;
 
     const mature = candidate
       ? isMatureCatalogCandidate(candidate, tagSlugs)
@@ -77,26 +89,19 @@ async function main() {
 
   const [before] = await db.select({ n: sql<number>`count(*)::int` }).from(listings);
 
-  if (apply) {
-    for (const row of toRemove) {
-      const listing = all.find((l) => l.id === row.id);
-      if (listing?.source && listing.externalId) {
-        const [c] = await db
-          .select()
-          .from(candidates)
-          .where(
-            and(
-              eq(candidates.source, listing.source),
-              eq(candidates.externalId, listing.externalId),
-            ),
-          )
-          .limit(1);
-        if (c && c.reviewStatus === "approved") {
-          await rejectCandidate(c.id, "catalog_maturity_cleanup", "not_mature_catalog");
-        }
+  if (apply && toRemove.length) {
+    const removeIds = toRemove.map((r) => r.id);
+    for (const listing of all) {
+      if (!removeIds.includes(listing.id)) continue;
+      const candidate =
+        listing.source && listing.externalId
+          ? candidateByKey.get(`${listing.source}:${listing.externalId}`)
+          : undefined;
+      if (candidate && candidate.reviewStatus === "approved") {
+        await rejectCandidate(candidate.id, "catalog_maturity_cleanup", "not_mature_catalog");
       }
-      await db.delete(listings).where(eq(listings.id, row.id));
     }
+    await db.delete(listings).where(inArray(listings.id, removeIds));
   }
 
   const [after] = await db.select({ n: sql<number>`count(*)::int` }).from(listings);
