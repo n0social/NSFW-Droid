@@ -99,11 +99,52 @@ Storefront chrome (`SiteHeader`, home page shell, blur chip) reads these where p
 
 `ThemeProvider` shows **Remove holiday theme** only when `isSignedIn()` is true (Firebase session cookie). When a holiday is active, the banner shows the theme name and a small icon from `/api/theme/icon/<id>`. The override API still works for any visitor via the `theme_override` cookie. Account page duplicates the opt-out for signed-in users.
 
+## Validation checklist
+
+Before shipping or deploying a new holiday pack, run:
+
+```bash
+npm run validate:themes
+```
+
+The script checks every `data/themes/<id>/` folder (except built-in default), `theme.json` + `icon` resolution via `themeIconPath()`, and that `themeAssetPath()` can serve each decor asset whitelisted by `registry.ts` (`^[a-z0-9-]+\\.svg$`).
+
+### Package files (all shipped holidays)
+
+| Asset | valentines | easter | summer | halloween | thanksgiving | christmas |
+| --- | --- | --- | --- | --- | --- | --- |
+| `theme.json` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `icon.svg` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `decor.svg` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `chip.svg` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `rail.svg` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `badge.svg` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `empty.svg` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `README.md` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+Re-run `npm run validate:themes` after edits; it prints an up-to-date matrix.
+
+### Storefront UI wiring (generic `themeId`)
+
+Decor URLs come from `themeDecorUrls(active.id)` in `src/lib/themes/asset-url.ts` (home page passes `themeAssets` into `Storefront`). No component should hardcode a single holiday id.
+
+| Asset | Component | When shown |
+| --- | --- | --- |
+| `decor.svg` | `SiteHeader`, `HeroCarousel` | Active holiday theme |
+| `chip.svg` | `ChipRow` | Active filter chip |
+| `rail.svg` | `Storefront` | Section headers (“Hottest…”, “Trending…”) |
+| `badge.svg` | `GameCard` | Rank 1–3 in rails |
+| `empty.svg` | `Storefront` | Empty filtered browse state |
+| `icon.svg` | `ThemeProvider` | Signed-in holiday opt-out banner (`/api/theme/icon/<id>`) |
+
+All decor files load through `GET /api/theme/asset/<id>/<filename>` (see `src/app/api/theme/asset/[id]/[filename]/route.ts`).
+
 ## Adding a theme
 
-1. Create `data/themes/<id>/` with `theme.json`, `icon.svg`, `decor.svg`, recommended `chip.svg` / `rail.svg` / `badge.svg`, optional `empty.svg`, and `README.md`.
-2. Set `schedule.months` and `colors`.
-3. Restart the Node process on the server after adding files.
+1. Create `data/themes/<id>/` with `theme.json`, `icon.svg`, `decor.svg`, `chip.svg`, `rail.svg`, `badge.svg`, `empty.svg`, and `README.md` (match existing holidays).
+2. Set `schedule.months` and `colors`; set `"icon": "icon.svg"` unless you add a custom filename.
+3. Run `npm run validate:themes` and fix any reported gaps.
+4. Restart the Node process on the server after adding files.
 
 Example `theme.json` shape:
 

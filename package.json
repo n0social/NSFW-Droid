@@ -13,6 +13,7 @@
     "ingest:itch": "tsx scripts/db-migrate.ts && tsx scripts/ingest-itch.ts",
     "ingest:steam": "tsx scripts/db-migrate.ts && tsx scripts/ingest-steam.ts",
     "db:backfill-covers": "tsx scripts/db-migrate.ts && tsx scripts/backfill-listing-covers.ts",
+    "validate:themes": "tsx scripts/validate-theme-packages.ts",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
