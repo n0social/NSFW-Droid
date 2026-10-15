@@ -128,6 +128,12 @@ flowchart LR
 
 **CLI:** `npm run ingest` runs itch + Steam into `candidate`, then auto-publishes TOS-clear rows when enabled (default in production). Per-source: `ingest:itch`, `ingest:steam`. **Admin:** `/admin` for TOS holds and strict manual mode; `/admin/listings/new` for curated partner URLs. Policy: [tos-review-policy.md](tos-review-policy.md).
 
+### Job 0: Affiliate export (`affiliate_export`)
+
+**Script:** `scripts/ingest-affiliate.ts` (also called from `ingest-all.ts` and `catalog-ingest-cron.sh`).
+
+Runs only when `AFFILIATE_EXPORT_PATH` is set **or** `data/affiliate-export.json` exists (see `data/affiliate-export.example.json`). Each JSON row → `candidate` with `source = affiliate_export`, `outbound_url` as official URL, `raw_payload.affiliate_url` from the row (falls back to `outbound_url` when omitted).
+
 ### Job 1: itch.io (`itch_new_xml`)
 
 - **GET** `https://itch.io/feed/new.xml` (public RSS).
@@ -139,6 +145,7 @@ flowchart LR
 - Tags land in `tag` / `candidate_tag` (RSS title brackets, feed context, platforms, keywords). Approved listings copy to `listing_tag`.
 - Rate: once per day (or every 6h); polite `User-Agent` identifying the catalog.
 - **No** HTML scrape of project pages.
+- Optional `ITCH_REF` / `ITCH_AFFILIATE_USERNAME`: itch partner `ac=` on feed links → `raw_payload.affiliate_url` (`src/lib/itch-affiliate.ts`). Backfill existing listings: `npm run db:backfill-affiliate`.
 
 ### Job 2: Steam (`steam_app_delta`)
 
@@ -149,6 +156,7 @@ Implemented in `scripts/ingest-steam.ts`.
 - **Rate limits:** `STEAM_INGEST_MAX_APPS` (default 250 detail calls/run), `STEAM_DETAIL_DELAY_MS`, `ITCH_FEED_DELAY_MS`.
 - Rows → `candidate` (`source = steam`), `platforms` from Steam (windows/mac/linux).
 - **Auto-publish:** TOS-clear Steam rows become `listing` when `AUTO_PUBLISH=1` or `NODE_ENV=production` (see [tos-review-policy.md](tos-review-policy.md)). Set `AUTO_PUBLISH=0` or `INGEST_REQUIRE_REVIEW=1` for all-manual review.
+- **Affiliate:** none from Steam ingest alone — only `affiliate_export` or admin/manual `affiliate_url`.
 
 #### Steam Web API key
 

@@ -27,8 +27,23 @@ export async function approveCandidate(
     .from(listings)
     .where(and(eq(listings.source, c.source), eq(listings.externalId, c.externalId)))
     .limit(1);
+  const raw = c.rawPayload as { platforms?: string[]; affiliate_url?: string } | null;
+  const affiliateUrl =
+    opts?.affiliateUrl !== undefined
+      ? opts.affiliateUrl
+      : raw?.affiliate_url?.trim()
+        ? raw.affiliate_url.trim()
+        : null;
+
   if (existingListing) {
     await copyCandidateTagsToListing(candidateId, existingListing.id);
+    if (affiliateUrl && affiliateUrl !== existingListing.affiliateUrl) {
+      await db
+        .update(listings)
+        .set({ affiliateUrl, updatedAt: new Date() })
+        .where(eq(listings.id, existingListing.id));
+      existingListing.affiliateUrl = affiliateUrl;
+    }
     await db
       .update(candidates)
       .set({
@@ -41,13 +56,6 @@ export async function approveCandidate(
   }
 
   const slug = slugify(c.title, c.externalId);
-  const raw = c.rawPayload as { platforms?: string[]; affiliate_url?: string } | null;
-  const affiliateUrl =
-    opts?.affiliateUrl !== undefined
-      ? opts.affiliateUrl
-      : raw?.affiliate_url?.trim()
-        ? raw.affiliate_url.trim()
-        : null;
 
   const coverImageUrl = extractCoverImageUrl(c.source, c.rawPayload);
 

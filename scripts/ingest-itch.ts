@@ -12,6 +12,7 @@ import {
 } from "../src/lib/catalog-maturity";
 import { defaultItchFeedUrls } from "./lib/itch-feeds";
 import { extractItchItemTags, itchPlatformsFromItem } from "./lib/tag-extract";
+import { itchAffiliateCodeFromEnv, itchAffiliateUrlForOfficial } from "../src/lib/itch-affiliate";
 
 function feedUrls(): string[] {
   const raw = process.env.ITCH_FEED_URLS?.trim();
@@ -59,6 +60,7 @@ async function ingestFeed(url: string) {
   let inserted = 0;
   let tagged = 0;
   let skippedNonMature = 0;
+  let affiliateUrlsSet = 0;
   for (const item of list) {
     const plainTitle = String(item.plainTitle ?? "").trim();
     const rssTitle = String(item.title ?? "").trim();
@@ -75,12 +77,21 @@ async function ingestFeed(url: string) {
       continue;
     }
 
+    const affiliateUrl = itchAffiliateUrlForOfficial(link);
+    if (affiliateUrl) affiliateUrlsSet += 1;
+
     const ok = await upsertCandidate({
       source: "itch",
       externalId: guid,
       title,
       outboundUrl: link,
-      rawPayload: { ...item, feedUrl: url, platforms, extractedTags: tagList },
+      rawPayload: {
+        ...item,
+        feedUrl: url,
+        platforms,
+        extractedTags: tagList,
+        ...(affiliateUrl ? { affiliate_url: affiliateUrl } : {}),
+      },
       tags: tagList,
     });
     if (ok) inserted += 1;
@@ -92,6 +103,7 @@ async function ingestFeed(url: string) {
     newCandidates: inserted,
     itemsWithTags: tagged,
     skippedNonMature,
+    affiliateUrlsSet,
   };
 }
 
@@ -101,6 +113,7 @@ export async function runItchIngest() {
   let totalInserted = 0;
   let totalTagged = 0;
   let totalSkippedNonMature = 0;
+  let totalAffiliateUrlsSet = 0;
   const feedErrors: { url: string; error: string }[] = [];
   for (const url of urls) {
     const r = await ingestFeed(url);
@@ -113,15 +126,19 @@ export async function runItchIngest() {
     totalInserted += r.newCandidates;
     totalTagged += r.itemsWithTags;
     totalSkippedNonMature += r.skippedNonMature ?? 0;
+    totalAffiliateUrlsSet += r.affiliateUrlsSet ?? 0;
     await sleep(feedDelayMs());
   }
 
+  const itchAffiliateCode = itchAffiliateCodeFromEnv();
   await touchIngestSource("itch_rss", {
     feeds: urls,
     fetched: totalItems,
     inserted: totalInserted,
     tagged: totalTagged,
     skippedNonMature: totalSkippedNonMature,
+    affiliateUrlsSet: totalAffiliateUrlsSet,
+    itchAffiliateEnabled: Boolean(itchAffiliateCode),
     itchNsfwOnly: isItchNsfwOnlyMode(),
     feedErrors,
   });
@@ -132,6 +149,8 @@ export async function runItchIngest() {
     newCandidates: totalInserted,
     itemsWithTags: totalTagged,
     skippedNonMature: totalSkippedNonMature,
+    affiliateUrlsSet: totalAffiliateUrlsSet,
+    itchAffiliateEnabled: Boolean(itchAffiliateCode),
     itchNsfwOnly: isItchNsfwOnlyMode(),
     feedErrors,
   };

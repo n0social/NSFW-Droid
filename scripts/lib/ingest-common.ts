@@ -11,6 +11,7 @@ import {
 } from "../../src/lib/listing-cover";
 import { syncTagsForCandidate } from "../../src/lib/catalog-tags";
 import type { ExtractedTag } from "./tag-extract";
+import { itchAffiliateUrlForOfficial } from "../../src/lib/itch-affiliate";
 
 export const USER_AGENT =
   "NSFW-Droid-Catalog/0.1 (link catalog; +https://github.com/n0social/NSFW-Droid)";
@@ -103,11 +104,20 @@ async function touchListingOnIngestReseen(
       ? extractCoverImageUrl(source, patch.rawPayload)
       : null;
 
+  const rawAffiliate = (patch.rawPayload as { affiliate_url?: string } | null)?.affiliate_url?.trim();
+  const affiliateFromEnv =
+    source === "itch" ? itchAffiliateUrlForOfficial(patch.outboundUrl) : null;
+  const affiliateUrl =
+    rawAffiliate ||
+    affiliateFromEnv ||
+    (listing.affiliateUrl?.trim() ? listing.affiliateUrl.trim() : null);
+
   await db
     .update(listings)
     .set({
       title: patch.title,
       officialUrl: patch.outboundUrl,
+      ...(affiliateUrl ? { affiliateUrl } : {}),
       updatedAt: now,
       ...(coverFromFeed
         ? {

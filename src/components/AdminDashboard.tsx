@@ -58,13 +58,29 @@ function formatRunSummary(summary: unknown): string {
     const staled = s.staled ?? s.wouldStale;
     return `recycled ${staled ?? 0} listing(s)`;
   }
-  const itch = s.itch as { newCandidates?: number } | undefined;
+  const itch = s.itch as { newCandidates?: number; affiliateUrlsSet?: number } | undefined;
   const steam = s.steam as { newCandidates?: number } | undefined;
-  const catalog = s.catalog as { listings?: number } | undefined;
+  const affiliate = s.affiliate as {
+    skipped?: boolean;
+    inserted?: number;
+    withAffiliateUrl?: number;
+  } | undefined;
+  const catalog = s.catalog as { listings?: number; listings_with_affiliate?: number } | undefined;
   const parts: string[] = [];
   if (itch?.newCandidates != null) parts.push(`itch +${itch.newCandidates}`);
+  if (itch?.affiliateUrlsSet != null && itch.affiliateUrlsSet > 0) {
+    parts.push(`itch affiliate ${itch.affiliateUrlsSet}`);
+  }
   if (steam?.newCandidates != null) parts.push(`steam +${steam.newCandidates}`);
+  if (affiliate && !affiliate.skipped) {
+    parts.push(`affiliate +${affiliate.inserted ?? 0} (${affiliate.withAffiliateUrl ?? 0} w/ URL)`);
+  } else if (affiliate?.skipped) {
+    parts.push("affiliate skipped");
+  }
   if (catalog?.listings != null) parts.push(`${catalog.listings} listings`);
+  if (catalog?.listings_with_affiliate != null && catalog.listings_with_affiliate > 0) {
+    parts.push(`${catalog.listings_with_affiliate} w/ affiliate`);
+  }
   return parts.length ? parts.join(" · ") : JSON.stringify(summary).slice(0, 120);
 }
 

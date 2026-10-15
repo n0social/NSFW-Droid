@@ -25,6 +25,7 @@ npm run dev           # http://localhost:3847
 - **Age gate:** “Are you over 18?” **Yes** / **No** — backdrop is not dismissible.
 - **Blur:** Covers are **blurred by default**. If age is not confirmed, blur stays on (anti-bypass). After **Yes**, use **Blur covers: ON/OFF** in the header to test unblurred titles.
 - **Data:** itch.io RSS (default: **NSFW tag browse feeds only** — `ITCH_NSFW_ONLY=1`) and Steam storesearch (adult content descriptor required) → **candidates** with **auto-extracted tags** (`tag` / `listing_tag`); production auto-publishes when TOS-clear and **mature-catalog** checks pass (`CATALOG_NSFW_ONLY=1`, `docs/tos-review-policy.md`). Cleanup: `npm run catalog:unpublish-non-nsfw -- --apply`. **TOS holds** and strict mode: `/admin` (set `ADMIN_PASSWORD`). Developers submit at `/submit`.
+- **Affiliate URLs:** Program exports via `data/affiliate-export.json` (see `data/affiliate-export.example.json`). Optional itch partner code: `ITCH_REF` or `ITCH_AFFILIATE_USERNAME` adds `ac=` on itch.io links during ingest (`src/lib/itch-affiliate.ts`). Steam ingest never invents affiliate links.
 - **Rankings:** Outbound clicks (`/api/go/…`) and card views feed **Hottest** / **Trending** rails — your traffic, not store charts.
 - **Auto-publish:** `AUTO_PUBLISH=1` on production droplet; `DEMO_AUTO_PUBLISH=1` for local mockups. `INGEST_REQUIRE_REVIEW=1` forces manual approval for everything.
 
@@ -51,9 +52,11 @@ Local DB is **PGlite** (`data/catalog/`). Production target: **DigitalOcean Mana
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` | Next.js on port **3847** |
-| `npm run ingest` | Migrate + **itch** + **Steam** + tag backfill |
+| `npm run ingest` | Migrate + **itch** + **Steam** + **affiliate export** (when configured) + tag backfill |
 | `npm run ingest:itch` | itch.io RSS (see `.env.example` feed env vars) |
-| `npm run ingest:steam` | Steam storesearch + adult descriptor filter |
+| `npm run ingest:steam` | Steam storesearch + adult descriptor filter (no default affiliate URLs) |
+| `npm run ingest:affiliate` | JSON export at `AFFILIATE_EXPORT_PATH` or `data/affiliate-export.json` |
+| `npm run db:backfill-affiliate` | Set `affiliate_url` on itch listings when `ITCH_REF` / `ITCH_AFFILIATE_USERNAME` is set |
 | `npm run db:migrate` | Apply Drizzle migrations to PGlite |
 
 ## Docker (optional)

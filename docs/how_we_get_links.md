@@ -37,6 +37,8 @@ itch.io also has a server-side API at `https://itch.io/docs/api/overview`, inclu
 
 Paid adult discovery on itch.io has been unreliable since the July 2025 card-network deindexing. The feed can still announce a page that their own search hides. We link to the project URL the feed gives us. We do not assume the itch.io payout button on that page works.
 
+**Partner affiliate (optional):** After approval at [itch.io/partners](https://itch.io/partners), production may set `ITCH_REF` or `ITCH_AFFILIATE_USERNAME` to the partner code. Ingest stores a derived `affiliate_url` on each itch candidate (`?ac=<code>` on the feed link). `official_url` on the listing stays the clean feed URL; `/api/go` prefers `affiliate_url` when present. Do not set these env vars until the partner account is active.
+
 ## Steam
 
 Steam’s store is queryable through the Steamworks Web API, not by scraping the age-gated HTML.
@@ -46,6 +48,8 @@ Steam’s store is queryable through the Steamworks Web API, not by scraping the
 The list does not, by itself, say “this game is sexually explicit.” A second read of the app’s store details checks the adult-only sexual content descriptor and the age rating. Games without that descriptor never enter the adult queue. Games with it still wait for the content-line review, because Steam’s own July 2025 rule removed some adult titles and left the boundary vague. We link to `https://store.steampowered.com/app/<appid>`. The player buys from Steam. We do not rehost the depot.
 
 There is also an unversioned store search endpoint, `https://store.steampowered.com/api/storesearch/`, used for lookup by name. It is a search box, not the daily “what changed” feed. `GetAppList` with `if_modified_since` is the feed.
+
+Steam ingest writes plain `https://store.steampowered.com/app/<appid>` URLs only. There is no site-wide Steam affiliate tag in env; paid Steam links come from an `affiliate_export` row or manual admin entry after a program approves the account.
 
 ## Affiliate programs
 

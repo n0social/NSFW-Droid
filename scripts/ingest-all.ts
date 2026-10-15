@@ -44,7 +44,8 @@ async function main() {
         (SELECT count(*)::int FROM candidate) AS candidates,
         (SELECT count(*)::int FROM listing) AS listings,
         (SELECT count(*)::int FROM tag) AS tags,
-        (SELECT count(*)::int FROM candidate WHERE review_status = 'pending') AS pending
+        (SELECT count(*)::int FROM candidate WHERE review_status = 'pending') AS pending,
+        (SELECT count(*)::int FROM listing WHERE affiliate_url IS NOT NULL AND trim(affiliate_url) <> '') AS listings_with_affiliate
     `);
 
     const summary = {

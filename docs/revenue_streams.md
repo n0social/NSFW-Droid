@@ -75,7 +75,9 @@ It fits live-service games with ongoing purchases, and it needs an SDK, fraud ch
 
 - Outbound clicks go through `/api/go/[listingId]`. When `listing.affiliate_url` is a valid `http(s)` URL, the redirect uses it and analytics records `metadata.linkKind = affiliate`; otherwise the redirect uses `official_url` with `linkKind = official`.
 - Catalog tiles show a small **Affiliate link** line when an affiliate URL is set. Full policy: `/affiliate`.
-- Ingest: `npm run ingest:affiliate` (or bundled in `ingest-all` / `catalog-ingest-cron.sh` when `AFFILIATE_EXPORT_PATH` points at a JSON export file).
+- Ingest: `npm run ingest:affiliate` (or bundled in `ingest-all` / `catalog-ingest-cron.sh` when `AFFILIATE_EXPORT_PATH` is set **or** `data/affiliate-export.json` exists). Rows set `candidate.raw_payload.affiliate_url`; approve/auto-publish copies to `listing.affiliate_url`.
+- itch.io: optional `ITCH_REF` / `ITCH_AFFILIATE_USERNAME` (partner `ac=` param per [itch.io/partners](https://itch.io/partners)) — only when env is set.
+- Steam: **no** default affiliate param; only `affiliate_export` rows or manual admin URLs.
 
 **Display ads (ExoClick prepared, not live)**
 

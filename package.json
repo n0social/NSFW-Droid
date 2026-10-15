@@ -16,6 +16,7 @@
     "catalog:unpublish-non-nsfw": "tsx scripts/db-migrate.ts && tsx scripts/unpublish-non-nsfw-listings.ts",
     "catalog:recycle-stale": "tsx scripts/db-migrate.ts && tsx scripts/recycle-stale-listings.ts",
     "db:backfill-covers": "tsx scripts/db-migrate.ts && tsx scripts/backfill-listing-covers.ts",
+    "db:backfill-affiliate": "tsx scripts/db-migrate.ts && tsx scripts/backfill-listing-affiliate.ts",
     "validate:themes": "tsx scripts/validate-theme-packages.ts",
     "db:studio": "drizzle-kit studio"
   },
