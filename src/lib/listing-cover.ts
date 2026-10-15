@@ -57,6 +57,8 @@ export function extractCoverImageUrl(
 
   if (source === "itch") {
     for (const key of [
+      "imageurl",
+      "imageUrl",
       "coverImage",
       "image",
       "media:thumbnail",

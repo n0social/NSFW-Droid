@@ -5,6 +5,10 @@ import {
   autoPublishPendingCandidates,
   processCandidateAfterIngest,
 } from "../../src/lib/auto-publish";
+import {
+  artworkSourceForCover,
+  extractCoverImageUrl,
+} from "../../src/lib/listing-cover";
 import { syncTagsForCandidate } from "../../src/lib/catalog-tags";
 import type { ExtractedTag } from "./tag-extract";
 
@@ -63,6 +67,7 @@ export async function upsertCandidate(input: {
     await touchListingOnIngestReseen(input.source, input.externalId, {
       title: input.title,
       outboundUrl: input.outboundUrl,
+      rawPayload: input.rawPayload,
     });
   }
 
@@ -77,7 +82,7 @@ export async function upsertCandidate(input: {
 async function touchListingOnIngestReseen(
   source: "itch" | "steam" | "affiliate_export" | "developer_form",
   externalId: string,
-  patch: { title: string; outboundUrl: string },
+  patch: { title: string; outboundUrl: string; rawPayload?: unknown },
 ) {
   if (source !== "itch" && source !== "steam") return;
 
@@ -93,6 +98,10 @@ async function touchListingOnIngestReseen(
 
   const now = new Date();
   const wasStale = listing.catalogStale;
+  const coverFromFeed =
+    !listing.coverImageUrl?.trim() && patch.rawPayload
+      ? extractCoverImageUrl(source, patch.rawPayload)
+      : null;
 
   await db
     .update(listings)
@@ -100,6 +109,12 @@ async function touchListingOnIngestReseen(
       title: patch.title,
       officialUrl: patch.outboundUrl,
       updatedAt: now,
+      ...(coverFromFeed
+        ? {
+            coverImageUrl: coverFromFeed,
+            artworkSource: artworkSourceForCover(coverFromFeed),
+          }
+        : {}),
       ...(wasStale
         ? {
             catalogStale: false,
