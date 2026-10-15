@@ -19,9 +19,9 @@ const SLOT_CLASS: Record<Exclude<ThemeLayoutDecorSlot, "page-pattern">, string> 
   "corner-br":
     "pointer-events-none fixed bottom-6 right-2 z-[1] hidden h-12 w-12 object-contain opacity-40 md:block md:h-16 md:w-16",
   "hero-accent-left":
-    "pointer-events-none absolute bottom-3 left-3 z-[3] h-12 w-12 object-contain sm:h-14 sm:w-14",
+    "pointer-events-none absolute bottom-2 left-2 z-[3] h-7 w-7 object-contain opacity-70 sm:bottom-3 sm:left-3 sm:h-14 sm:w-14 sm:opacity-100",
   "hero-accent-right":
-    "pointer-events-none absolute bottom-3 right-3 z-[3] h-10 w-10 object-contain sm:h-12 sm:w-12",
+    "pointer-events-none absolute bottom-2 right-2 z-[3] h-6 w-6 object-contain opacity-70 max-[380px]:hidden sm:bottom-3 sm:right-3 sm:block sm:h-12 sm:w-12 sm:opacity-100",
 };
 
 const DEFAULT_OPACITY: Partial<Record<ThemeLayoutDecorSlot, number>> = {

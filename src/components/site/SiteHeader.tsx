@@ -50,7 +50,7 @@ export function SiteHeader({ listingCount, blurToggle, ageVerified, themeAssets 
   );
 
   return (
-    <header className="relative sticky top-0 z-50 border-b-[3px] border-[var(--theme-primary)]/35 bg-[var(--background)]/95 backdrop-blur-md">
+    <header className="relative sticky top-0 z-50 overflow-x-clip border-b-[3px] border-[var(--theme-primary)]/35 bg-[var(--background)]/95 backdrop-blur-md">
       {themeAssets && (
         <ThemeAssetImage
           src={themeAssets.decor}
@@ -58,7 +58,7 @@ export function SiteHeader({ listingCount, blurToggle, ageVerified, themeAssets 
           className="pointer-events-none absolute bottom-0 left-0 right-0 z-0 h-8 w-full object-cover object-bottom opacity-70"
         />
       )}
-      <div className="relative z-[1] mx-auto flex max-w-7xl items-center gap-2 px-4 py-3 md:gap-3">
+      <div className="relative z-[1] mx-auto flex max-w-7xl min-w-0 items-center gap-1.5 px-3 py-2.5 sm:gap-2 sm:px-4 sm:py-3 md:gap-3">
         <Link href="/" className="flex min-w-0 shrink items-center gap-2" aria-label="NSFW Droid home">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--theme-surface)] shadow-md ring-1 ring-[var(--theme-primary)]/50">
             <DroidMark className="h-8 w-8" />
@@ -123,18 +123,18 @@ export function SiteHeader({ listingCount, blurToggle, ageVerified, themeAssets 
           )}
         </div>
 
-        <div className="ml-auto flex items-center gap-2 md:hidden">
+        <div className="ml-auto flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2 md:hidden">
           {!loading && configured && user ? (
             <Link
               href="/account"
-              className="rounded-full border border-[var(--theme-primary)]/40 px-2.5 py-2 text-[10px] font-bold text-[var(--theme-text-muted)]"
+              className="inline-flex min-h-[44px] max-w-[5.5rem] items-center truncate rounded-full border border-[var(--theme-primary)]/40 px-2 py-2 text-[10px] font-bold text-[var(--theme-text-muted)]"
             >
               Account
             </Link>
           ) : !loading && configured ? (
             <Link
               href="/sign-in"
-              className="rounded-full border border-[var(--theme-primary)]/40 px-2.5 py-2 text-[10px] font-bold text-[var(--theme-accent)]"
+              className="inline-flex min-h-[44px] items-center rounded-full border border-[var(--theme-primary)]/40 px-2.5 py-2 text-[10px] font-bold text-[var(--theme-accent)]"
             >
               Sign in
             </Link>
