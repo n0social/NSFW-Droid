@@ -114,7 +114,8 @@ export async function getPublishedListingCount() {
   const result = await safeCatalogQuery("getPublishedListingCount", 0, async (db) => {
     const [row] = await db
       .select({ count: sql<number>`count(*)::int` })
-      .from(listings);
+      .from(listings)
+      .where(publicCatalogLinkStatus());
     return row?.count ?? 0;
   });
   return result.data;

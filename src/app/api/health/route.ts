@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { getDb, isCatalogDbHealthy } from "@/db";
-import { listings } from "@/db/schema";
 import { getCatalogLastIngestAt } from "@/lib/catalog-ingest-status";
 import { getMaintenanceNotice } from "@/lib/maintenance-notice";
+import { getPublishedListingCount } from "@/lib/listings";
 
 export const dynamic = "force-dynamic";
 
@@ -12,10 +12,7 @@ export async function GET() {
   try {
     const db = await getDb();
     await db.execute(sql`select 1`);
-    const [row] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(listings);
-    const listingCount = row?.count ?? 0;
+    const listingCount = await getPublishedListingCount();
     const catalogLastIngestAt = await getCatalogLastIngestAt();
 
     return NextResponse.json(
