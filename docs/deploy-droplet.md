@@ -296,7 +296,7 @@ touch /var/log/nsfwdroid-newsletter.log
 chown root:root /var/log/nsfwdroid-newsletter.log
 ```
 
-Prefer running **after** weekly maintenance when `NSFWDROID_WEEKLY_INGEST=1`. The job no-ops unless `NEWSLETTER_ENABLED=1` and `RESEND_API_KEY` are set in `/etc/nsfwdroid.env`.
+Runs as **root** via `catalog-maintenance.sh` (brief stop/start of `nsfwdroid` for PGlite). Prefer **Sunday 12:00 UTC** after the Tue weekly maintenance window. The job no-ops unless `NEWSLETTER_ENABLED=1` and `RESEND_API_KEY` are set in `/etc/nsfwdroid.env`.
 
 **Homepage featured rail:** set comma-separated slugs in env (order preserved), or set `chart_bucket = featured` + `chart_rank` on listings in admin/DB:
 

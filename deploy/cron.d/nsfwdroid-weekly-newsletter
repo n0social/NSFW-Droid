@@ -2,4 +2,4 @@
 # Requires NEWSLETTER_ENABLED=1 and RESEND_API_KEY in /etc/nsfwdroid.env.
 # Log: /var/log/nsfwdroid-newsletter.log
 #
-0 12 * * 0 www-data flock -n /var/lock/nsfwdroid-newsletter.lock bash -lc 'source /etc/nsfwdroid.env; cd /var/www/nsfwdroid && npx --yes tsx scripts/send-weekly-newsletter.ts' >> /var/log/nsfwdroid-newsletter.log 2>&1
+0 12 * * 0 root flock -n /var/lock/nsfwdroid-newsletter.lock /var/www/nsfwdroid/scripts/catalog-maintenance.sh -- npx --yes tsx scripts/send-weekly-newsletter.ts >> /var/log/nsfwdroid-newsletter.log 2>&1
