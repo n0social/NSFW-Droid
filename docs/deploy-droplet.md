@@ -264,7 +264,7 @@ Weekly maintenance sets `data/.weekly-maintenance.lock` so the watchdog does **n
 
 ### Weekly newsletter (member list)
 
-Footer signup + double opt-in are live in the app (`POST /api/newsletter/subscribe`). **Mass send** requires `NEWSLETTER_ENABLED=1` in `/etc/nsfwdroid.env` (production: on) plus a Brevo-authenticated domain and `BREVO_API_KEY`.
+Footer signup + double opt-in are live in the app (`POST /api/newsletter/subscribe`). **Mass send** requires `NEWSLETTER_ENABLED=1` and `NEWSLETTER_TRANSPORT=sendmail` in `/etc/nsfwdroid.env`. Exim on the droplet (`deploy/setup-local-mail.sh`) accepts mail on localhost, DKIM-signs it, and delivers it. Outbound port 25 must be open at DigitalOcean or messages stay in the Exim queue.
 
 | Variable | Purpose |
 | --- | --- |

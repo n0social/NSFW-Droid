@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${base}/newsletter?error=invalid_token`);
   }
 
-  if (result === "confirmed" && process.env.BREVO_API_KEY?.trim()) {
+  if (result === "confirmed") {
     const tokenHash = hashNewsletterToken(token);
     const db = await getDb();
     const [row] = await db

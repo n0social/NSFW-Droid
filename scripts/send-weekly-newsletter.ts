@@ -1,7 +1,8 @@
 /**
- * Send the weekly member newsletter via Brevo.
+ * Send the weekly member newsletter.
  *
- * Prerequisites: NEWSLETTER_ENABLED=1, BREVO_API_KEY, NEWSLETTER_FROM or ALERT_EMAIL_FROM
+ * Droplet: NEWSLETTER_ENABLED=1 and NEWSLETTER_TRANSPORT=sendmail (Exim on localhost).
+ * Brevo remains available when NEWSLETTER_TRANSPORT=brevo and BREVO_API_KEY is set.
  *
  * Usage:
  *   tsx scripts/send-weekly-newsletter.ts --dry-run
@@ -16,6 +17,8 @@ import {
 } from "../src/lib/newsletter/config";
 import { fetchWeeklyNewsletterPicks } from "../src/lib/newsletter/picks";
 import { checkBrevoDomainDns } from "../src/lib/newsletter/brevo-dns";
+import { checkLocalMailDns } from "../src/lib/newsletter/local-dns";
+import { newsletterTransport } from "../src/lib/newsletter/send";
 import { sendWeeklyNewsletterToSubscriber } from "../src/lib/newsletter/send-weekly-to-subscriber";
 import { listActiveSubscribers } from "../src/lib/newsletter/subscriber";
 
@@ -56,7 +59,8 @@ async function main() {
     process.exit(1);
   }
 
-  if (!process.env.BREVO_API_KEY?.trim()) {
+  const transport = newsletterTransport();
+  if (transport === "brevo" && !process.env.BREVO_API_KEY?.trim()) {
     console.error("[send-weekly-newsletter] Missing BREVO_API_KEY");
     await closeCatalogDb();
     process.exit(1);
@@ -69,10 +73,13 @@ async function main() {
   }
 
   if (!skipDns) {
-    const dns = await checkBrevoDomainDns(summary.from);
+    const dns =
+      transport === "sendmail"
+        ? await checkLocalMailDns(summary.from)
+        : await checkBrevoDomainDns(summary.from);
     if (dns.issues.length) {
       console.error(
-        "[send-weekly-newsletter] Brevo DNS issues (fix before live send):",
+        "[send-weekly-newsletter] DNS issues (fix before live send):",
         dns.issues.join(" | "),
       );
       process.exit(1);
