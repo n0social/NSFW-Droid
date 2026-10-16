@@ -10,6 +10,7 @@ import { getListingsForStorefront, getPublishedListingCount } from "@/lib/listin
 import { resolveThemeForRequest } from "@/lib/themes/preferences";
 import { themeDecorUrls } from "@/lib/themes/asset-url";
 import { resolveLayoutDecorForTheme } from "@/lib/themes/layout-decor";
+import { getRecentVideos, hasEnabledVideoFeeds } from "@/lib/video-feeds";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,9 @@ export default async function HomePage() {
     ? 0
     : await getPublishedListingCount();
 
+  const recentVideos =
+    hasEnabledVideoFeeds() ? (await getRecentVideos(8)).items : [];
+
   return (
     <div className="relative min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       <Storefront
@@ -34,7 +38,9 @@ export default async function HomePage() {
         ageVerified={ageVerified}
         blurCovers={blurCovers}
         topGrossing={storefront.topGrossing}
+        featured={storefront.featured}
         newReleases={storefront.newReleases}
+        recentVideos={recentVideos}
         rankingsFromAnalytics={storefront.rankingsFromAnalytics}
         all={storefront.all}
         listingCount={listingCount}

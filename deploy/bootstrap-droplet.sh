@@ -45,7 +45,15 @@ fi
 
 chown -R www-data:www-data "$APP_DIR/data" 2>/dev/null || mkdir -p "$APP_DIR/data" && chown -R www-data:www-data "$APP_DIR/data"
 
-chmod +x "$APP_DIR/scripts/catalog-maintenance.sh" "$APP_DIR/scripts/catalog-ingest-cron.sh" "$APP_DIR/scripts/ensure-nsfwdroid.sh" 2>/dev/null || true
+chmod +x "$APP_DIR/scripts/catalog-maintenance.sh" \
+  "$APP_DIR/scripts/catalog-ingest-cron.sh" \
+  "$APP_DIR/scripts/check-ingest-stale.sh" \
+  "$APP_DIR/scripts/ensure-nsfwdroid.sh" \
+  "$APP_DIR/scripts/alert-email.sh" \
+  "$APP_DIR/scripts/maintenance-notice.sh" \
+  "$APP_DIR/scripts/weekly-maintenance.sh" \
+  "$APP_DIR/scripts/weekly-maintenance-inner.sh" 2>/dev/null || true
+mkdir -p /var/lib/nsfwdroid/alert-dedupe
 
 cp deploy/nsfwdroid.service /etc/systemd/system/nsfwdroid.service
 systemctl daemon-reload
@@ -61,6 +69,16 @@ if [[ -f deploy/cron.d/nsfwdroid-ingest ]]; then
   chmod 644 /etc/cron.d/nsfwdroid-ingest
   touch /var/log/nsfwdroid-ingest.log
 fi
+if [[ -f deploy/cron.d/nsfwdroid-maintenance-notice ]]; then
+  cp deploy/cron.d/nsfwdroid-maintenance-notice /etc/cron.d/nsfwdroid-maintenance-notice
+  chmod 644 /etc/cron.d/nsfwdroid-maintenance-notice
+  touch /var/log/nsfwdroid-maintenance-notice.log
+fi
+if [[ -f deploy/cron.d/nsfwdroid-weekly-maintenance ]]; then
+  cp deploy/cron.d/nsfwdroid-weekly-maintenance /etc/cron.d/nsfwdroid-weekly-maintenance
+  chmod 644 /etc/cron.d/nsfwdroid-weekly-maintenance
+  touch /var/log/nsfwdroid-weekly-maintenance.log
+fi
 
 cp deploy/Caddyfile /etc/caddy/Caddyfile
 systemctl reload caddy || systemctl restart caddy
@@ -68,3 +86,4 @@ systemctl reload caddy || systemctl restart caddy
 echo "==> Done. Point DNS A records for @ and www to this droplet, then open https://www.nsfwdroid.com"
 echo "    Watchdog: /etc/cron.d/nsfwdroid-watchdog (every 5 min)"
 echo "    Ingest:   /etc/cron.d/nsfwdroid-ingest (06:00, 14:00, 22:00 UTC) via scripts/catalog-maintenance.sh"
+echo "    Weekly:   notice Tue 02:00 UTC, maintenance Tue 03:00–04:00 UTC (see deploy-droplet.md)"

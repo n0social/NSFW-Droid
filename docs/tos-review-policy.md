@@ -31,8 +31,12 @@ Implemented in `src/lib/tos-screen.ts`. Matched rule ids are stored on the candi
 | `bestiality` | Bestiality / zoophilia |
 | `real_person_nonconsent` | Revenge porn, deepfake porn, celebrity leaks, “real rape” framing |
 | `illegal_violence` | Snuff or similar presented as real |
+| `incest_taboo` | Incest or taboo family sexual themes (title, tags, slugs — hold for staff, not a moral ban on all extreme fiction) |
+| `fiction_nonconsent` | CNC / non-consent fantasy slugs and phrases (distinct from real-person leaks in `real_person_nonconsent`) |
 
-False positives are possible. Staff can **approve** after review or **reject** with a reason.
+False positives are possible (e.g. “step-” in a non-sexual title). Staff can **approve** after review or **reject** with a reason.
+
+These holds align with the content line in `docs/considerations.md` and ingest maturity rules; browse may still surface similar tag slugs via `src/lib/tag-filter.ts`, but **auto-publish** stops until `/admin` approves.
 
 ## Environment variables
 

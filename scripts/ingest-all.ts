@@ -48,6 +48,10 @@ async function main() {
         (SELECT count(*)::int FROM listing WHERE affiliate_url IS NOT NULL AND trim(affiliate_url) <> '') AS listings_with_affiliate
     `);
 
+    const itchNew = Number((itch as { newCandidates?: number }).newCandidates ?? 0);
+    const steamNew = Number((steam as { inserted?: number }).inserted ?? 0);
+    const affiliateNew = Number((affiliate as { inserted?: number }).inserted ?? 0);
+
     const summary = {
       itch,
       steam,
@@ -55,6 +59,12 @@ async function main() {
       tagsBackfilled,
       listingTagsLinked,
       autoPublished,
+      newCandidatesInserted: {
+        itch: itchNew,
+        steam: steamNew,
+        affiliate: affiliateNew,
+        total: itchNew + steamNew + affiliateNew,
+      },
       catalog: counts.rows[0],
     };
 

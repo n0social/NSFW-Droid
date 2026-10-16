@@ -13,12 +13,21 @@ export default async function PrivacyPage() {
         <Link href="/" className="text-xs font-bold text-[#FF4D8D]">← Store</Link>
         <h1 className="mt-4 text-2xl font-black">Privacy</h1>
         <p className="mt-4 text-sm leading-relaxed text-[#E9D5FF]/90">
+          <strong className="text-[#FFF1F7]">Essential cookies.</strong> We set{" "}
+          <code className="text-[#F9A8D4]">age_verified</code> after you pass the age gate, optional{" "}
+          <code className="text-[#F9A8D4]">blur_covers</code> for cover blur, and{" "}
+          <code className="text-[#F9A8D4]">USER_SESSION</code> when you sign in (signed httpOnly
+          session). These are required for site function and are not used for cross-site advertising.
+        </p>
+        <p className="mt-4 text-sm leading-relaxed text-[#E9D5FF]/90">
           We use first-party analytics (outbound clicks and listing views) to rank catalog rails. When
-          configured, Google Analytics may also collect usage data per Google&apos;s policies. Age
-          verification cookies are used to remember your 18+ confirmation on this device. When
+          configured, Google Analytics may also collect usage data per Google&apos;s policies. When
           display ads are enabled, our ad partners (such as ExoClick) may set their own cookies or
-          use similar technologies to measure and serve ads. Contact
-          details for data requests will be published here before launch marketing.
+          use similar technologies to measure and serve ads. See also{" "}
+          <Link href="/docs/compliance-roadmap" className="text-[#FF4D8D] underline">
+            compliance roadmap (engineering notes)
+          </Link>
+          . Contact details for data requests will be published here before launch marketing.
         </p>
       </div>
       <SiteFooter ageVerified={ageVerified} />

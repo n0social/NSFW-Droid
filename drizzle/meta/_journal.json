@@ -71,6 +71,27 @@
       "when": 1792006200000,
       "tag": "0009_analytics_metadata",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792006300000,
+      "tag": "0010_newsletter_subscriber",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792006400000,
+      "tag": "0011_listing_first_seen_at",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792006500000,
+      "tag": "0012_listing_report",
+      "breakpoints": true
     }
   ]
 }

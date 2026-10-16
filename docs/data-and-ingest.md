@@ -139,21 +139,23 @@ Runs only when `AFFILIATE_EXPORT_PATH` is set **or** `data/affiliate-export.json
 - **GET** `https://itch.io/feed/new.xml` (public RSS).
 - Parse `item` → `title`, `link`, `guid`, `pubDate`.
 - `INSERT … ON CONFLICT (source, external_id) DO NOTHING` into `candidate`.
-- Default feeds (**`ITCH_NSFW_ONLY=1`**, on unless set to `0`): NSFW **tag browse** URLs only (`games/tag-nsfw.xml`, etc. — `scripts/lib/itch-feeds.ts`). Global `new.xml` / `featured.xml` / `sales.xml` are **not** used in NSFW-only mode. Override with `ITCH_FEED_URLS`; append with `ITCH_EXTRA_FEED_URLS`; `ITCH_MINIMAL_FEEDS=1` uses one NSFW feed when NSFW-only is on.
+- Default feeds (**`ITCH_NSFW_ONLY=1`**, on unless set to `0`): NSFW **tag browse** URLs plus optional site `new.xml` (`ITCH_INCLUDE_SITE_NEW_FEED`, default on) and **search RSS** seeds from `data/itch-search-feed-queries.json` (`scripts/lib/itch-feeds.ts`). Set `ITCH_INCLUDE_SITE_NEW_FEED=0` to skip global new uploads. Override with `ITCH_FEED_URLS`; append with `ITCH_EXTRA_FEED_URLS`; `ITCH_MINIMAL_FEEDS=1` uses one NSFW feed when NSFW-only is on.
 - Per-item filter: skip itch rows without an adult feed context, mature tag slug, or adult keyword (`src/lib/catalog-maturity.ts`).
 - Auto-publish: `CATALOG_NSFW_ONLY=1` (default) rejects non-mature candidates before listing. Existing bad rows: `npm run catalog:unpublish-non-nsfw` (dry-run) then `-- --apply`.
 - Tags land in `tag` / `candidate_tag` (RSS title brackets, feed context, platforms, keywords). Approved listings copy to `listing_tag`.
+- **Browse tag UI** (`/browse` filter dropdown): only **NSFW-relevant** tags are shown (`src/lib/tag-filter.ts`) — Steam feature rows (e.g. family sharing), promo/pricing slugs (`10-off`, `% off`), and generic store genres are hidden. Internal `listing_tag` rows are unchanged for maturity checks and ranking.
 - Rate: once per day (or every 6h); polite `User-Agent` identifying the catalog.
 - **No** HTML scrape of project pages.
 - Optional `ITCH_REF` / `ITCH_AFFILIATE_USERNAME`: itch partner `ac=` on feed links → `raw_payload.affiliate_url` (`src/lib/itch-affiliate.ts`). Backfill existing listings: `npm run db:backfill-affiliate`.
+- **Search RSS gaps / HTML responses:** `?q=title.xml` often returns HTML, not RSS. Major titles are listed in `data/itch-manual-game-urls.json` (official game page URL + optional tag-browse `feedUrl`). Ingest tries RSS/API URLs only; on 403 or non-XML it logs and falls back to a static manual seed (no HTML scrape). Many CoC-class pages need itch partner links or the developer’s direct game URL.
 
 ### Job 2: Steam (`steam_app_delta`)
 
 Implemented in `scripts/ingest-steam.ts`.
 
 - **Discovery:** `data/steam-search-terms.json` + `STEAM_SEARCH_TERMS` / `STEAM_SEARCH_PER_TERM` (default 50 per term). Optional `STEAM_USE_APPLIST_DELTA=1` with API key merges `GetAppList` deltas.
-- **Adult filter:** descriptor **#3** by default; `STEAM_INCLUDE_SEXUAL_DESCRIPTOR=1` also accepts **#1 (Sexual Content)**.
-- **Rate limits:** `STEAM_INGEST_MAX_APPS` (default 250 detail calls/run), `STEAM_DETAIL_DELAY_MS`, `ITCH_FEED_DELAY_MS`.
+- **Adult filter:** descriptors **#3** and **#1 (Sexual Content)** by default; set `STEAM_INCLUDE_SEXUAL_DESCRIPTOR=0` for adult-only (#3) only.
+- **Rate limits:** `STEAM_INGEST_MAX_APPS` (default 400 detail calls/run), `STEAM_DETAIL_DELAY_MS`, `ITCH_FEED_DELAY_MS`.
 - Rows → `candidate` (`source = steam`), `platforms` from Steam (windows/mac/linux).
 - **Auto-publish:** TOS-clear Steam rows become `listing` when `AUTO_PUBLISH=1` or `NODE_ENV=production` (see [tos-review-policy.md](tos-review-policy.md)). Set `AUTO_PUBLISH=0` or `INGEST_REQUIRE_REVIEW=1` for all-manual review.
 - **Affiliate:** none from Steam ingest alone — only `affiliate_export` or admin/manual `affiliate_url`.
@@ -170,10 +172,13 @@ Optional for production-style deltas. Register the key in Steamworks using your 
 
 - Admin UI → `listing` directly (`source = manual`) for DLsite/JAST/etc. until exports exist.
 
-### Job 5: Link health (weekly)
+### Job 5: Link health (weekly + light sample on ingest cron)
 
-- HEAD/GET `official_url` / `affiliate_url` on `listing`.
-- Set `link_status = broken` on repeated failures.
+- **Script:** `scripts/check-listing-links.ts` — `npm run catalog:check-links` (dry-run) or `-- --apply`.
+- HEAD then GET (on 405) for `official_url` and `affiliate_url` on `listing`.
+- Set `link_status = broken` on hard failures (4xx except 429, 5xx, timeout). Restore `ok` when checks pass.
+- **Schedule:** Tuesday `weekly-maintenance-inner.sh` runs a **full** pass (`LINK_CHECK_LIMIT=0`). Daily ingest cron (`catalog-ingest-cron.sh`) samples **20** rows per run (`LINK_CHECK_SAMPLE_PER_INGEST`, set `0` to skip) — keeps a 512MB droplet polite; raise the sample or run full weekly only when the catalog grows.
+- Public queries use `link_status = ok` via `src/lib/catalog-visibility.ts`.
 
 ### Job 6: Stale recycle (before each ingest cron)
 

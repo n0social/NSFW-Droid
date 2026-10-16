@@ -32,6 +32,14 @@ export const analyticsEventTypeEnum = pgEnum("analytics_event_type", [
 
 export const linkStatusEnum = pgEnum("link_status", ["ok", "broken"]);
 
+export const listingReportReasonEnum = pgEnum("listing_report_reason", [
+  "wrong_content",
+  "broken_link",
+  "spam",
+  "copyright",
+  "other",
+]);
+
 export const ingestSources = pgTable("ingest_source", {
   name: text("name").primaryKey(),
   enabled: text("enabled").notNull().default("true"),
@@ -84,12 +92,25 @@ export const listings = pgTable("listing", {
   sponsorship: jsonb("sponsorship"),
   linkStatus: linkStatusEnum("link_status").notNull().default("ok"),
   catalogStale: boolean("catalog_stale").notNull().default(false),
+  /** When the title first entered the public catalog (never bumped on stale recycle). */
+  firstSeenAt: timestamp("first_seen_at", { withTimezone: true }).notNull().defaultNow(),
   publishedAt: timestamp("published_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   chartRank: integer("chart_rank"),
   chartBucket: text("chart_bucket"),
   source: sourceEnum("source"),
   externalId: text("external_id"),
+});
+
+export const listingReports = pgTable("listing_report", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  listingId: uuid("listing_id")
+    .notNull()
+    .references(() => listings.id, { onDelete: "cascade" }),
+  reason: listingReportReasonEnum("reason").notNull(),
+  details: text("details"),
+  ipHash: text("ip_hash"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const developerSubmissions = pgTable("developer_submission", {
@@ -130,6 +151,21 @@ export const userProfiles = pgTable("user_profile", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const newsletterSubscribers = pgTable(
+  "newsletter_subscriber",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    email: text("email").notNull(),
+    status: text("status").notNull().default("pending"),
+    tokenHash: text("token_hash"),
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+    unsubscribedAt: timestamp("unsubscribed_at", { withTimezone: true }),
+    source: text("source").default("footer"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("newsletter_subscriber_email_idx").on(t.email)],
+);
 
 export const userFavorites = pgTable(
   "user_favorite",
@@ -183,7 +219,7 @@ export type UserPreferences = {
   blur_covers?: boolean;
   /** Signed-in only: last browse filters (see docs/engagement-policy.md). */
   browse?: {
-    rail?: "hot" | "trending" | null;
+    rail?: "new" | "trending" | null;
     tag?: string | null;
     q?: string | null;
     vanilla?: boolean;
@@ -191,4 +227,6 @@ export type UserPreferences = {
 };
 
 export type Listing = typeof listings.$inferSelect;
+export type ListingReport = typeof listingReports.$inferSelect;
+export type ListingReportReason = (typeof listingReportReasonEnum.enumValues)[number];
 export type Candidate = typeof candidates.$inferSelect;

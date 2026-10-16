@@ -1,23 +1,39 @@
 "use client";
 
+import { useEffect } from "react";
 import Script from "next/script";
-import { exoclickAdScriptUrl, exoclickLiveReady } from "@/lib/ads-config";
+import {
+  exoclickAdScriptUrl,
+  exoclickLiveReady,
+  pushExoClickServe,
+} from "@/lib/ads-config";
 
 type Props = {
   ageVerified: boolean;
 };
 
+function exoclickScriptSelector(src: string): string {
+  return `script[src="${src}"]`;
+}
+
 /**
- * Loads the ExoClick ad provider once per page (deduped by `id`), only when ads are
+ * Loads the ExoClick ad provider once per document (deduped by `id`), only when ads are
  * enabled, age-verified, and zone + script URL are configured.
  */
 export function ExoClickScript({ ageVerified }: Props) {
-  if (!ageVerified || !exoclickLiveReady()) {
+  const live = ageVerified && exoclickLiveReady();
+  const src = live ? exoclickAdScriptUrl() : undefined;
+
+  useEffect(() => {
+    if (!live || !src) return;
+    if (document.querySelector(exoclickScriptSelector(src))) {
+      pushExoClickServe();
+    }
+  }, [live, src]);
+
+  if (!live || !src) {
     return null;
   }
-
-  const src = exoclickAdScriptUrl();
-  if (!src) return null;
 
   return (
     <Script
@@ -25,6 +41,7 @@ export function ExoClickScript({ ageVerified }: Props) {
       src={src}
       strategy="afterInteractive"
       async
+      onLoad={() => pushExoClickServe()}
     />
   );
 }

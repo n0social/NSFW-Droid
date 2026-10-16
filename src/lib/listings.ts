@@ -1,7 +1,7 @@
-import { and, desc, asc, isNotNull, sql } from "drizzle-orm";
+import { and, desc, sql } from "drizzle-orm";
 import { publicCatalogLinkStatus } from "@/lib/catalog-visibility";
 import { listings, type Listing } from "@/db/schema";
-import { getHotListings, getRecentPopular } from "@/lib/analytics";
+import { getRecentPopular } from "@/lib/analytics";
 import { getTagSlugsByListingIds } from "@/lib/listing-tags";
 import {
   ANALYTICS_RANK_POOL,
@@ -10,10 +10,17 @@ import {
   RAIL_TRENDING_LIMIT,
 } from "@/lib/listings-ranking";
 import { safeCatalogQuery } from "@/lib/db-safe";
+import {
+  getRecentNewListings,
+  listingFirstSeenAtExpr,
+  newListingPublishedSinceCondition,
+} from "@/lib/new-listings";
+import { getFeaturedListings } from "@/lib/featured-listings";
 
 const emptyStorefront = {
   topGrossing: [] as Listing[],
   newReleases: [] as Listing[],
+  featured: [] as Listing[],
   all: [] as Listing[],
   rankingsFromAnalytics: false,
 };
@@ -34,61 +41,57 @@ export async function getListingsForStorefront(): Promise<StorefrontListings> {
         .orderBy(desc(listings.publishedAt))
         .limit(48);
 
-      const hotRaw = await getHotListings(ANALYTICS_RANK_POOL);
+      const newestRaw = await getRecentNewListings(ANALYTICS_RANK_POOL);
       const trendingRaw = await getRecentPopular(ANALYTICS_RANK_POOL);
 
       const tagListingIds = [
         ...new Set([
           ...all.map((l) => l.id),
-          ...hotRaw.map((l) => l.id),
+          ...newestRaw.map((l) => l.id),
           ...trendingRaw.map((l) => l.id),
         ]),
       ];
       const tagsByListingId = await getTagSlugsByListingIds(db, tagListingIds);
 
-      const topGrossingFromChart = await db
+      const newestFallback = await db
         .select()
         .from(listings)
-        .where(and(publicCatalogLinkStatus(), isNotNull(listings.chartRank)))
-        .orderBy(asc(listings.chartRank))
+        .where(and(publicCatalogLinkStatus(), newListingPublishedSinceCondition()))
+        .orderBy(desc(listingFirstSeenAtExpr()))
         .limit(RAIL_HOT_LIMIT);
 
-      const hotFallback =
-        topGrossingFromChart.length > 0
-          ? topGrossingFromChart
-          : all.slice(0, RAIL_HOT_LIMIT).map((l, i) => ({ ...l, chartRank: i + 1 }));
-
-      const trendingFallback = all
-        .filter((l) => l.chartBucket !== "top_grossing")
-        .slice(0, RAIL_TRENDING_LIMIT);
-      const trendingFallbackOrAll =
-        trendingFallback.length > 0 ? trendingFallback : all.slice(0, RAIL_TRENDING_LIMIT);
-
-      const hotSource = hotRaw.length > 0 ? hotRaw : hotFallback;
-      const trendingSource = trendingRaw.length > 0 ? trendingRaw : trendingFallbackOrAll;
-
-      const hotIds = new Set(hotSource.map((l) => l.id));
-      const trendingBackfillPool = all.filter((l) => !hotIds.has(l.id));
-
       const topGrossing = fillFeaturedRail(
-        hotSource,
-        hotFallback,
+        newestRaw,
+        newestFallback.length > 0 ? newestFallback : all.slice(0, RAIL_HOT_LIMIT),
         RAIL_HOT_LIMIT,
         tagsByListingId,
-      ).map((l, i) => ({ ...l, chartRank: l.chartRank ?? i + 1 }));
-
-      const newReleases = fillFeaturedRail(
-        trendingSource,
-        trendingBackfillPool.length ? trendingBackfillPool : all,
-        RAIL_TRENDING_LIMIT,
-        tagsByListingId,
       );
+
+      const newestRailIds = new Set(topGrossing.map((l) => l.id));
+
+      const newReleases =
+        trendingRaw.length > 0
+          ? fillFeaturedRail(
+              trendingRaw.filter((l) => !newestRailIds.has(l.id)),
+              all.filter((l) => !newestRailIds.has(l.id)),
+              RAIL_TRENDING_LIMIT,
+              tagsByListingId,
+            )
+          : await db
+              .select()
+              .from(listings)
+              .where(and(publicCatalogLinkStatus(), newListingPublishedSinceCondition()))
+              .orderBy(desc(listingFirstSeenAtExpr()))
+              .limit(RAIL_TRENDING_LIMIT);
+
+      const featured = await getFeaturedListings(db);
 
       return {
         topGrossing,
         newReleases,
+        featured,
         all,
-        rankingsFromAnalytics: hotRaw.length > 0 || trendingRaw.length > 0,
+        rankingsFromAnalytics: trendingRaw.length > 0,
       };
     },
   );

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { AGE_VERIFIED_COOKIE, BLUR_COVERS_COOKIE } from "@/lib/cookies";
+import { AGE_VERIFIED_COOKIE } from "@/lib/cookies";
 
 const MAX_AGE = 60 * 60 * 24 * 30;
 
@@ -18,12 +18,6 @@ export async function POST(request: Request) {
   const res = NextResponse.json({ ok: true });
   res.cookies.set(AGE_VERIFIED_COOKIE, "1", {
     httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: MAX_AGE,
-  });
-  res.cookies.set(BLUR_COVERS_COOKIE, "1", {
-    httpOnly: false,
     sameSite: "lax",
     path: "/",
     maxAge: MAX_AGE,

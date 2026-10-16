@@ -4,9 +4,12 @@ import { analyticsEvents, listings, userFavorites } from "@/db/schema";
 import { createHash } from "crypto";
 import {
   ANALYTICS_RANK_POOL,
+  HOT_ENGAGEMENT_DAYS,
   mergeEngagementSignals,
   RANK_WEIGHT_FAVORITE_ON_HOT,
   RANK_WEIGHT_FAVORITE_ON_TRENDING,
+  sortTrendingVelocityRows,
+  TRENDING_VIEW_HOURS,
 } from "@/lib/listings-ranking";
 import { publicCatalogLinkStatus } from "@/lib/catalog-visibility";
 
@@ -35,8 +38,6 @@ export async function recordEvent(input: {
     console.error("[analytics] recordEvent failed:", err);
   }
 }
-
-const HOT_DAYS = 7;
 
 /** Leaderboard favorite signal: rows in `user_favorite` only (authenticated saves). */
 async function favoriteCountsSince(since: Date | null): Promise<Map<string, number>> {
@@ -83,7 +84,7 @@ async function listingsByAnalyticsIds(
 export async function getHotListings(limit = ANALYTICS_RANK_POOL) {
   try {
     const db = await getDb();
-    const since = new Date(Date.now() - HOT_DAYS * 24 * 60 * 60 * 1000);
+    const since = new Date(Date.now() - HOT_ENGAGEMENT_DAYS * 24 * 60 * 60 * 1000);
     const pool = Math.max(limit, ANALYTICS_RANK_POOL);
     const clickRows = await db
       .select({
@@ -102,7 +103,7 @@ export async function getHotListings(limit = ANALYTICS_RANK_POOL) {
       .orderBy(desc(sql`count(*)`))
       .limit(pool);
 
-    const favoriteByListing = await favoriteCountsSince(null);
+    const favoriteByListing = await favoriteCountsSince(since);
     const ranked = mergeEngagementSignals(
       clickRows.map((r) => ({ listingId: r.listingId, count: r.clicks })),
       favoriteByListing,
@@ -125,7 +126,7 @@ export async function getHotListings(limit = ANALYTICS_RANK_POOL) {
 export async function getRecentPopular(limit = ANALYTICS_RANK_POOL) {
   try {
     const db = await getDb();
-    const since = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    const since = new Date(Date.now() - TRENDING_VIEW_HOURS * 60 * 60 * 1000);
     const pool = Math.max(limit, ANALYTICS_RANK_POOL);
     const viewRows = await db
       .select({
@@ -145,12 +146,43 @@ export async function getRecentPopular(limit = ANALYTICS_RANK_POOL) {
       .limit(pool);
 
     const favoriteByListing = await favoriteCountsSince(since);
-    const ranked = mergeEngagementSignals(
-      viewRows.map((r) => ({ listingId: r.listingId, count: r.views })),
-      favoriteByListing,
-      RANK_WEIGHT_FAVORITE_ON_TRENDING,
-      pool,
+    const candidateIds = [
+      ...new Set([
+        ...viewRows.map((r) => r.listingId).filter((id): id is string => Boolean(id)),
+        ...favoriteByListing.keys(),
+      ]),
+    ];
+    const firstSeenRows =
+      candidateIds.length > 0
+        ? await db
+            .select({ id: listings.id, firstSeenAt: listings.firstSeenAt })
+            .from(listings)
+            .where(inArray(listings.id, candidateIds))
+        : [];
+    const firstSeenAtByListingId = new Map(
+      firstSeenRows.map((r) => [r.id, r.firstSeenAt]),
     );
+
+    const byId = new Map<string, { listingId: string; primary: number; favorites: number }>();
+    for (const row of viewRows) {
+      if (!row.listingId) continue;
+      byId.set(row.listingId, {
+        listingId: row.listingId,
+        primary: row.views,
+        favorites: favoriteByListing.get(row.listingId) ?? 0,
+      });
+    }
+    for (const [listingId, favCount] of favoriteByListing) {
+      if (!byId.has(listingId) && favCount > 0) {
+        byId.set(listingId, { listingId, primary: 0, favorites: favCount });
+      }
+    }
+
+    const ranked = sortTrendingVelocityRows(
+      [...byId.values()],
+      firstSeenAtByListingId,
+      RANK_WEIGHT_FAVORITE_ON_TRENDING,
+    ).slice(0, pool);
 
     const games = await listingsByAnalyticsIds(
       ranked.map((r) => ({ listingId: r.listingId })),

@@ -1,0 +1,4 @@
+# Copy to /etc/cron.d/nsfwdroid-weekly-maintenance on the droplet (chmod 644).
+# Tuesday 03:00 UTC — deep catalog maintenance (site down via stopped nsfwdroid → Caddy maintenance.html).
+# Daily ingest unchanged: deploy/cron.d/nsfwdroid-ingest (06:00, 14:00, 22:00 UTC).
+0 3 * * 2 root /var/www/nsfwdroid/scripts/weekly-maintenance.sh >> /var/log/nsfwdroid-weekly-maintenance.log 2>&1

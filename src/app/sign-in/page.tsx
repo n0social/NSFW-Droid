@@ -48,7 +48,7 @@ export default function SignInPage() {
     }
     const auth = getFirebaseAuth();
     if (!auth) {
-      setError("Firebase not configured.");
+      setError("Sign-in is not available on this site right now.");
       setBusy(false);
       return;
     }
@@ -69,7 +69,7 @@ export default function SignInPage() {
       await signInWithGoogle();
       router.push("/account");
     } catch {
-      setError("Google sign-in failed. Confirm the provider is enabled in Firebase.");
+      setError("Google sign-in failed. Try again or use email and password.");
     } finally {
       setBusy(false);
     }
@@ -83,20 +83,17 @@ export default function SignInPage() {
 
         {!configured ? (
           <div className="mt-6 rounded-2xl border-2 border-[var(--theme-primary)]/40 bg-[var(--theme-surface)] p-6 text-sm leading-relaxed text-[var(--theme-text-muted)]">
-            <p className="font-bold text-[var(--foreground)]">Firebase not configured</p>
+            <p className="font-bold text-[var(--foreground)]">Sign-in unavailable</p>
             <p className="mt-2">
-              Add your Firebase web app keys to the environment (see{" "}
-              <code className="text-[10px]">.env.example</code> and{" "}
-              <span className="text-[var(--theme-accent)]">docs/firebase-setup.md</span>
-              ). Rebuild after setting <code className="text-[10px]">/etc/nsfwdroid.env</code> on the
-              droplet.
+              Accounts are not enabled on this deployment yet. You can still browse the catalog
+              without signing in.
             </p>
           </div>
         ) : (
           <>
             <p className="mt-2 text-xs text-[var(--theme-text-muted)]">
-              Email/password and Google use Firebase Authentication. New here?{" "}
-              <Link href="/sign-up" className="font-bold text-[var(--theme-accent)]">Sign up</Link>
+              New here?{" "}
+              <Link href="/sign-up" className="font-bold text-[var(--theme-accent)]">Create an account</Link>
             </p>
             <form onSubmit={onEmailSubmit} className="mt-6 space-y-3">
               <input
@@ -158,7 +155,7 @@ export default function SignInPage() {
           </>
         )}
       </div>
-      <SiteFooterClient />
+      <SiteFooterClient showFooterAds={false} />
     </div>
   );
 }

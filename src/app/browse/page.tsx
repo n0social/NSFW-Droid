@@ -7,6 +7,7 @@ import {
   parseAgeVerified,
   parseBlurCovers,
 } from "@/lib/cookies";
+import { BROWSE_PAGE_SIZE } from "@/lib/browse-constants";
 import { getBrowseListings } from "@/lib/browse-listings";
 import { getPublishedListingCount } from "@/lib/listings";
 import { resolveThemeForRequest } from "@/lib/themes/preferences";
@@ -35,9 +36,16 @@ export default async function BrowsePage({ searchParams }: { searchParams: Searc
   const tag = paramOne(sp.tag);
   const q = paramOne(sp.q);
   const vanilla = paramOne(sp.vanilla) === "1";
+  const sort = paramOne(sp.sort);
+  const pageRaw = paramOne(sp.page);
+  const page = Math.max(1, parseInt(pageRaw ?? "1", 10) || 1);
 
   const hasUrlFilters = Boolean(
-    (rail === "hot" || rail === "trending") || tag || q || vanilla,
+    (rail === "new" || rail === "hot" || rail === "trending") ||
+      tag ||
+      q ||
+      vanilla ||
+      sort === "new",
   );
   if (!hasUrlFilters) {
     const uid = await getSessionUserId();
@@ -60,10 +68,17 @@ export default async function BrowsePage({ searchParams }: { searchParams: Searc
   const layoutDecor = resolveLayoutDecorForTheme(active);
 
   const browse = await getBrowseListings({
-    rail: rail === "hot" || rail === "trending" ? rail : null,
+    rail:
+      rail === "new" || rail === "hot" || rail === "trending"
+        ? rail === "hot"
+          ? "new"
+          : rail
+        : null,
     tag,
     q,
     vanilla,
+    sort: sort === "new" ? "new" : null,
+    page,
   });
 
   const listingCount = browse.catalogUnavailable ? 0 : await getPublishedListingCount();
@@ -83,6 +98,10 @@ export default async function BrowsePage({ searchParams }: { searchParams: Searc
         initialTag={tag}
         initialVanilla={vanilla}
         initialQ={q}
+        initialSort={sort === "new" ? "new" : null}
+        totalListings={browse.total}
+        page={page}
+        pageSize={BROWSE_PAGE_SIZE}
       />
     </div>
   );

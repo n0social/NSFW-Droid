@@ -26,7 +26,7 @@ export default function AccountPage() {
   const [displayName, setDisplayName] = useState("");
   const [newsletter, setNewsletter] = useState(false);
   const [themePref, setThemePref] = useState<"default" | "auto">("auto");
-  const [blurDefault, setBlurDefault] = useState(true);
+  const [blurDefault, setBlurDefault] = useState(false);
   const [saveBusy, setSaveBusy] = useState(false);
   const [themeBusy, setThemeBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -46,7 +46,7 @@ export default function AccountPage() {
         setDisplayName(p.display_name ?? "");
         setNewsletter(p.newsletter_opt_in);
         setThemePref(p.preferences?.theme_preference ?? "auto");
-        setBlurDefault(p.preferences?.blur_covers ?? true);
+        setBlurDefault(p.preferences?.blur_covers ?? false);
       }
       if (favRes.ok) {
         const data = await favRes.json();
@@ -80,7 +80,6 @@ export default function AccountPage() {
           newsletter_opt_in: newsletter,
           preferences: {
             theme_preference: themePref,
-            blur_covers: blurDefault,
           },
         }),
       });
@@ -116,15 +115,6 @@ export default function AccountPage() {
     }
   }
 
-  async function applyBlurDefault(enabled: boolean) {
-    setBlurDefault(enabled);
-    await fetch("/api/blur", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ enabled }),
-    });
-  }
-
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12 md:px-6">
@@ -135,7 +125,7 @@ export default function AccountPage() {
           <p className="mt-4 text-sm text-[var(--theme-text-muted)]">Loading…</p>
         ) : !configured ? (
           <p className="mt-4 text-sm text-[var(--theme-text-muted)]">
-            Firebase is not configured on this deployment.
+            Accounts are not available on this deployment.
           </p>
         ) : user ? (
           <div className="mt-6 space-y-6">
@@ -241,14 +231,13 @@ export default function AccountPage() {
                     </button>
                   </div>
                 </div>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={blurDefault}
-                    onChange={(e) => void applyBlurDefault(e.target.checked)}
-                  />
-                  Blur game covers by default (after age verification)
-                </label>
+                <p className="text-sm text-[var(--theme-text-muted)]">
+                  Cover blur lives in{" "}
+                  <Link href="/settings" className="font-bold text-[var(--theme-accent)] hover:underline">
+                    Settings
+                  </Link>
+                  .
+                </p>
               </div>
             </section>
 
@@ -257,7 +246,7 @@ export default function AccountPage() {
           </div>
         ) : null}
       </div>
-      <SiteFooterClient />
+      <SiteFooterClient showFooterAds={false} />
     </div>
   );
 }

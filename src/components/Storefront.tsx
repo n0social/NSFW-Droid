@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import type { Listing } from "@/db/schema";
 import { GameCard } from "./GameCard";
 import { AgeGate } from "./AgeGate";
+import { VesperWelcomeCard } from "./VesperWelcomeCard";
 import { HeroCarousel } from "./HeroCarousel";
 import { ChipRow, type ChipId } from "./ChipRow";
 import { SiteHeader } from "./site/SiteHeader";
@@ -13,6 +14,9 @@ import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
 import type { ResolvedLayoutDecorItem } from "@/lib/themes/types";
 import { ThemeAssetImage } from "@/components/theme/ThemeAssetImage";
 import { ThemeLayoutDecor } from "@/components/theme/ThemeLayoutDecor";
+import { VideoCard } from "@/components/VideoCard";
+import type { VideoFeedItem } from "@/lib/video-feeds";
+import { effectiveCoverBlur } from "@/lib/cover-blur";
 
 type Props = {
   ageVerified: boolean;
@@ -20,7 +24,9 @@ type Props = {
   themeAssets?: ThemeDecorFiles | null;
   layoutDecor?: ResolvedLayoutDecorItem[];
   topGrossing: Listing[];
+  featured: Listing[];
   newReleases: Listing[];
+  recentVideos?: VideoFeedItem[];
   all: Listing[];
   listingCount: number;
   rankingsFromAnalytics?: boolean;
@@ -36,9 +42,11 @@ function matchesChip(game: Listing, chip: ChipId) {
 
 export function Storefront({
   ageVerified,
-  blurCovers: initialBlur,
+  blurCovers,
   topGrossing,
+  featured = [],
   newReleases,
+  recentVideos = [],
   all,
   listingCount,
   rankingsFromAnalytics = false,
@@ -46,11 +54,9 @@ export function Storefront({
   themeAssets = null,
   layoutDecor = [],
 }: Props) {
-  const [blurCovers, setBlurCovers] = useState(initialBlur);
   const [chip, setChip] = useState<ChipId>("all");
 
-  const forceBlur = !ageVerified;
-  const effectiveBlur = forceBlur || blurCovers;
+  const effectiveBlur = effectiveCoverBlur(ageVerified, blurCovers);
 
   const filteredHot = useMemo(
     () => topGrossing.filter((g) => matchesChip(g, chip)),
@@ -60,51 +66,29 @@ export function Storefront({
     () => newReleases.filter((g) => matchesChip(g, chip)),
     [newReleases, chip],
   );
-
-  const featured = topGrossing[0] ?? all[0] ?? null;
-
-  const hotTitle = rankingsFromAnalytics ? "Hottest this week" : "Top picks";
-  const newTitle = rankingsFromAnalytics ? "Trending now" : "New releases";
-
-  async function toggleBlur() {
-    if (!ageVerified) return;
-    const next = !blurCovers;
-    setBlurCovers(next);
-    await fetch("/api/blur", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ enabled: next }),
-    });
-  }
-
-  const blurToggle = (
-    <button
-      type="button"
-      onClick={toggleBlur}
-      disabled={!ageVerified}
-      title={
-        !ageVerified
-          ? "Confirm age to change blur"
-          : "Toggle cover blur for testing"
-      }
-      className={`min-h-[44px] rounded-full px-3 py-2 text-[11px] font-extrabold md:min-h-0 md:py-1.5 md:text-[10px] ${
-        effectiveBlur
-          ? "bg-[var(--theme-accent)] text-[var(--foreground)]"
-          : "border-2 border-[var(--theme-primary)] text-[var(--theme-text-muted)]"
-      } disabled:cursor-not-allowed disabled:opacity-50`}
-    >
-      Blur: {effectiveBlur ? "ON" : "OFF"}
-    </button>
+  const filteredFeatured = useMemo(
+    () => featured.filter((g) => matchesChip(g, chip)),
+    [featured, chip],
   );
+
+  const heroFeatured = filteredFeatured[0] ?? all[0] ?? null;
+
+  const hotTitle = "Newest additions";
+  const newTitle = rankingsFromAnalytics ? "Trending now" : "New releases";
 
   return (
     <>
       <AgeGate open={!ageVerified} />
+      <VesperWelcomeCard ageVerified={ageVerified} />
       <div className={`relative z-[1] ${!ageVerified ? "pointer-events-none select-none" : ""}`}>
-        {layoutDecor.length > 0 && <ThemeLayoutDecor items={layoutDecor} />}
+        {layoutDecor.length > 0 && (
+          <ThemeLayoutDecor
+            items={layoutDecor}
+            slots={["page-pattern", "corner-bl", "corner-br"]}
+          />
+        )}
         <SiteHeader
           listingCount={listingCount}
-          blurToggle={blurToggle}
           ageVerified={ageVerified}
           themeAssets={themeAssets}
         />
@@ -123,13 +107,13 @@ export function Storefront({
             </div>
           )}
 
-          <HeroCarousel
-            featured={featured}
-            blur={effectiveBlur}
-            themeAssets={themeAssets}
-            layoutDecor={layoutDecor}
+          <HeroCarousel featured={heroFeatured} blur={effectiveBlur} layoutDecor={layoutDecor} />
+          <ChipRow active={chip} onChange={setChip} />
+
+          <hr
+            className="mb-8 h-1.5 rounded-full border-0 bg-[var(--theme-primary)]/60 md:h-2"
+            aria-hidden={true}
           />
-          <ChipRow active={chip} onChange={setChip} themeAssets={themeAssets} />
 
           {catalogUnavailable ? null : listingCount === 0 ? (
             <div className="rounded-2xl border-2 border-dashed border-[var(--theme-primary)]/50 p-12 text-center">
@@ -142,15 +126,39 @@ export function Storefront({
               )}
               <p className="font-bold text-[var(--theme-text-muted)]">No live listings yet.</p>
               <p className="mt-2 text-xs text-[var(--theme-text-muted)]/80">
-                Run ingest on the server, then approve titles in{" "}
-                <Link href="/admin" className="text-[#FF4D8D] underline">
-                  admin
-                </Link>
-                .
+                Catalog ingest runs on the server; live listings appear here when published.
               </p>
             </div>
           ) : (
             <>
+              {filteredFeatured.length > 0 && (
+                <section className="mb-8">
+                  <div className="mb-3 flex items-center justify-between gap-2">
+                    <h2 className="flex items-center gap-2 text-sm font-black text-[#FFF1F7]">
+                      {themeAssets && (
+                        <ThemeAssetImage
+                          src={themeAssets.rail}
+                          alt=""
+                          className="h-5 w-10 shrink-0"
+                        />
+                      )}
+                      Featured
+                    </h2>
+                  </div>
+                  <div className="rail-scroll -mx-4 flex gap-3 overflow-x-auto overscroll-x-contain px-4 pb-2 scroll-smooth snap-x snap-mandatory touch-pan-x md:mx-0 md:px-0">
+                    {filteredFeatured.map((g, i) => (
+                      <GameCard
+                        key={g.id}
+                        game={g}
+                        index={i}
+                        blur={effectiveBlur}
+                        themeAssets={themeAssets}
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
+
               {filteredHot.length > 0 && (
                 <section className="mb-8">
                   <div className="mb-3 flex items-center justify-between gap-2">
@@ -165,7 +173,7 @@ export function Storefront({
                       {hotTitle}
                     </h2>
                     <Link
-                      href="/browse?rail=hot"
+                      href="/new"
                       className="min-h-[44px] shrink-0 rounded-full px-2 py-2 text-[10px] font-bold text-[#FF4D8D] hover:underline md:min-h-0 md:py-0"
                     >
                       See all
@@ -177,7 +185,6 @@ export function Storefront({
                         key={g.id}
                         game={g}
                         index={i}
-                        rank={i + 1}
                         blur={effectiveBlur}
                         themeAssets={themeAssets}
                       />
@@ -200,7 +207,7 @@ export function Storefront({
                       {newTitle}
                     </h2>
                     <Link
-                      href="/browse?rail=trending"
+                      href="/new"
                       className="min-h-[44px] shrink-0 rounded-full px-2 py-2 text-[10px] font-bold text-[#FF4D8D] hover:underline md:min-h-0 md:py-0"
                     >
                       See all
@@ -215,6 +222,43 @@ export function Storefront({
                         rank={i + 1}
                         blur={effectiveBlur}
                         themeAssets={themeAssets}
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {recentVideos.length > 0 && (
+                <section className="mb-8">
+                  <div className="mb-3 flex items-center justify-between gap-2">
+                    <h2 className="flex items-center gap-2 text-sm font-black text-[#FFF1F7]">
+                      {themeAssets && (
+                        <ThemeAssetImage
+                          src={themeAssets.rail}
+                          alt=""
+                          className="h-5 w-10 shrink-0"
+                        />
+                      )}
+                      Recent videos
+                    </h2>
+                    <Link
+                      href="/videos"
+                      className="min-h-[44px] shrink-0 rounded-full px-2 py-2 text-[10px] font-bold text-[#FF4D8D] hover:underline md:min-h-0 md:py-0"
+                    >
+                      Top videos
+                    </Link>
+                  </div>
+                  <p className="mb-3 text-[10px] font-semibold text-[#E9D5FF]/70">
+                    Outbound links to publisher pages — not hosted on NSFW Droid.
+                  </p>
+                  <div className="rail-scroll -mx-4 flex gap-3 overflow-x-auto overscroll-x-contain px-4 pb-2 scroll-smooth snap-x snap-mandatory touch-pan-x md:mx-0 md:px-0">
+                    {recentVideos.map((video, i) => (
+                      <VideoCard
+                        key={video.id}
+                        video={video}
+                        index={i}
+                        blur={effectiveBlur}
+                        layout="rail"
                       />
                     ))}
                   </div>

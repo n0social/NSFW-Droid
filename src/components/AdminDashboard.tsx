@@ -4,6 +4,11 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { AdminShell } from "@/components/AdminShell";
 import type { AdminDashboardSnapshot } from "@/lib/admin-dashboard";
+import {
+  formatDuration,
+  formatIngestRunSummary,
+  ingestRunDurationMs,
+} from "@/lib/ingest-run-summary";
 
 const POLL_MS = 30_000;
 
@@ -51,39 +56,6 @@ function TopList({
   );
 }
 
-function formatRunSummary(summary: unknown): string {
-  if (!summary || typeof summary !== "object") return "—";
-  const s = summary as Record<string, unknown>;
-  if (s.job === "recycle_stale" || "staled" in s) {
-    const staled = s.staled ?? s.wouldStale;
-    return `recycled ${staled ?? 0} listing(s)`;
-  }
-  const itch = s.itch as { newCandidates?: number; affiliateUrlsSet?: number } | undefined;
-  const steam = s.steam as { newCandidates?: number } | undefined;
-  const affiliate = s.affiliate as {
-    skipped?: boolean;
-    inserted?: number;
-    withAffiliateUrl?: number;
-  } | undefined;
-  const catalog = s.catalog as { listings?: number; listings_with_affiliate?: number } | undefined;
-  const parts: string[] = [];
-  if (itch?.newCandidates != null) parts.push(`itch +${itch.newCandidates}`);
-  if (itch?.affiliateUrlsSet != null && itch.affiliateUrlsSet > 0) {
-    parts.push(`itch affiliate ${itch.affiliateUrlsSet}`);
-  }
-  if (steam?.newCandidates != null) parts.push(`steam +${steam.newCandidates}`);
-  if (affiliate && !affiliate.skipped) {
-    parts.push(`affiliate +${affiliate.inserted ?? 0} (${affiliate.withAffiliateUrl ?? 0} w/ URL)`);
-  } else if (affiliate?.skipped) {
-    parts.push("affiliate skipped");
-  }
-  if (catalog?.listings != null) parts.push(`${catalog.listings} listings`);
-  if (catalog?.listings_with_affiliate != null && catalog.listings_with_affiliate > 0) {
-    parts.push(`${catalog.listings_with_affiliate} w/ affiliate`);
-  }
-  return parts.length ? parts.join(" · ") : JSON.stringify(summary).slice(0, 120);
-}
-
 export function AdminDashboard() {
   const [data, setData] = useState<AdminDashboardSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
@@ -116,7 +88,8 @@ export function AdminDashboard() {
     <AdminShell title="Admin dashboard">
       <p className="text-xs text-[#E9D5FF]/80">
         Live metrics refresh every 30s on load. Rails blend outbound clicks/views with user favorites
-        (weights in <code className="text-[#F9A8D4]">listings-ranking.ts</code>).
+        (weights in <code className="text-[#F9A8D4]">listings-ranking.ts</code>). Daily click chart:{" "}
+        <Link href="/admin/traffic" className="text-[#FF4D8D] underline">Traffic marker</Link>.
       </p>
 
       {loading && !data && <p className="mt-6 text-sm text-[#E9D5FF]">Loading…</p>}
@@ -137,7 +110,15 @@ export function AdminDashboard() {
           </p>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard label="Listings" value={data.catalog.listings} hint={`${data.catalog.staleListings} stale`} />
+            <StatCard
+              label="Listings"
+              value={data.catalog.listings}
+              hint={
+                data.catalog.softCap
+                  ? `${data.catalog.staleListings} stale · +${data.catalog.addedLast7d} / 7d · soft cap ${data.catalog.softCap}`
+                  : `${data.catalog.staleListings} stale · +${data.catalog.addedLast7d} / 7d`
+              }
+            />
             <StatCard label="Accounts" value={data.users.total} hint={`+${data.users.signups24h} / 24h`} />
             <StatCard
               label="Outbound clicks"
@@ -161,11 +142,84 @@ export function AdminDashboard() {
             />
           </div>
 
+          {data.catalog.listingsBySource.length > 0 && (
+            <section className="mt-6">
+              <h2 className="text-sm font-black">Listings by source</h2>
+              <p className="mt-1 text-[10px] text-[#E9D5FF]/60">
+                Curate by unpublishing low-quality rows in the queue — set{" "}
+                <code className="text-[#F9A8D4]">CATALOG_SOFT_CAP</code> as an editorial target (not
+                auto-deleted).
+              </p>
+              <ul className="mt-3 flex flex-wrap gap-2">
+                {data.catalog.listingsBySource.map((row) => (
+                  <li
+                    key={row.source}
+                    className="rounded-full border border-[#C026D3]/35 bg-[#241033] px-3 py-1.5 text-xs font-semibold text-[#FFF1F7]"
+                  >
+                    {row.source}: <span className="tabular-nums text-[#FF4D8D]">{row.count}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           <div className="mt-6 grid gap-4 lg:grid-cols-3">
             <TopList title="Top clicks (7d)" rows={data.top.clicks7d} emptyLabel="No clicks yet." />
             <TopList title="Top views (48h)" rows={data.top.views48h} emptyLabel="No views yet." />
             <TopList title="Most favorited" rows={data.top.favorites} emptyLabel="No favorites yet." />
           </div>
+
+          <section className="mt-8">
+            <h2 className="text-sm font-black">Added last 7 days</h2>
+            <p className="mt-1 text-[10px] text-[#E9D5FF]/60">
+              Live listings where <code className="text-[#F9A8D4]">first_seen_at</code> (or{" "}
+              <code className="text-[#F9A8D4]">published_at</code> fallback) is within 7 days — same
+              window as <code className="text-[#F9A8D4]">catalog-new-arrivals-report.ts</code>.
+            </p>
+            <div className="mt-3 overflow-x-auto rounded-xl border border-[#C026D3]/30">
+              <table className="w-full min-w-[640px] text-left text-xs">
+                <thead className="bg-[#241033] text-[#E9D5FF]/70">
+                  <tr>
+                    <th className="px-3 py-2 font-bold">Title</th>
+                    <th className="px-3 py-2 font-bold">Source</th>
+                    <th className="px-3 py-2 font-bold">First seen</th>
+                    <th className="px-3 py-2 font-bold">External ID</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.newArrivals7d.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-3 py-4 text-[#E9D5FF]/60">
+                        No new live listings in the last 7 days.
+                      </td>
+                    </tr>
+                  )}
+                  {data.newArrivals7d.map((row) => (
+                    <tr key={row.id} className="border-t border-[#C026D3]/20">
+                      <td className="px-3 py-2">
+                        <Link
+                          href={`/game/${row.slug}`}
+                          className="font-semibold text-[#F9A8D4] hover:underline"
+                        >
+                          {row.title}
+                        </Link>
+                        {row.publishedBumped && (
+                          <span className="ml-2 text-[10px] text-amber-300/90">recycled bump</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2">{row.source ?? "—"}</td>
+                      <td className="px-3 py-2 tabular-nums">
+                        {new Date(row.firstSeenAt).toLocaleString()}
+                      </td>
+                      <td className="max-w-[140px] truncate px-3 py-2 font-mono text-[10px] text-[#E9D5FF]/80">
+                        {row.externalId ?? "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
 
           <section className="mt-8">
             <h2 className="text-sm font-black">Ingest sources</h2>
@@ -199,35 +253,104 @@ export function AdminDashboard() {
           </section>
 
           <section className="mt-8">
-            <h2 className="text-sm font-black">Recent ingest / maintenance</h2>
-            <ul className="mt-3 space-y-2">
-              {data.recentIngestRuns.length === 0 && (
-                <li className="text-xs text-[#E9D5FF]/60">No jobs logged in ingest_run yet.</li>
-              )}
-              {data.recentIngestRuns.map((run) => (
-                <li
-                  key={run.id}
-                  className="rounded-lg border border-[#C026D3]/25 bg-[#241033] px-3 py-2 text-xs"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="font-bold text-[#FF4D8D]">{run.job}</span>
-                    <span
-                      className={
-                        run.status === "ok" ? "text-emerald-300" : "font-bold text-red-300"
-                      }
-                    >
-                      {run.status}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-[#E9D5FF]/80">
-                    {new Date(run.startedAt).toLocaleString()} — {formatRunSummary(run.summary)}
-                  </p>
-                  {run.errorMessage && (
-                    <p className="mt-1 text-red-300">{run.errorMessage}</p>
+            <h2 className="text-sm font-black">Ingest runs (last 20)</h2>
+            <p className="mt-1 text-[10px] text-[#E9D5FF]/60">
+              Rows from <code className="text-[#F9A8D4]">ingest_run</code> — cron{" "}
+              <code className="text-[#F9A8D4]">ingest_all</code> and maintenance jobs.
+            </p>
+            <div className="mt-3 overflow-x-auto rounded-xl border border-[#C026D3]/30">
+              <table className="w-full min-w-[720px] text-left text-xs">
+                <thead className="bg-[#241033] text-[#E9D5FF]/70">
+                  <tr>
+                    <th className="px-3 py-2 font-bold">Job</th>
+                    <th className="px-3 py-2 font-bold">Status</th>
+                    <th className="px-3 py-2 font-bold">Started</th>
+                    <th className="px-3 py-2 font-bold">Finished</th>
+                    <th className="px-3 py-2 font-bold">Duration</th>
+                    <th className="px-3 py-2 font-bold">Summary</th>
+                    <th className="px-3 py-2 font-bold">Error</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.recentIngestRuns.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="px-3 py-4 text-[#E9D5FF]/60">
+                        No jobs logged in ingest_run yet.
+                      </td>
+                    </tr>
                   )}
-                </li>
-              ))}
-            </ul>
+                  {data.recentIngestRuns.map((run) => {
+                    const durationMs = ingestRunDurationMs(run.startedAt, run.finishedAt);
+                    return (
+                      <tr key={run.id} className="border-t border-[#C026D3]/20 align-top">
+                        <td className="px-3 py-2 font-semibold text-[#FF4D8D]">{run.job}</td>
+                        <td
+                          className={
+                            run.status === "ok"
+                              ? "px-3 py-2 text-emerald-300"
+                              : "px-3 py-2 font-bold text-red-300"
+                          }
+                        >
+                          {run.status}
+                        </td>
+                        <td className="px-3 py-2 tabular-nums whitespace-nowrap">
+                          {new Date(run.startedAt).toLocaleString()}
+                        </td>
+                        <td className="px-3 py-2 tabular-nums whitespace-nowrap">
+                          {run.finishedAt ? new Date(run.finishedAt).toLocaleString() : "—"}
+                        </td>
+                        <td className="px-3 py-2 tabular-nums">
+                          {durationMs != null ? formatDuration(durationMs) : "—"}
+                        </td>
+                        <td className="px-3 py-2 text-[#E9D5FF]/85">
+                          {formatIngestRunSummary(run.summary)}
+                        </td>
+                        <td className="px-3 py-2 break-all text-red-300">
+                          {run.errorMessage ?? "—"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className="mt-8">
+            <h2 className="text-sm font-black">Listing reports (last 50)</h2>
+            <div className="mt-3 overflow-x-auto rounded-xl border border-[#C026D3]/30">
+              <table className="w-full min-w-[640px] text-left text-xs">
+                <thead className="bg-[#241033] text-[#E9D5FF]/70">
+                  <tr>
+                    <th className="px-3 py-2 font-bold">When</th>
+                    <th className="px-3 py-2 font-bold">Listing</th>
+                    <th className="px-3 py-2 font-bold">Reason</th>
+                    <th className="px-3 py-2 font-bold">Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.recentListingReports.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-3 py-4 text-[#E9D5FF]/60">No reports yet.</td>
+                    </tr>
+                  )}
+                  {data.recentListingReports.map((r) => (
+                    <tr key={r.id} className="border-t border-[#C026D3]/20 align-top">
+                      <td className="px-3 py-2 tabular-nums whitespace-nowrap">
+                        {new Date(r.createdAt).toLocaleString()}
+                      </td>
+                      <td className="px-3 py-2">
+                        <Link href={`/game/${r.listingSlug}`} className="font-semibold text-[#F9A8D4] hover:underline">
+                          {r.listingTitle}
+                        </Link>
+                      </td>
+                      <td className="px-3 py-2 font-mono text-[10px]">{r.reason}</td>
+                      <td className="max-w-[280px] px-3 py-2">{r.details?.trim() || "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </section>
 
           <section className="mt-8">

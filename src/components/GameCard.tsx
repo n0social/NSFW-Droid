@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { gameListingPath } from "@/lib/listing-routes";
 import { useEffect, useState } from "react";
 import type { Listing } from "@/db/schema";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -122,7 +123,7 @@ export function GameCard({ game, index, rank, wide, layout = "rail", blur, theme
           to save favorites.
         </div>
       )}
-      <a href={`/api/go/${game.id}`} className="block">
+      <Link href={gameListingPath(game.slug)} className="block">
         <div
           className={`relative ${h}`}
           style={{ background: showCover ? undefined : gradient }}
@@ -182,6 +183,14 @@ export function GameCard({ game, index, rank, wide, layout = "rail", blur, theme
             </span>
           )}
         </div>
+      </Link>
+      <a
+        href={`/api/go/${game.id}`}
+        onClick={(e) => e.stopPropagation()}
+        className="absolute bottom-2 right-2 z-20 rounded-full bg-[#C026D3] px-2.5 py-1 text-[9px] font-black text-[#FFF1F7] shadow-md hover:bg-[#FF4D8D]"
+        aria-label={`Play ${displayTitle} on store`}
+      >
+        Play
       </a>
     </div>
   );

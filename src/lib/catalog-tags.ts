@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
+import { filterExtractedCatalogTags } from "@/lib/tag-filter";
 import {
   candidateTags,
   candidates,
@@ -58,8 +59,9 @@ export async function syncTagsForCandidate(
   candidateId: string,
   extracted: CatalogTagInput[],
 ) {
-  if (!extracted.length) return;
-  const tagIds = await ensureTags(extracted);
+  const kept = filterExtractedCatalogTags(extracted);
+  if (!kept.length) return;
+  const tagIds = await ensureTags(kept);
   await linkCandidateTags(candidateId, tagIds);
 }
 

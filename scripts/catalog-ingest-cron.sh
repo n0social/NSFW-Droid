@@ -3,4 +3,9 @@
 set -euo pipefail
 npx --yes tsx scripts/db-migrate.ts
 npx --yes tsx scripts/recycle-stale-listings.ts --apply
+if [[ "${LINK_CHECK_SAMPLE_PER_INGEST:-20}" != "0" ]]; then
+  LINK_CHECK_LIMIT="${LINK_CHECK_SAMPLE_PER_INGEST:-20}" npx --yes tsx scripts/check-listing-links.ts --apply
+fi
 npx --yes tsx scripts/ingest-all.ts
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"$SCRIPT_DIR/check-ingest-stale.sh"

@@ -1,5 +1,7 @@
 /** Catalog UI: no store pricing or sale badges — prices on itch/Steam change independently. */
 
+import { isPricingOrPromoCatalogTag } from "@/lib/tag-filter";
+
 const BRACKET_SEGMENT_RE = /\[([^\]]+)\]/g;
 
 const PLATFORM_BRACKET = new Set([
@@ -36,19 +38,13 @@ function isPriceOrSaleBracket(raw: string): boolean {
   if (/\b\d+\s*%\s*off\b/i.test(raw)) return true;
   if (/^-\d+%$/.test(raw)) return true;
   if (/^\d+(\.\d{2})?\s*(usd|eur|gbp)?$/i.test(raw)) return true;
+  if (/^\d+\s+off$/i.test(raw)) return true;
   return false;
 }
 
-const PRICING_TAG_SLUGS = new Set(["itch-sale", "on-sale", "sale", "discount", "price-free"]);
-
 /** Hide feed/meta tags that imply pricing or promotions in browse filters. */
 export function isPricingCatalogTagSlug(slug: string): boolean {
-  const s = slug.trim().toLowerCase();
-  if (!s) return false;
-  if (PRICING_TAG_SLUGS.has(s)) return true;
-  if (s.startsWith("price-")) return true;
-  if (s.endsWith("-sale")) return true;
-  return false;
+  return isPricingOrPromoCatalogTag(slug);
 }
 
 const RAW_PAYLOAD_PRICE_KEYS = new Set([

@@ -8,13 +8,15 @@ import { browsePrefsFromSearchParams } from "@/lib/browse-preferences";
 import type { Listing, Tag } from "@/db/schema";
 import { GameCard } from "@/components/GameCard";
 import { AgeGate } from "@/components/AgeGate";
+import { VesperWelcomeCard } from "@/components/VesperWelcomeCard";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
 import type { ResolvedLayoutDecorItem } from "@/lib/themes/types";
 import { ThemeLayoutDecor } from "@/components/theme/ThemeLayoutDecor";
-import { isPricingCatalogTagSlug } from "@/lib/listing-display";
-import { AdSlot } from "@/components/AdSlot";
+import { isNsfwBrowseCatalogTag } from "@/lib/tag-filter";
+import { BROWSE_PAGE_SIZE } from "@/lib/browse-constants";
+import { effectiveCoverBlur } from "@/lib/cover-blur";
 
 type Props = {
   ageVerified: boolean;
@@ -29,11 +31,15 @@ type Props = {
   initialTag?: string | null;
   initialVanilla?: boolean;
   initialQ?: string | null;
+  initialSort?: "new" | null;
+  totalListings?: number;
+  page?: number;
+  pageSize?: number;
 };
 
 export function BrowseCatalog({
   ageVerified,
-  blurCovers: initialBlur,
+  blurCovers,
   listings,
   tags,
   listingCount,
@@ -44,34 +50,37 @@ export function BrowseCatalog({
   initialTag = null,
   initialVanilla = false,
   initialQ = null,
+  initialSort = null,
+  totalListings = 0,
+  page = 1,
+  pageSize = BROWSE_PAGE_SIZE,
 }: Props) {
   const router = useRouter();
   const { user } = useAuth();
-  const [blurCovers, setBlurCovers] = useState(initialBlur);
   const [q, setQ] = useState(initialQ ?? "");
 
-  const forceBlur = !ageVerified;
-  const effectiveBlur = forceBlur || blurCovers;
+  const effectiveBlur = effectiveCoverBlur(ageVerified, blurCovers);
 
   const filterValue = useMemo(() => {
     if (initialVanilla) return "vanilla";
     if (initialTag) return `tag:${initialTag}`;
-    if (initialRail === "hot") return "rail:hot";
+    if (initialRail === "new" || initialRail === "hot") return "rail:new";
     if (initialRail === "trending") return "rail:trending";
     return "all";
   }, [initialRail, initialTag, initialVanilla]);
 
   const title = useMemo(() => {
-    if (initialRail === "hot") return "Hottest this week";
+    if (initialRail === "new" || initialRail === "hot") return "Newest additions";
     if (initialRail === "trending") return "Trending now";
     if (initialVanilla) return "Vanilla NSFW catalog";
     if (initialTag) {
       const label = tags.find((t) => t.slug === initialTag)?.label ?? initialTag;
       return `Tag: ${label}`;
     }
+    if (initialSort === "new") return "New in the last 30 days";
     if (initialQ) return `Search: ${initialQ}`;
     return "Browse catalog";
-  }, [initialRail, initialTag, initialVanilla, initialQ, tags]);
+  }, [initialRail, initialTag, initialVanilla, initialQ, initialSort, tags]);
 
   const persistBrowsePrefs = useCallback(
     async (filter: string, search: string) => {
@@ -81,7 +90,7 @@ export function BrowseCatalog({
       let vanilla = false;
       if (filter === "vanilla") vanilla = true;
       else if (filter.startsWith("tag:")) tag = filter.slice(4);
-      else if (filter === "rail:hot") rail = "hot";
+      else if (filter === "rail:new") rail = "new";
       else if (filter === "rail:trending") rail = "trending";
       const browse = browsePrefsFromSearchParams({
         rail,
@@ -106,55 +115,46 @@ export function BrowseCatalog({
 
       if (filter === "vanilla") params.set("vanilla", "1");
       else if (filter.startsWith("tag:")) params.set("tag", filter.slice(4));
-      else if (filter === "rail:hot") params.set("rail", "hot");
+      else if (filter === "rail:new") params.set("rail", "new");
       else if (filter === "rail:trending") params.set("rail", "trending");
 
       if (search) params.set("q", search);
+      if (initialSort === "new" && filter === "all" && !search) params.set("sort", "new");
       const qs = params.toString();
       void persistBrowsePrefs(filter, search);
       router.push(qs ? `/browse?${qs}` : "/browse");
     },
-    [filterValue, q, router, persistBrowsePrefs],
+    [filterValue, q, router, persistBrowsePrefs, initialSort],
   );
 
-  async function toggleBlur() {
-    if (!ageVerified) return;
-    const next = !blurCovers;
-    setBlurCovers(next);
-    await fetch("/api/blur", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ enabled: next }),
-    });
+  const tagOptions = tags.filter(isNsfwBrowseCatalogTag);
+
+  const totalPages = Math.max(1, Math.ceil(totalListings / pageSize));
+  const showPagination = totalPages > 1 && !initialRail;
+  const rangeStart = totalListings === 0 ? 0 : (page - 1) * pageSize + 1;
+  const rangeEnd = Math.min(page * pageSize, totalListings);
+
+  function browsePageHref(nextPage: number): string {
+    const params = new URLSearchParams();
+    if (initialVanilla) params.set("vanilla", "1");
+    else if (initialTag) params.set("tag", initialTag);
+    else if (initialRail === "new" || initialRail === "hot") params.set("rail", "new");
+    else if (initialRail === "trending") params.set("rail", "trending");
+    if (initialQ) params.set("q", initialQ);
+    if (initialSort === "new" && filterValue === "all" && !initialQ) params.set("sort", "new");
+    if (nextPage > 1) params.set("page", String(nextPage));
+    const qs = params.toString();
+    return qs ? `/browse?${qs}` : "/browse";
   }
-
-  const blurToggle = (
-    <button
-      type="button"
-      onClick={toggleBlur}
-      disabled={!ageVerified}
-      className={`min-h-[44px] rounded-full px-3 py-2 text-[11px] font-extrabold md:min-h-0 md:py-1.5 md:text-[10px] ${
-        effectiveBlur
-          ? "bg-[var(--theme-accent)] text-[var(--foreground)]"
-          : "border-2 border-[var(--theme-primary)] text-[var(--theme-text-muted)]"
-      } disabled:cursor-not-allowed disabled:opacity-50`}
-    >
-      Blur: {effectiveBlur ? "ON" : "OFF"}
-    </button>
-  );
-
-  const tagOptions = tags.filter(
-    (t) => t.kind !== "platform" && !isPricingCatalogTagSlug(t.slug),
-  );
 
   return (
     <>
       <AgeGate open={!ageVerified} />
+      <VesperWelcomeCard ageVerified={ageVerified} />
       <div className={`relative z-[1] ${!ageVerified ? "pointer-events-none select-none" : ""}`}>
         {layoutDecor.length > 0 && <ThemeLayoutDecor items={layoutDecor} />}
         <SiteHeader
           listingCount={listingCount}
-          blurToggle={blurToggle}
           ageVerified={ageVerified}
           themeAssets={themeAssets}
         />
@@ -179,8 +179,11 @@ export function BrowseCatalog({
               </Link>
               <h1 className="mt-1 text-xl font-black text-[#FFF1F7] sm:text-2xl">{title}</h1>
               <p className="mt-1 text-xs text-[#E9D5FF]/80">
-                {listings.length.toLocaleString()} shown · niche tags searchable, not spotlighted on home
-                rails.
+                {totalListings > 0
+                  ? `${rangeStart.toLocaleString()}–${rangeEnd.toLocaleString()} of ${totalListings.toLocaleString()} titles`
+                  : `${listings.length.toLocaleString()} shown`}
+                {showPagination ? ` · page ${page} of ${totalPages}` : ""}
+                {" · "}niche tags searchable, not spotlighted on home rails.
               </p>
             </div>
 
@@ -200,7 +203,7 @@ export function BrowseCatalog({
               >
                 <option value="all">All titles</option>
                 <option value="vanilla">Vanilla NSFW</option>
-                <option value="rail:hot">Hottest this week</option>
+                <option value="rail:new">Newest additions</option>
                 <option value="rail:trending">Trending now</option>
                 {tagOptions.map((t) => (
                   <option key={t.id} value={`tag:${t.slug}`}>
@@ -224,23 +227,47 @@ export function BrowseCatalog({
             </form>
           </div>
 
-          <AdSlot placement="browse-inline" ageVerified={ageVerified} />
 
           {listings.length === 0 ? (
             <p className="py-12 text-center text-sm text-[#E9D5FF]/80">No titles match this filter.</p>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-              {listings.map((g, i) => (
-                <GameCard
-                  key={g.id}
-                  game={g}
-                  index={i}
-                  layout="grid"
-                  blur={effectiveBlur}
-                  themeAssets={themeAssets}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                {listings.map((g, i) => (
+                  <GameCard
+                    key={g.id}
+                    game={g}
+                    index={i}
+                    layout="grid"
+                    blur={effectiveBlur}
+                    themeAssets={themeAssets}
+                  />
+                ))}
+              </div>
+              {showPagination && (
+                <nav
+                  className="mt-8 flex flex-wrap items-center justify-center gap-3"
+                  aria-label="Catalog pages"
+                >
+                  {page > 1 && (
+                    <Link
+                      href={browsePageHref(page - 1)}
+                      className="min-h-[44px] rounded-xl border border-[var(--theme-primary)]/40 px-4 py-2 text-sm font-bold text-[#FFF1F7] hover:bg-[var(--theme-surface)]"
+                    >
+                      ← Previous
+                    </Link>
+                  )}
+                  {page < totalPages && (
+                    <Link
+                      href={browsePageHref(page + 1)}
+                      className="min-h-[44px] rounded-xl bg-[var(--theme-accent)] px-5 py-2 text-sm font-black text-[var(--foreground)] hover:opacity-90"
+                    >
+                      Next page ({page + 1}/{totalPages})
+                    </Link>
+                  )}
+                </nav>
+              )}
+            </>
           )}
         </main>
         <SiteFooter ageVerified={ageVerified} />

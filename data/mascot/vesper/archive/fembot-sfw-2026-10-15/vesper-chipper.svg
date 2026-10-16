@@ -1,0 +1,57 @@
+<svg viewBox="0 0 160 200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="vesper-chipper-title">
+  <title id="vesper-chipper-title">Vesper —  chipper host (storefront, SFW)</title>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#3B1454" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#14061C"/>
+    </radialGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1A1020"/>
+      <stop offset="100%" stop-color="#0D0A12"/>
+    </linearGradient>
+    <linearGradient id="jacket" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#D946EF"/>
+      <stop offset="100%" stop-color="#A21CAF"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="160" height="200" rx="16" fill="url(#bg)"/>
+  <!-- floating hearts -->
+  <path d="M18 42c0-2.2 1.7-3.5 3.3-2.2.9.7 1.2 1.5 1.2 2.2 0-.7.3-1.5 1.2-2.2 1.6-1.3 3.3 0 3.3 2.2 0 1.4-1.5 3.4-4.5 5.6C19.5 45.4 18 43.4 18 42z" fill="#F9A8D4" opacity="0.55"/>
+  <path d="M138 58c0-1.8 1.4-2.9 2.7-1.8.75.6 1 1.25 1 1.8 0-.55.25-1.2 1-1.8 1.3-1.1 2.7 0 2.7 1.8 0 1.15-1.25 2.85-3.7 4.75-2.45-1.9-3.7-3.6-3.7-4.75z" fill="#FF4D8D" opacity="0.45"/>
+  <!-- hair back -->
+  <path d="M48 52c-8 2-14 10-16 22-2 14 2 28 10 36 4 4 10 6 16 6 6 0 12-2 16-6 8-8 12-22 10-36-2-12-8-20-16-22-4-1-8-1-12 0-4-1-8-1-12 0z" fill="url(#hair)"/>
+  <path d="M92 54c6 8 8 18 6 30-1 8-5 16-11 20" stroke="#FF4D8D" stroke-width="3" stroke-linecap="round"/>
+  <!-- neck -->
+  <path d="M72 118v14h16v-14c0-3-2-5-4-6-2 1-4 3-4 6z" fill="#2A1838" stroke="#C026D3" stroke-width="2"/>
+  <!-- torso / storefront jacket -->
+  <path d="M52 132h56l-4 42c-1 6-6 10-12 10H68c-6 0-11-4-12-10l-4-42z" fill="url(#jacket)" stroke="#C026D3" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M76 132v20c0 4 3 7 8 7s8-3 8-7v-20" fill="#14061C" opacity="0.35"/>
+  <!-- heart clasp -->
+  <path d="M80 148c0-3.5 2.7-5.5 5.2-3.4 1.4 1.1 1.9 2.4 1.9 3.4 0-1 .5-2.3 1.9-3.4 2.5-2.1 5.2 0 5.2 3.4 0 2.2-2.4 5.4-7.1 8.9-4.7-3.5-7.1-6.7-7.1-8.9z" fill="#FF4D8D" stroke="#FFF1F7" stroke-width="1"/>
+  <!-- shorts -->
+  <path d="M58 174h44l-3 14H61l-3-14z" fill="#241033" stroke="#C026D3" stroke-width="2"/>
+  <!-- head shell (fembot) -->
+  <rect x="44" y="48" width="72" height="72" rx="22" fill="#1E0A28" stroke="#C026D3" stroke-width="2.5"/>
+  <path d="M56 48V38c0-2.2 1.8-4 4-4h2c2.2 0 4 1.8 4 4v10" stroke="#C026D3" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="62" cy="34" r="3" fill="#22C55E" filter="url(#glow)"/>
+  <path d="M96 48V38c0-2.2 1.8-4 4-4h2c2.2 0 4 1.8 4 4v10" stroke="#C026D3" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="102" cy="34" r="3" fill="#22C55E" filter="url(#glow)"/>
+  <!-- face panel -->
+  <rect x="52" y="64" width="56" height="48" rx="14" fill="#14061C" stroke="#C026D3" stroke-width="1.5" opacity="0.95"/>
+  <!-- hair front bangs -->
+  <path d="M48 70c4-8 14-14 32-14s28 6 32 14c-6-2-14-3-22-3s-16 1-22 3z" fill="#0D0A12"/>
+  <path d="M70 58c2-6 8-10 14-10 4 0 8 2 10 6" stroke="#FF4D8D" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- heart eyes -->
+  <path d="M62 78c0-2.7 2.1-4.3 4.1-2.7 1.1.9 1.5 1.9 1.5 2.7 0-.8.4-1.8 1.5-2.7 2-1.6 4.1 0 4.1 2.7 0 1.7-1.9 4.2-5.6 6.9-3.7-2.7-5.6-5.2-5.6-6.9z" fill="#FF4D8D"/>
+  <path d="M88 78c0-2.7 2.1-4.3 4.1-2.7 1.1.9 1.5 1.9 1.5 2.7 0-.8.4-1.8 1.5-2.7 2-1.6 4.1 0 4.1 2.7 0 1.7-1.9 4.2-5.6 6.9-3.7-2.7-5.6-5.2-5.6-6.9z" fill="#FF4D8D"/>
+  <!-- smile -->
+  <path d="M68 98c4 5 12 5 16 0" stroke="#F9A8D4" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="58" cy="94" r="3" fill="#FF4D8D" opacity="0.35"/>
+  <circle cx="102" cy="94" r="3" fill="#FF4D8D" opacity="0.35"/>
+  <!-- subtle panel seam -->
+  <path d="M80 64v48" stroke="#C026D3" stroke-width="0.75" opacity="0.25"/>
+</svg>

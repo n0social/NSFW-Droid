@@ -5,8 +5,7 @@ export function parseAgeVerified(value: string | undefined): boolean {
   return value === "1";
 }
 
-/** Default blur on when cookie unset (testing + bypass protection). */
+/** True only when the visitor opted in via Settings (`blur_covers=1`). Age gate forces blur separately. */
 export function parseBlurCovers(value: string | undefined): boolean {
-  if (value === undefined || value === "") return true;
-  return value !== "0";
+  return value === "1";
 }

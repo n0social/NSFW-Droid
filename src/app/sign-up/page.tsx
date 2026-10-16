@@ -44,7 +44,7 @@ export default function SignUpPage() {
       await signInWithGoogle();
       router.push("/account");
     } catch {
-      setError("Google sign-in failed. Confirm the provider is enabled in Firebase.");
+      setError("Google sign-in failed. Try again or use email and password.");
     } finally {
       setBusy(false);
     }
@@ -58,8 +58,11 @@ export default function SignUpPage() {
 
         {!configured ? (
           <div className="mt-6 rounded-2xl border-2 border-[var(--theme-primary)]/40 bg-[var(--theme-surface)] p-6 text-sm leading-relaxed text-[var(--theme-text-muted)]">
-            <p className="font-bold text-[var(--foreground)]">Firebase not configured</p>
-            <p className="mt-2">Add Firebase web keys to the environment (see docs/firebase-setup.md).</p>
+            <p className="font-bold text-[var(--foreground)]">Sign-up unavailable</p>
+            <p className="mt-2">
+              Accounts are not enabled on this deployment yet. You can still browse the catalog
+              without signing in.
+            </p>
           </div>
         ) : (
           <>
@@ -105,7 +108,7 @@ export default function SignUpPage() {
           </>
         )}
       </div>
-      <SiteFooterClient />
+      <SiteFooterClient showFooterAds={false} />
     </div>
   );
 }

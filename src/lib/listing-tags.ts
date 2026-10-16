@@ -1,6 +1,7 @@
 import { asc, eq, inArray } from "drizzle-orm";
 import type { getDb } from "@/db";
 import { listingTags, tags, type Tag } from "@/db/schema";
+import { filterTagsForBrowseDisplay } from "@/lib/tag-filter";
 
 type Db = Awaited<ReturnType<typeof getDb>>;
 
@@ -26,5 +27,6 @@ export async function getTagSlugsByListingIds(
 }
 
 export async function listBrowseTags(db: Db): Promise<Tag[]> {
-  return db.select().from(tags).orderBy(asc(tags.label));
+  const rows = await db.select().from(tags).orderBy(asc(tags.label));
+  return filterTagsForBrowseDisplay(rows);
 }
