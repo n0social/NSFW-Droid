@@ -264,7 +264,7 @@ Weekly maintenance sets `data/.weekly-maintenance.lock` so the watchdog does **n
 
 ### Weekly newsletter (member list)
 
-Footer signup + double opt-in are live in the app (`POST /api/newsletter/subscribe`). **Mass send stays off** until `NEWSLETTER_ENABLED=1` in `/etc/nsfwdroid.env`.
+Footer signup + double opt-in are live in the app (`POST /api/newsletter/subscribe`). **Mass send** requires `NEWSLETTER_ENABLED=1` in `/etc/nsfwdroid.env` (production: on) plus verified Resend domain and `RESEND_API_KEY`.
 
 | Variable | Purpose |
 | --- | --- |
@@ -287,11 +287,10 @@ NEWSLETTER_ENABLED=0 tsx scripts/send-weekly-newsletter.ts --dry-run   # must ab
 NEWSLETTER_ENABLED=1 tsx scripts/send-weekly-newsletter.ts --dry-run   # JSON summary only
 ```
 
-**Cron install (optional — does not enable mass send):** Copy the stub, uncomment the schedule line, create the log. Leave `NEWSLETTER_ENABLED` unset or `0` until you intend to mail subscribers.
+**Cron install:** Copy `deploy/cron.d/nsfwdroid-weekly-newsletter` (schedule **Sunday 12:00 UTC**). The job no-ops unless `NEWSLETTER_ENABLED=1`.
 
 ```bash
 cp deploy/cron.d/nsfwdroid-weekly-newsletter /etc/cron.d/nsfwdroid-weekly-newsletter
-# Edit: remove leading `#` on the `0 12 * * 0` line (Sunday 12:00 UTC)
 chmod 644 /etc/cron.d/nsfwdroid-weekly-newsletter
 touch /var/log/nsfwdroid-newsletter.log
 chown root:root /var/log/nsfwdroid-newsletter.log

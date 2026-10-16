@@ -35,4 +35,4 @@ tsx scripts/weekly-newsletter-pick.ts
 NEWSLETTER_ENABLED=1 tsx scripts/send-weekly-newsletter.ts --dry-run
 ```
 
-Do **not** set `NEWSLETTER_ENABLED=1` on production until you intend to mail all active subscribers.
+**Production:** `NEWSLETTER_ENABLED=1` in `/etc/nsfwdroid.env` and cron `deploy/cron.d/nsfwdroid-weekly-newsletter` (Sunday 12:00 UTC). Use `--dry-run` before the first live send after changing picks logic.
