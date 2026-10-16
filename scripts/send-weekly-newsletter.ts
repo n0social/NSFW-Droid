@@ -12,20 +12,16 @@ import { closeCatalogDb, getDb } from "../src/db";
 import {
   isNewsletterMassSendEnabled,
   newsletterFromAddress,
-  newsletterPublicBaseUrl,
   WEEKLY_NEWSLETTER_SUBJECT,
 } from "../src/lib/newsletter/config";
 import { fetchWeeklyNewsletterPicks } from "../src/lib/newsletter/picks";
-import { sendResendEmail } from "../src/lib/newsletter/resend";
+import { checkResendMailFromDns } from "../src/lib/newsletter/resend-dns";
+import { sendWeeklyNewsletterToSubscriber } from "../src/lib/newsletter/send-weekly-to-subscriber";
 import { listActiveSubscribers } from "../src/lib/newsletter/subscriber";
-import {
-  renderWeeklyNewsletterHtml,
-  renderWeeklyNewsletterText,
-} from "../src/lib/newsletter/weekly-email";
-import { createUnsubscribeToken } from "../src/lib/newsletter/tokens";
 
 async function main() {
   const dryRun = process.argv.includes("--dry-run");
+  const skipDns = process.argv.includes("--skip-dns-check");
 
   if (!isNewsletterMassSendEnabled()) {
     console.log(
@@ -38,7 +34,6 @@ async function main() {
   const pickResult = await fetchWeeklyNewsletterPicks(db);
   const subscribers = await listActiveSubscribers();
 
-  const base = newsletterPublicBaseUrl();
   const summary = {
     dryRun,
     subject: WEEKLY_NEWSLETTER_SUBJECT,
@@ -73,30 +68,31 @@ async function main() {
     process.exit(1);
   }
 
+  if (!skipDns) {
+    const dns = await checkResendMailFromDns(summary.from);
+    if (dns.issues.length) {
+      console.error(
+        "[send-weekly-newsletter] Resend DNS issues (mail may be dropped after API accept):",
+        dns.issues.join(" | "),
+      );
+      process.exit(1);
+    }
+    if (dns.warnings.length) {
+      console.warn("[send-weekly-newsletter] DNS warnings:", dns.warnings.join(" | "));
+    }
+  }
+
   let sent = 0;
   let failed = 0;
+  const resendIds: string[] = [];
 
   for (const sub of subscribers) {
-    const unsubToken = createUnsubscribeToken(sub.id);
-    const unsubscribeUrl = `${base}/api/newsletter/unsubscribe?token=${encodeURIComponent(unsubToken)}`;
-    const html = renderWeeklyNewsletterHtml({
-      picks: pickResult.picks,
-      unsubscribeUrl,
-    });
-    const text = renderWeeklyNewsletterText({
-      picks: pickResult.picks,
-      unsubscribeUrl,
-    });
-
-    const result = await sendResendEmail({
-      to: sub.email,
-      subject: WEEKLY_NEWSLETTER_SUBJECT,
-      html,
-      text,
-    });
+    const result = await sendWeeklyNewsletterToSubscriber(sub, pickResult.picks);
 
     if (result.ok) {
       sent += 1;
+      resendIds.push(result.resendId);
+      console.log(`[send-weekly-newsletter] queued ${sub.email} resendId=${result.resendId}`);
     } else {
       failed += 1;
       console.error(`[send-weekly-newsletter] failed ${sub.email}: ${result.error}`);
@@ -104,7 +100,7 @@ async function main() {
   }
 
   console.log(
-    JSON.stringify({ ...summary, dryRun: false, sent, failed }, null, 2),
+    JSON.stringify({ ...summary, dryRun: false, sent, failed, resendIds }, null, 2),
   );
   await closeCatalogDb();
 }

@@ -273,6 +273,14 @@ Footer signup + double opt-in are live in the app (`POST /api/newsletter/subscri
 | `RESEND_API_KEY` | Resend API (same as ops alerts) |
 | `ALERT_EMAIL_FROM` or `NEWSLETTER_FROM` | From address for Resend API. **Production (verified):** `nsfwdroid.com` is verified in Resend — use e.g. `ALERT_EMAIL_FROM="NSFW Droid <alerts@nsfwdroid.com>"` and `NEWSLETTER_FROM="NSFW Droid <newsletter@nsfwdroid.com>"` (quoted in `/etc/nsfwdroid.env`). Sandbox only: `onboarding@resend.dev`. Optional `NEWSLETTER_FROM_NAME` if the address is bare (app default: **NSFW Droid**) |
 
+**Resend DNS (deliverability):** Resend’s default MAIL FROM host is `send.<your-domain>`. If that subdomain is already used (e.g. CNAME to another ESP), Gmail may accept nothing in the inbox even when the Resend API returns HTTP 200. Before the first live send:
+
+```bash
+tsx scripts/check-newsletter-resend-dns.ts
+```
+
+If `send.nsfwdroid.com` is taken, add the domain in Resend with **Custom return path** `resend-mail` (or similar unused label), publish the TXT/MX records Resend shows for `resend-mail.nsfwdroid.com`, and wait for verification. `send-weekly-newsletter.ts` aborts on DNS issues unless you pass `--skip-dns-check` (emergency only).
+
 **Manual test (local or droplet):**
 
 ```bash
