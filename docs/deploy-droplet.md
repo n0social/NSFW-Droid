@@ -266,6 +266,8 @@ Weekly maintenance sets `data/.weekly-maintenance.lock` so the watchdog does **n
 
 Footer signup + double opt-in are live in the app (`POST /api/newsletter/subscribe`). **Mass send** requires `NEWSLETTER_ENABLED=1` and `NEWSLETTER_TRANSPORT=sendmail` in `/etc/nsfwdroid.env`. Exim on the droplet (`deploy/setup-local-mail.sh`) accepts mail on localhost, DKIM-signs it, and delivers it. Outbound port 25 must be open at DigitalOcean or messages stay in the Exim queue.
 
+**Decision (16 Oct 2026):** stay on this droplet mail system. Wait for DigitalOcean to allow or deny outbound port 25 before adding another sender. Do not move the newsletter to Amazon SES unless someone asks for that. If port 25 is denied, the platforms to evaluate are **Azure Communication Services Email** (Azure’s transactional mail service) and **Google Workspace SMTP relay**. Google Cloud has no first-party equivalent of SES; its own docs point at partner SMTP (SendGrid, Mailgun, Mailjet) or Workspace relay on ports 465/587. Read each vendor’s adult-content terms before choosing. Resend, Brevo, Mailchimp, SendGrid, Mailgun, SocketLabs, and Elastic Email already restrict or ban sexually explicit mail.
+
 | Variable | Purpose |
 | --- | --- |
 | `NEWSLETTER_ENABLED` | `1` allows `scripts/send-weekly-newsletter.ts` to mail active subscribers |
