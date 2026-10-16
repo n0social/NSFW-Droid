@@ -264,22 +264,30 @@ Weekly maintenance sets `data/.weekly-maintenance.lock` so the watchdog does **n
 
 ### Weekly newsletter (member list)
 
-Footer signup + double opt-in are live in the app (`POST /api/newsletter/subscribe`). **Mass send** requires `NEWSLETTER_ENABLED=1` in `/etc/nsfwdroid.env` (production: on) plus verified Resend domain and `RESEND_API_KEY`.
+Footer signup + double opt-in are live in the app (`POST /api/newsletter/subscribe`). **Mass send** requires `NEWSLETTER_ENABLED=1` in `/etc/nsfwdroid.env` (production: on) plus a Brevo-authenticated domain and `BREVO_API_KEY`.
 
 | Variable | Purpose |
 | --- | --- |
 | `NEWSLETTER_ENABLED` | `1` allows `scripts/send-weekly-newsletter.ts` to mail active subscribers |
 | `NEWSLETTER_PUBLIC_BASE_URL` | Confirm/unsubscribe links (default `NEXT_PUBLIC_SITE_URL`) |
-| `RESEND_API_KEY` | Resend API (same as ops alerts) |
-| `ALERT_EMAIL_FROM` or `NEWSLETTER_FROM` | From address for Resend API. **Production (verified):** `nsfwdroid.com` is verified in Resend — use e.g. `ALERT_EMAIL_FROM="NSFW Droid <alerts@nsfwdroid.com>"` and `NEWSLETTER_FROM="NSFW Droid <newsletter@nsfwdroid.com>"` (quoted in `/etc/nsfwdroid.env`). Sandbox only: `onboarding@resend.dev`. Optional `NEWSLETTER_FROM_NAME` if the address is bare (app default: **NSFW Droid**) |
+| `BREVO_API_KEY` | [Brevo](https://app.brevo.com) Transactional Email API key (SMTP & API → API keys) |
+| `ALERT_EMAIL_FROM` or `NEWSLETTER_FROM` | From address for Brevo. **Production:** authenticate `nsfwdroid.com` in Brevo — use e.g. `ALERT_EMAIL_FROM="NSFW Droid <alerts@nsfwdroid.com>"` and `NEWSLETTER_FROM="NSFW Droid <newsletter@nsfwdroid.com>"` (quoted in `/etc/nsfwdroid.env`). Optional `NEWSLETTER_FROM_NAME` if the address is bare (app default: **NSFW Droid**) |
 
-**Resend DNS (deliverability):** Resend’s default MAIL FROM host is `send.<your-domain>`. If that subdomain is already used (e.g. CNAME to another ESP), Gmail may accept nothing in the inbox even when the Resend API returns HTTP 200. Before the first live send:
+**Brevo DNS (NameSilo):** In Brevo → **Senders, Domains & Dedicated IPs** → **Domains** → add `nsfwdroid.com`. Brevo shows records to publish:
+
+| Record | Host | Purpose |
+| --- | --- | --- |
+| TXT | `@` (root) | Domain verification (`brevo-code:…`) — merge with existing TXT if NameSilo only allows one SPF/TXT row (combine SPF strings) |
+| TXT | `@` | SPF: `v=spf1 include:spf.brevo.com ~all` (merge with any existing SPF; only one SPF TXT per domain) |
+| TXT | `mail._domainkey` | DKIM (value from Brevo dashboard) |
+
+If you previously pointed `send.nsfwdroid.com` at Forge for another ESP, that does not satisfy Brevo; you can leave Forge in place for other mail. Wait until Brevo shows the domain as **Authenticated**, then run:
 
 ```bash
-tsx scripts/check-newsletter-resend-dns.ts
+tsx scripts/check-newsletter-dns.ts
 ```
 
-If `send.nsfwdroid.com` is taken, add the domain in Resend with **Custom return path** `resend-mail` (or similar unused label), publish the TXT/MX records Resend shows for `resend-mail.nsfwdroid.com`, and wait for verification. `send-weekly-newsletter.ts` aborts on DNS issues unless you pass `--skip-dns-check` (emergency only).
+`send-weekly-newsletter.ts` aborts on DNS **issues** unless you pass `--skip-dns-check` (emergency only).
 
 **Manual test (local or droplet):**
 
@@ -304,7 +312,7 @@ touch /var/log/nsfwdroid-newsletter.log
 chown root:root /var/log/nsfwdroid-newsletter.log
 ```
 
-Runs as **root** via `catalog-maintenance.sh` (brief stop/start of `nsfwdroid` for PGlite). Prefer **Sunday 12:00 UTC** after the Tue weekly maintenance window. The job no-ops unless `NEWSLETTER_ENABLED=1` and `RESEND_API_KEY` are set in `/etc/nsfwdroid.env`.
+Runs as **root** via `catalog-maintenance.sh` (brief stop/start of `nsfwdroid` for PGlite). Prefer **Sunday 12:00 UTC** after the Tue weekly maintenance window. The job no-ops unless `NEWSLETTER_ENABLED=1` and `BREVO_API_KEY` are set in `/etc/nsfwdroid.env`.
 
 **Homepage featured rail:** set comma-separated slugs in env (order preserved), or set `chart_bucket = featured` + `chart_rank` on listings in admin/DB:
 

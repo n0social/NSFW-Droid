@@ -1,7 +1,7 @@
 /**
- * Send the weekly member newsletter via Resend.
+ * Send the weekly member newsletter via Brevo.
  *
- * Prerequisites: NEWSLETTER_ENABLED=1, RESEND_API_KEY, ALERT_EMAIL_FROM (or onboarding@resend.dev)
+ * Prerequisites: NEWSLETTER_ENABLED=1, BREVO_API_KEY, NEWSLETTER_FROM or ALERT_EMAIL_FROM
  *
  * Usage:
  *   tsx scripts/send-weekly-newsletter.ts --dry-run
@@ -15,7 +15,7 @@ import {
   WEEKLY_NEWSLETTER_SUBJECT,
 } from "../src/lib/newsletter/config";
 import { fetchWeeklyNewsletterPicks } from "../src/lib/newsletter/picks";
-import { checkResendMailFromDns } from "../src/lib/newsletter/resend-dns";
+import { checkBrevoDomainDns } from "../src/lib/newsletter/brevo-dns";
 import { sendWeeklyNewsletterToSubscriber } from "../src/lib/newsletter/send-weekly-to-subscriber";
 import { listActiveSubscribers } from "../src/lib/newsletter/subscriber";
 
@@ -56,8 +56,8 @@ async function main() {
     process.exit(1);
   }
 
-  if (!process.env.RESEND_API_KEY?.trim()) {
-    console.error("[send-weekly-newsletter] Missing RESEND_API_KEY");
+  if (!process.env.BREVO_API_KEY?.trim()) {
+    console.error("[send-weekly-newsletter] Missing BREVO_API_KEY");
     await closeCatalogDb();
     process.exit(1);
   }
@@ -69,10 +69,10 @@ async function main() {
   }
 
   if (!skipDns) {
-    const dns = await checkResendMailFromDns(summary.from);
+    const dns = await checkBrevoDomainDns(summary.from);
     if (dns.issues.length) {
       console.error(
-        "[send-weekly-newsletter] Resend DNS issues (mail may be dropped after API accept):",
+        "[send-weekly-newsletter] Brevo DNS issues (fix before live send):",
         dns.issues.join(" | "),
       );
       process.exit(1);
@@ -84,15 +84,15 @@ async function main() {
 
   let sent = 0;
   let failed = 0;
-  const resendIds: string[] = [];
+  const messageIds: string[] = [];
 
   for (const sub of subscribers) {
     const result = await sendWeeklyNewsletterToSubscriber(sub, pickResult.picks);
 
     if (result.ok) {
       sent += 1;
-      resendIds.push(result.resendId);
-      console.log(`[send-weekly-newsletter] queued ${sub.email} resendId=${result.resendId}`);
+      messageIds.push(result.messageId);
+      console.log(`[send-weekly-newsletter] queued ${sub.email} messageId=${result.messageId}`);
     } else {
       failed += 1;
       console.error(`[send-weekly-newsletter] failed ${sub.email}: ${result.error}`);
@@ -100,7 +100,7 @@ async function main() {
   }
 
   console.log(
-    JSON.stringify({ ...summary, dryRun: false, sent, failed, resendIds }, null, 2),
+    JSON.stringify({ ...summary, dryRun: false, sent, failed, messageIds }, null, 2),
   );
   await closeCatalogDb();
 }

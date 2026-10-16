@@ -1,7 +1,8 @@
 import { siteUrl } from "@/lib/site";
 
 export const DEFAULT_NEWSLETTER_FROM_NAME = "NSFW Droid";
-const RESEND_SANDBOX_FROM = "onboarding@resend.dev";
+/** Fallback when no From env is set (local dev only — Brevo requires a verified domain in production). */
+const NEWSLETTER_DEV_FALLBACK_FROM = "newsletter@example.com";
 
 /** Parses `Display Name <addr@domain>` or a bare email address. */
 export function parseEmailFromEnv(raw: string): { email: string; displayName?: string } {
@@ -14,8 +15,8 @@ export function parseEmailFromEnv(raw: string): { email: string; displayName?: s
   return { email: trimmed };
 }
 
-/** RFC-style From header for Resend (`from` JSON field). */
-export function formatResendFromHeader(email: string, displayName?: string): string {
+/** RFC-style From header for transactional email APIs. */
+export function formatNewsletterFromHeader(email: string, displayName?: string): string {
   if (!displayName?.trim()) {
     return email;
   }
@@ -31,19 +32,22 @@ function rawNewsletterFromEnv(): string {
   return (
     process.env.NEWSLETTER_FROM?.trim() ||
     process.env.ALERT_EMAIL_FROM?.trim() ||
-    RESEND_SANDBOX_FROM
+    NEWSLETTER_DEV_FALLBACK_FROM
   );
 }
 
-/** Resend `from` value for newsletter + confirm emails (includes display name when configured). */
+/** From header for newsletter + confirm emails (includes display name when configured). */
 export function newsletterFromAddress(): string {
   const parsed = parseEmailFromEnv(rawNewsletterFromEnv());
   const displayName =
     parsed.displayName ||
     process.env.NEWSLETTER_FROM_NAME?.trim() ||
     DEFAULT_NEWSLETTER_FROM_NAME;
-  return formatResendFromHeader(parsed.email, displayName);
+  return formatNewsletterFromHeader(parsed.email, displayName);
 }
+
+/** @deprecated Use formatNewsletterFromHeader */
+export const formatResendFromHeader = formatNewsletterFromHeader;
 
 export function newsletterPublicBaseUrl(): string {
   const fromEnv =

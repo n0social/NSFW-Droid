@@ -47,7 +47,7 @@ These are product directions, not shipped features.
 | Phase | Scope | Ship criteria |
 | --- | --- | --- |
 | **0 — Docs** | This document, env placeholders, script stubs | Now |
-| **1 — Newsletter** | Weekly top-6 email to opted-in members + standalone subscribe | Resend domain verified, `ALERT_EMAIL_FROM` / `RESEND_API_KEY` on droplet, legal copy reviewed |
+| **1 — Newsletter** | Weekly top-6 email to opted-in members + standalone subscribe | Brevo domain authenticated, `NEWSLETTER_FROM` / `BREVO_API_KEY` on droplet, legal copy reviewed |
 | **2 — Points & badges** | Ledger table, profile UI, anti-abuse rules | Phase 1 stable; counsel OK on gamification copy |
 | **3 — Paid perks (optional)** | Stripe Customer, verification micro-charge or AV vendor, tips | PCI path via Stripe hosted; **not live until counsel** for card-as-age-gate |
 
@@ -140,12 +140,12 @@ Stub implementation: `scripts/weekly-newsletter-pick.ts` (JSON to stdout for cro
 | --- | --- | --- |
 | 1. Rankings query | `scripts/weekly-newsletter-pick.ts` | Run manually: `tsx scripts/weekly-newsletter-pick.ts` |
 | 2. HTML template | `emails/weekly-top-six.tsx` (React Email) **or** `emails/weekly-top-six.html` | React Email needs `react-email` + `@react-email/components` dependency when implemented |
-| 3. Send batch | `scripts/send-weekly-newsletter.ts` | Resend batch API; gated on `NEWSLETTER_ENABLED=1` |
+| 3. Send batch | `scripts/send-weekly-newsletter.ts` | Brevo Transactional API; gated on `NEWSLETTER_ENABLED=1` |
 | 4. Cron | Droplet `cron` or post–`weekly-maintenance-inner.sh` | After ingest; log to `/var/log/nsfwdroid-newsletter.log` |
-| 5. Subscribe API | `POST /api/newsletter/subscribe` (future) | Double opt-in email; sync to Resend audience |
-| 6. Unsubscribe | Resend webhook or `List-Unsubscribe` | One-click per CAN-SPAM |
+| 5. Subscribe API | `POST /api/newsletter/subscribe` | Double opt-in email via Brevo |
+| 6. Unsubscribe | Signed HMAC link + `List-Unsubscribe` | One-click per CAN-SPAM |
 
-**Resend / from-address:** Reuse ops mail config — `RESEND_API_KEY`, `ALERT_EMAIL_FROM` (domain must be verified in Resend). See `scripts/alert-email.sh` and [.env.example](../.env.example).
+**Brevo / from-address:** `BREVO_API_KEY`, `NEWSLETTER_FROM` or `ALERT_EMAIL_FROM` (domain authenticated in Brevo). See [deploy-droplet.md](deploy-droplet.md) and [.env.example](../.env.example).
 
 **Env flags (Phase 1):**
 

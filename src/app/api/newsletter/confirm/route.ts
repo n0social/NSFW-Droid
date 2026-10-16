@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${base}/newsletter?error=invalid_token`);
   }
 
-  if (result === "confirmed" && process.env.RESEND_API_KEY?.trim()) {
+  if (result === "confirmed" && process.env.BREVO_API_KEY?.trim()) {
     const tokenHash = hashNewsletterToken(token);
     const db = await getDb();
     const [row] = await db
@@ -41,7 +41,7 @@ export async function GET(request: Request) {
           console.error("[newsletter/confirm] welcome weekly send failed:", send.error);
         } else {
           console.log(
-            `[newsletter/confirm] sent welcome weekly to ${row.email} resendId=${send.resendId}`,
+            `[newsletter/confirm] sent welcome weekly to ${row.email} messageId=${send.messageId}`,
           );
         }
       }
