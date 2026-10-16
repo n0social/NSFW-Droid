@@ -1,6 +1,6 @@
 # ExoClick publisher setup (NSFW Droid)
 
-**Status:** Code is wired; **no third-party ad script runs in production** until you set `NEXT_PUBLIC_ADS_ENABLED=1` on the droplet, rebuild, and restart.
+**Status:** Code is wired. **Production:** footer banner zone and ad script URL are set in `/etc/nsfwdroid.env` with `NEXT_PUBLIC_ADS_ENABLED=1` (zone IDs stay server-only — not in git). After any env change, rebuild with those vars sourced and restart `nsfwdroid` (see [deploy-droplet.md §4b](deploy-droplet.md#4b-cloud-agent-release-code--build)).
 
 ## Age gate (required before ads)
 
@@ -65,9 +65,9 @@ Then click **Verify** in the ExoClick site settings. If you rotate the token in 
 | --- | --- |
 | `NEXT_PUBLIC_ADS_ENABLED=0` (default) | No `AdSlot` markup, no ExoClick script |
 | `=1` + missing zones | Dashed placeholders on slots (still no script without script URL + zone) |
-| `=1` + zones + script URL + age cookie | `next/script` loads provider `afterInteractive`; `<ins data-zoneid="…">` per slot |
+| `=1` + zones + script URL + age cookie | `next/script` loads provider `afterInteractive`; `<ins data-zoneid="…">` per slot; `AdProvider.push({"serve":{}})` after slots (idempotent) |
 
-Slots: `footer-banner` (banner zone, all pages with `SiteFooter`), `browse-inline` (native zone, optional on `/browse`).
+Slots: `footer-banner` (banner zone, most pages with `SiteFooter`). **Hidden** on `/sign-in`, `/sign-up`, `/account`, and `/settings` (`showFooterAds={false}`). Future ad-free subscriptions can hook `hasAdFreeSubscription()` in `src/lib/ads-config.ts`. Optional `browse-inline` on `/browse`.
 
 Admin dashboard shows read-only **Ads enabled** from the same build flag.
 

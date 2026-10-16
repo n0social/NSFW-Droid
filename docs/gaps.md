@@ -1,7 +1,7 @@
 # What's still open
 
 **Date:** 10 October 2026 (updated 14 October 2026)  
-**Status:** partial. Link catalog, ingest, auto-publish (TOS holds), admin, legal pages, themes, and accounts **1b** are on `main`. Items below remain open (age vendor, browse/search/detail, Managed Postgres, affiliate wiring, creator profiles).  
+**Status:** partial. Link catalog, ingest, auto-publish (TOS holds), admin, legal pages, themes, accounts **1b**, and **per-game SEO pages** (`/game/[slug]`, sitemap) are on `main`. Items below remain open (age vendor, search, Managed Postgres, affiliate wiring, creator profiles). See [seo-game-pages.md](seo-game-pages.md).  
 **Already decided:** link catalog first, DigitalOcean for the site, host a build only with a written license (`docs/considerations.md`), earn from affiliates, adult ads, and labeled sponsorships (`docs/revenue_streams.md`), purple-and-pink brand with Vesper (`docs/design-and-mascot.md`).
 
 The hole that blocks a public site is not the mascot and not the Android app. It is a catalog people trust, a way to add rows without stealing them, and an age check that actually sits in front of the explicit art.
@@ -55,6 +55,7 @@ These are real, and they wait.
 - A developer page that shows the status of a submission.
 - Dead-link and “still adult?” rechecks when a source updates a game.
 - Analytics on outbound clicks, separated by affiliate and plain link.
+- Member rewards, verification payments, and weekly newsletter — spec in [reward_program.md](reward_program.md) (Phase 0 docs; not live).
 - The Android client, Object Storage, and the upload terms, in that order, when a developer asks us to host a build.
 - Vesper art, from the brief, storefront outfit first.
 

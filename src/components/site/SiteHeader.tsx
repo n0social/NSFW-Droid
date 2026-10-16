@@ -9,20 +9,14 @@ import { ThemeAssetImage } from "@/components/theme/ThemeAssetImage";
 
 type Props = {
   listingCount: number;
-  blurToggle?: React.ReactNode;
   ageVerified: boolean;
   themeAssets?: ThemeDecorFiles | null;
 };
 
-export function SiteHeader({ listingCount, blurToggle, ageVerified, themeAssets }: Props) {
+export function SiteHeader({ listingCount, ageVerified, themeAssets }: Props) {
   const { configured, loading, user, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuId = useId();
-
-  function scrollNew() {
-    setMenuOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -72,23 +66,32 @@ export function SiteHeader({ listingCount, blurToggle, ageVerified, themeAssets 
           className="hidden items-center gap-1 text-[11px] font-bold text-[var(--theme-text-muted)] md:flex"
           aria-label="Primary"
         >
-          <button
-            type="button"
-            onClick={scrollNew}
-            className="rounded-full px-3 py-2 hover:bg-[var(--theme-surface)]"
-          >
+          <Link href="/" className="rounded-full px-3 py-2 hover:bg-[var(--theme-surface)]">
+            Home
+          </Link>
+          <Link href="/new" className="rounded-full px-3 py-2 hover:bg-[var(--theme-surface)]">
             New
-          </button>
+          </Link>
           <Link href="/browse" className="rounded-full px-3 py-2 hover:bg-[var(--theme-surface)]">
             Browse
+          </Link>
+          <Link href="/videos" className="rounded-full px-3 py-2 hover:bg-[var(--theme-surface)]">
+            Videos
+          </Link>
+          <Link href="/creators" className="rounded-full px-3 py-2 hover:bg-[var(--theme-surface)]">
+            Creators
           </Link>
           <Link href="/submit" className="rounded-full px-3 py-2 hover:bg-[var(--theme-surface)]">
             Submit game
           </Link>
+          {!loading && configured && user ? (
+            <Link href="/settings" className="rounded-full px-3 py-2 hover:bg-[var(--theme-surface)]">
+              Settings
+            </Link>
+          ) : null}
         </nav>
 
         <div className="ml-auto hidden flex-wrap items-center gap-2 md:flex">
-          {blurToggle}
           {gameCountBadge}
           {!loading && configured && user ? (
             <>
@@ -116,7 +119,7 @@ export function SiteHeader({ listingCount, blurToggle, ageVerified, themeAssets 
           ) : (
             <span
               className="rounded-full border border-[var(--theme-surface)] px-3 py-2 text-[10px] font-semibold text-[var(--theme-text-muted)]/40"
-              title="Set Firebase env vars to enable accounts"
+              title="Accounts are not available yet"
             >
               Sign in — soon
             </span>
@@ -179,13 +182,22 @@ export function SiteHeader({ listingCount, blurToggle, ageVerified, themeAssets 
         >
           <ul className="flex flex-col gap-1 text-sm font-bold text-[var(--theme-text-muted)]">
             <li>
-              <button
-                type="button"
-                onClick={scrollNew}
+              <Link
+                href="/"
+                onClick={() => setMenuOpen(false)}
+                className="flex min-h-[44px] w-full items-center rounded-xl px-3 hover:bg-[var(--theme-surface)]"
+              >
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/new"
+                onClick={() => setMenuOpen(false)}
                 className="flex min-h-[44px] w-full items-center rounded-xl px-3 hover:bg-[var(--theme-surface)]"
               >
                 New
-              </button>
+              </Link>
             </li>
             <li>
               <Link
@@ -198,6 +210,24 @@ export function SiteHeader({ listingCount, blurToggle, ageVerified, themeAssets 
             </li>
             <li>
               <Link
+                href="/videos"
+                onClick={() => setMenuOpen(false)}
+                className="flex min-h-[44px] w-full items-center rounded-xl px-3 hover:bg-[var(--theme-surface)]"
+              >
+                Videos
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/creators"
+                onClick={() => setMenuOpen(false)}
+                className="flex min-h-[44px] w-full items-center rounded-xl px-3 hover:bg-[var(--theme-surface)]"
+              >
+                Creators
+              </Link>
+            </li>
+            <li>
+              <Link
                 href="/submit"
                 onClick={() => setMenuOpen(false)}
                 className="flex min-h-[44px] w-full items-center rounded-xl px-3 hover:bg-[var(--theme-surface)]"
@@ -205,13 +235,19 @@ export function SiteHeader({ listingCount, blurToggle, ageVerified, themeAssets 
                 Submit game
               </Link>
             </li>
+            {!loading && configured && user ? (
+              <li>
+                <Link
+                  href="/settings"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex min-h-[44px] w-full items-center rounded-xl px-3 hover:bg-[var(--theme-surface)]"
+                >
+                  Settings
+                </Link>
+              </li>
+            ) : null}
           </ul>
           <div className="mt-4 flex flex-col gap-3 border-t border-[var(--theme-primary)]/20 pt-4">
-            {blurToggle && (
-              <div className="flex min-h-[44px] items-center [&_button]:min-h-[44px] [&_button]:text-[11px]">
-                {blurToggle}
-              </div>
-            )}
             {gameCountBadge}
             {!loading && configured && user && (
               <button

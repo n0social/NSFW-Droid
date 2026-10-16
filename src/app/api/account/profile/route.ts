@@ -47,7 +47,9 @@ export async function PATCH(request: Request) {
     if (p.browse !== undefined && typeof p.browse === "object" && p.browse !== null) {
       const b = p.browse as Record<string, unknown>;
       preferences!.browse = {};
-      if (b.rail === "hot" || b.rail === "trending") preferences!.browse!.rail = b.rail;
+      if (b.rail === "new" || b.rail === "hot" || b.rail === "trending") {
+        preferences!.browse!.rail = b.rail === "hot" ? "new" : b.rail;
+      }
       else if (b.rail === null) preferences!.browse!.rail = null;
       if (typeof b.tag === "string") preferences!.browse!.tag = b.tag.trim() || null;
       else if (b.tag === null) preferences!.browse!.tag = null;

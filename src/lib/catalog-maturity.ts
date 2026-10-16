@@ -88,7 +88,9 @@ export function isMatureSteamPayload(raw: unknown): boolean {
   const steam = (raw as { steam?: SteamPayload }).steam ?? (raw as SteamPayload);
   const ids = steam?.content_descriptors?.ids ?? [];
   if (ids.includes(STEAM_DESCRIPTOR_ADULT_ONLY_SEXUAL)) return true;
-  if (process.env.STEAM_INCLUDE_SEXUAL_DESCRIPTOR === "1" && ids.includes(STEAM_DESCRIPTOR_SEXUAL)) {
+  const sexualOff = process.env.STEAM_INCLUDE_SEXUAL_DESCRIPTOR?.trim().toLowerCase();
+  const includeSexual = sexualOff !== "0" && sexualOff !== "false" && sexualOff !== "no";
+  if (includeSexual && ids.includes(STEAM_DESCRIPTOR_SEXUAL)) {
     return true;
   }
   return false;

@@ -1,3 +1,7 @@
+import {
+  isBlockedBrowseCatalogTagSlug,
+  isPricingOrPromoCatalogTag,
+} from "../../src/lib/tag-filter";
 import { feedTagsFromUrl, normalizeTagSlug } from "./itch-feeds";
 
 export type ExtractedTag = { slug: string; label: string; kind: string };
@@ -40,6 +44,7 @@ function labelFromSlug(slug: string): string {
 function addTag(map: Map<string, ExtractedTag>, slug: string, kind: string) {
   const s = normalizeTagSlug(slug);
   if (!s || s.length < 2) return;
+  if (isBlockedBrowseCatalogTagSlug(s)) return;
   if (!map.has(s)) {
     map.set(s, { slug: s, label: labelFromSlug(s), kind });
   }
@@ -60,7 +65,8 @@ export function extractItchItemTags(
   TITLE_BRACKET_RE.lastIndex = 0;
   while ((m = TITLE_BRACKET_RE.exec(title))) {
     const raw = m[1].trim();
-    if (/^\$|USD|free/i.test(raw)) continue;
+    if (isPricingOrPromoCatalogTag(normalizeTagSlug(raw), raw)) continue;
+    if (/^\$|USD/i.test(raw)) continue;
     const lower = raw.toLowerCase();
     if (lower === "free") {
       addTag(map, "free", "meta");
@@ -120,9 +126,7 @@ export function extractSteamTags(raw: SteamPayload | null | undefined): Extracte
   for (const g of raw.genres ?? []) {
     if (g.description) addTag(map, g.description, "genre");
   }
-  for (const c of raw.categories ?? []) {
-    if (c.description) addTag(map, c.description, "category");
-  }
+  // Steam categories are store features (controller support, family sharing, …) — not NSFW tags.
 
   const ids = raw.content_descriptors?.ids ?? [];
   if (ids.includes(3)) addTag(map, "adult-only-sexual", "content");

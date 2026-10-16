@@ -37,7 +37,10 @@ async function fetchSteamAppDetails(appId: number) {
 }
 
 function includeSexualDescriptor() {
-  return process.env.STEAM_INCLUDE_SEXUAL_DESCRIPTOR === "1";
+  const v = process.env.STEAM_INCLUDE_SEXUAL_DESCRIPTOR?.trim().toLowerCase();
+  if (v === "0" || v === "false" || v === "no") return false;
+  // Default on: accept Steam descriptor #1 (Sexual Content) in addition to #3 (Adult Only).
+  return true;
 }
 
 function isAdultCatalogCandidate(data: NonNullable<AppDetails["data"]>) {
@@ -67,6 +70,12 @@ async function ingestFromAppIds(appIds: number[]) {
     const data = await fetchSteamAppDetails(appId);
     await sleep(detailDelayMs());
     if (!data?.name) continue;
+    if (data.steam_appid != null && data.steam_appid !== appId) {
+      console.warn(
+        `[steam] skipping appid mismatch requested=${appId} payload=${data.steam_appid}`,
+      );
+      continue;
+    }
     if (!isAdultCatalogCandidate(data)) continue;
     matched += 1;
     const platforms = platformsFromDetails(data);
@@ -180,7 +189,7 @@ async function discoverAppIds(key: string | undefined): Promise<number[]> {
 
 export async function runSteamIngest() {
   const key = process.env.STEAM_WEB_API_KEY;
-  const maxCheck = Number(process.env.STEAM_INGEST_MAX_APPS ?? "250");
+  const maxCheck = Number(process.env.STEAM_INGEST_MAX_APPS ?? "400");
 
   const discovered = await discoverAppIds(key);
   const appIds = discovered.slice(0, maxCheck > 0 ? maxCheck : discovered.length);

@@ -1,0 +1,25 @@
+{
+  "feeds": [
+    {
+      "id": "sfmcompile",
+      "label": "SFM Compile",
+      "siteUrl": "https://sfmcompile.club",
+      "feedUrl": "https://sfmcompile.club/feed/",
+      "enabled": true,
+      "maxItems": 30
+    }
+  ],
+  "topListing": {
+    "enabled": true,
+    "sourceId": "sfmcompile",
+    "label": "SFM Compile",
+    "listingUrl": "https://sfmcompile.club/?filter-by=popular",
+    "maxItems": 48,
+    "maxPages": 8
+  },
+  "fetch": {
+    "revalidateSeconds": 3600,
+    "topRevalidateSeconds": 1800,
+    "timeoutMs": 20000
+  }
+}

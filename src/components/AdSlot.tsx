@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect } from "react";
 import {
   type AdPlacement,
   exoclickInsClass,
   isAdsEnabled,
+  pushExoClickServe,
   zoneIdForPlacement,
 } from "@/lib/ads-config";
 type Props = {
@@ -14,18 +16,15 @@ type Props = {
 
 const SLOT_MIN_H: Record<AdPlacement, string> = {
   "footer-banner": "min-h-[50px] sm:min-h-[90px]",
-  "browse-inline": "min-h-[72px]",
 };
 
 const SLOT_LAYOUT: Record<AdPlacement, string> = {
   "footer-banner":
     "mx-auto w-full max-w-[728px] px-4 overflow-hidden [&_ins]:mx-auto [&_ins]:block [&_ins]:max-w-full",
-  "browse-inline": "mx-auto w-full max-w-7xl",
 };
 
 const SKIP_LABEL: Record<AdPlacement, string> = {
   "footer-banner": "Skip sponsored content in footer",
-  "browse-inline": "Skip sponsored content in catalog",
 };
 
 function AdSkipLink({ placement }: { placement: AdPlacement }) {
@@ -49,6 +48,11 @@ export function AdSlot({ placement, ageVerified }: Props) {
   const zoneId = zoneIdForPlacement(placement);
   const insClass = exoclickInsClass();
 
+  useEffect(() => {
+    if (!enabled || !ageVerified || !zoneId) return;
+    pushExoClickServe();
+  }, [enabled, ageVerified, zoneId, placement]);
+
   if (!enabled) {
     return null;
   }
@@ -60,7 +64,7 @@ export function AdSlot({ placement, ageVerified }: Props) {
   const slotId = `ad-slot-${placement}`;
   const layout = SLOT_LAYOUT[placement];
   const minH = SLOT_MIN_H[placement];
-  const margin = placement === "footer-banner" ? "my-0" : "my-4";
+  const margin = "my-0";
 
   if (!zoneId) {
     return (

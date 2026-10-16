@@ -1,0 +1,3 @@
+# Copy to /etc/cron.d/nsfwdroid-maintenance-notice on the droplet (chmod 644).
+# Tuesday 02:00 UTC — site banner + ops email one hour before weekly maintenance.
+0 2 * * 2 root /var/www/nsfwdroid/scripts/maintenance-notice.sh >> /var/log/nsfwdroid-maintenance-notice.log 2>&1

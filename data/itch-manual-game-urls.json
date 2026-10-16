@@ -1,0 +1,67 @@
+[
+  {
+    "title": "Corruption of Champions 2",
+    "officialUrl": "https://incontinentcell.itch.io/corruption-of-champions-2",
+    "feedUrl": "https://itch.io/games/tag-nsfw.xml",
+    "matchSlug": "corruption-of-champions-2",
+    "notes": "Search RSS (?q=…) often returns HTML, not XML. Tag browse may be empty; static seed when no feed item matches."
+  },
+  {
+    "title": "Trials in Tainted Space",
+    "officialUrl": "https://titsen.itch.io/trials-in-tainted-space",
+    "feedUrl": "https://itch.io/games/tag-trials-in-tainted-space.xml",
+    "matchSlug": "trials-in-tainted-space"
+  },
+  {
+    "title": "Summertime Saga",
+    "officialUrl": "https://kompas.itch.io/summertime-saga",
+    "feedUrl": "https://itch.io/games/tag-summertime-saga.xml",
+    "matchSlug": "summertime-saga"
+  },
+  {
+    "title": "Being a DIK",
+    "officialUrl": "https://drpinkcake.itch.io/being-a-dik",
+    "feedUrl": "https://itch.io/games/tag-being-a-dik.xml",
+    "matchSlug": "being-a-dik"
+  },
+  {
+    "title": "Cloud Meadow",
+    "officialUrl": "https://team-nimbus.itch.io/cloud-meadow",
+    "feedUrl": "https://itch.io/games/tag-cloud-meadow.xml",
+    "matchSlug": "cloud-meadow"
+  },
+  {
+    "title": "Monster Girl Island",
+    "officialUrl": "https://redamz.itch.io/monster-girl-island",
+    "feedUrl": "https://itch.io/games/tag-monster-girl-island.xml",
+    "matchSlug": "monster-girl-island"
+  },
+  {
+    "title": "Karryn's Prison",
+    "officialUrl": "https://remo-wish.itch.io/karryns-prison",
+    "feedUrl": "https://itch.io/games/tag-karryns-prison.xml",
+    "matchSlug": "karryns-prison"
+  },
+  {
+    "title": "Lust Academy",
+    "officialUrl": "https://lust-academy.itch.io/lust-academy",
+    "feedUrl": "https://itch.io/games/tag-lust-academy.xml",
+    "matchSlug": "lust-academy"
+  },
+  {
+    "title": "Tavern of Spears",
+    "officialUrl": "https://tavern-of-spears.itch.io/tavern-of-spears",
+    "feedUrl": "https://itch.io/games/tag-tavern-of-spears.xml",
+    "matchSlug": "tavern-of-spears"
+  },
+  {
+    "title": "Subverse",
+    "officialUrl": "https://fulquizo.itch.io/subverse",
+    "notes": "Often sold off-itch; feed may 404. Static official URL only — no HTML scrape."
+  },
+  {
+    "title": "HuniePop",
+    "officialUrl": "https://huniepot.itch.io/huniepop",
+    "notes": "Primary shelf is Steam; itch page may be absent. Partner/direct game URL when available."
+  }
+]

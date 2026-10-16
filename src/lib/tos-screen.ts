@@ -45,6 +45,30 @@ const TOS_RULES: TosRule[] = [
     label: "Illegal violence / snuff presented as real",
     patterns: [/\b(snuff\s+film|real\s+snuff|actual\s+snuff)\b/i],
   },
+  {
+    id: "incest_taboo",
+    label: "Incest or taboo family sexual themes (hold for staff review)",
+    patterns: [
+      /\b(incest|inzest)\b/i,
+      /\bstep-?(mom|mother|mum|dad|father|parent|bro|brother|sis|sister|son|daughter|aunt|uncle|cousin)\b/i,
+      /\b(mom-son|mother-son|dad-daughter|father-daughter|brother-sister|sister-brother|sibling(?:s)?\s*(sex|love|lust))\b/i,
+      /\bfamily\s*(taboo|sex|orgy|affair)\b/i,
+      /\b(taboo|forbidden)\s*(family|relative|incest)\b/i,
+      /(?:^|[\s/])(incest|family-incest|taboo-family|step-family|stepfamily)(?:$|[\s/])/i,
+      /(?:^|[\s-])(incest|family-taboo|taboo-family|step-?mom|step-?dad|step-?sis|step-?bro)(?:$|[\s-])/i,
+    ],
+  },
+  {
+    id: "fiction_nonconsent",
+    label: "Non-consent / CNC fantasy themes (hold for staff review)",
+    patterns: [
+      /\b(cnc|consensual\s*non-?consent)\b/i,
+      /\b(non-?consensual|nonconsensual)\b/i,
+      /\b(rape\s*(fantasy|play|kink|sim)|fantasy\s*rape)\b/i,
+      /\b(forced\s*(sex|breeding|impreg)|sexual\s*assault\s*(fantasy|sim))\b/i,
+      /(?:^|[\s-])(cnc|non-?consent|nonconsensual|rape-fantasy|forced-fantasy|non-con)(?:$|[\s-])/i,
+    ],
+  },
 ];
 
 function normalizeText(parts: (string | null | undefined)[]): string {

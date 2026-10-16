@@ -38,3 +38,41 @@ body {
 .rail-scroll::-webkit-scrollbar {
   display: none;
 }
+
+@keyframes vesper-welcome-confetti-fall {
+  0% {
+    transform: translate3d(0, -12px, 0) rotate(0deg);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate3d(0, 100px, 0) rotate(420deg);
+    opacity: 0.35;
+  }
+}
+
+@keyframes vesper-welcome-confetti-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-8deg);
+  }
+  50% {
+    transform: translate3d(6px, -10px, 0) rotate(12deg);
+  }
+}
+
+.vesper-welcome-confetti {
+  animation: vesper-welcome-confetti-fall var(--confetti-dur, 3.5s) ease-in-out infinite;
+  animation-delay: var(--confetti-delay, 0s);
+  will-change: transform;
+}
+
+.vesper-welcome-megaphone {
+  animation: vesper-welcome-confetti-drift 2.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vesper-welcome-confetti,
+  .vesper-welcome-megaphone {
+    animation: none;
+  }
+}

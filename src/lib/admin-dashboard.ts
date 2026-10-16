@@ -1,10 +1,17 @@
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
+  countListingsAddedInDays,
+  DEFAULT_NEW_ARRIVALS_REPORT_DAYS,
+  listListingsAddedInDays,
+  type NewArrivalListingRow,
+} from "@/lib/catalog-new-arrivals-report";
+import {
   adminAuditLog,
   analyticsEvents,
   ingestRuns,
   ingestSources,
+  listingReports,
   listings,
   userFavorites,
 } from "@/db/schema";
@@ -18,7 +25,11 @@ export type AdminDashboardSnapshot = {
     listings: number;
     staleListings: number;
     pendingCandidates: number;
+    listingsBySource: { source: string; count: number }[];
+    softCap: number | null;
+    addedLast7d: number;
   };
+  newArrivals7d: NewArrivalListingRow[];
   users: {
     total: number;
     signups24h: number;
@@ -64,6 +75,15 @@ export type AdminDashboardSnapshot = {
     createdAt: string;
     metadata: unknown;
   }[];
+  recentListingReports: {
+    id: string;
+    listingId: string;
+    listingTitle: string;
+    listingSlug: string;
+    reason: string;
+    details: string | null;
+    createdAt: string;
+  }[];
 };
 
 export type TopListingRow = {
@@ -85,6 +105,13 @@ export async function getAdminDashboardSnapshot(): Promise<AdminDashboardSnapsho
       (SELECT count(*)::int FROM listing) AS listings,
       (SELECT count(*)::int FROM listing WHERE catalog_stale = true) AS stale_listings,
       (SELECT count(*)::int FROM candidate WHERE review_status = 'pending') AS pending_candidates
+  `);
+
+  const bySourceResult = await db.execute(sql`
+    SELECT coalesce(source::text, 'unknown') AS source, count(*)::int AS count
+    FROM listing
+    GROUP BY source
+    ORDER BY count DESC
   `);
 
   const usersResult = await db.execute(sql`
@@ -112,17 +139,37 @@ export async function getAdminDashboardSnapshot(): Promise<AdminDashboardSnapsho
   const views48h = await topListingsByEvent("listing_view", since48h, 10);
   const favoritesTop = await topListingsByFavorites(10);
 
+  const [newArrivalsTotals, newArrivals7d] = await Promise.all([
+    countListingsAddedInDays(DEFAULT_NEW_ARRIVALS_REPORT_DAYS),
+    listListingsAddedInDays(DEFAULT_NEW_ARRIVALS_REPORT_DAYS, 100),
+  ]);
+
   const sources = await db.select().from(ingestSources).orderBy(ingestSources.name);
   const runs = await db
     .select()
     .from(ingestRuns)
     .orderBy(desc(ingestRuns.startedAt))
-    .limit(15);
+    .limit(20);
   const audit = await db
     .select()
     .from(adminAuditLog)
     .orderBy(desc(adminAuditLog.createdAt))
     .limit(20);
+
+  const listingReportRows = await db
+    .select({
+      id: listingReports.id,
+      listingId: listingReports.listingId,
+      reason: listingReports.reason,
+      details: listingReports.details,
+      createdAt: listingReports.createdAt,
+      listingTitle: listings.title,
+      listingSlug: listings.slug,
+    })
+    .from(listingReports)
+    .innerJoin(listings, eq(listings.id, listingReports.listingId))
+    .orderBy(desc(listingReports.createdAt))
+    .limit(50);
 
   const catalog = catalogResult.rows[0] as Record<string, number>;
   const users = usersResult.rows[0] as Record<string, number>;
@@ -137,7 +184,16 @@ export async function getAdminDashboardSnapshot(): Promise<AdminDashboardSnapsho
       listings: catalog.listings ?? 0,
       staleListings: catalog.stale_listings ?? 0,
       pendingCandidates: catalog.pending_candidates ?? 0,
+      listingsBySource: (bySourceResult.rows as { source: string; count: number }[]).map((r) => ({
+        source: r.source,
+        count: r.count,
+      })),
+      softCap: Number(process.env.CATALOG_SOFT_CAP ?? "") > 0
+        ? Number(process.env.CATALOG_SOFT_CAP)
+        : null,
+      addedLast7d: newArrivalsTotals.addedLiveByFirstSeen,
     },
+    newArrivals7d,
     users: {
       total: users.total ?? 0,
       signups24h: users.signups_24h ?? 0,
@@ -182,6 +238,15 @@ export async function getAdminDashboardSnapshot(): Promise<AdminDashboardSnapsho
       targetId: a.targetId,
       createdAt: a.createdAt.toISOString(),
       metadata: a.metadata,
+    })),
+    recentListingReports: listingReportRows.map((r) => ({
+      id: r.id,
+      listingId: r.listingId,
+      listingTitle: r.listingTitle,
+      listingSlug: r.listingSlug,
+      reason: r.reason,
+      details: r.details,
+      createdAt: r.createdAt.toISOString(),
     })),
   };
 }

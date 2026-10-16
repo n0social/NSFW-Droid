@@ -150,7 +150,7 @@ If the site shows **502**, check `systemctl is-active nsfwdroid` before debuggin
 
 The maintenance page is wired in `deploy/Caddyfile` via `handle_errors 502 503 504` and `deploy/maintenance.html` on the droplet at `/var/www/nsfwdroid/deploy/`. After changing either file: `cp deploy/Caddyfile /etc/caddy/Caddyfile && systemctl reload caddy`.
 
-**Optional `MAINTENANCE_MODE=1`:** not implemented in app middleware. To force the static page while Next stays up, you could add a Caddy `handle` route that serves `maintenance.html` when an env var is set (same `root`/`rewrite` as `handle_errors`); otherwise rely on stopping `nsfwdroid` or a failed upstream during deploys.
+**Scheduled banner (site still up):** `scripts/maintenance-notice.sh` (Tue 02:00 UTC cron) writes `data/maintenance-notice.json`, shown globally and exposed on `/api/health` as `maintenanceNotice`. **Downtime UX** for weekly work still relies on stopping `nsfwdroid` (Caddy `maintenance.html` on 502/503/504).
 
 ### Catalog ingest runbook (required)
 
@@ -215,6 +215,121 @@ journalctl -u nsfwdroid -n 30 --no-pager
 ```
 
 Expect `[catalog-maintenance]` stop/start lines, JSON from `recycle-stale-listings.ts`, then ingest summary JSON with `itch` / `steam` counts.
+
+### Weekly maintenance window (Tuesday, UTC)
+
+All scheduled times below are **UTC** (droplet default). This is **separate** from the 3× daily ingest — weekly work is deeper integrity (disk check, migrate, recycle, catalog counts). Full `ingest-all` stays on the daily cron unless you opt in (see below).
+
+| When (UTC) | Cron file | What happens |
+| --- | --- | --- |
+| **Every 5 min** | `nsfwdroid-watchdog` | `ensure-nsfwdroid.sh` — auto-restart if unit down or local `/api/health` fails; **skipped** while weekly maintenance lock is present |
+| **Tue 02:00** | `nsfwdroid-maintenance-notice` | Writes `data/maintenance-notice.json` → **amber site banner** until 04:00; optional **ops email** (1h warning) |
+| **Tue 03:00** | `nsfwdroid-weekly-maintenance` | Stops `nsfwdroid` → visitors see Caddy **`maintenance.html`** (502/503/504 path); runs `weekly-maintenance-inner.sh` via `catalog-maintenance.sh`; **hard `/api/health` checks** after start; service back when checks pass, **no later than 04:00 UTC** |
+| **Daily 06:00, 14:00, 22:00** | `nsfwdroid-ingest` | Unchanged — migrate → recycle → `ingest-all` |
+
+**Design:** Site is intentionally **down** (service stopped) for the weekly job. Work may finish in under an hour; the script still runs the full checklist and polls health before declaring success. If work runs long, the parent script sends **SIGTERM** at **04:00 UTC** so `catalog-maintenance.sh`’s exit trap can start `nsfwdroid` again.
+
+Install on the droplet:
+
+```bash
+chmod +x scripts/alert-email.sh scripts/maintenance-notice.sh \
+  scripts/weekly-maintenance.sh scripts/weekly-maintenance-inner.sh
+cp deploy/cron.d/nsfwdroid-maintenance-notice /etc/cron.d/nsfwdroid-maintenance-notice
+cp deploy/cron.d/nsfwdroid-weekly-maintenance /etc/cron.d/nsfwdroid-weekly-maintenance
+chmod 644 /etc/cron.d/nsfwdroid-maintenance-notice /etc/cron.d/nsfwdroid-weekly-maintenance
+touch /var/log/nsfwdroid-maintenance-notice.log /var/log/nsfwdroid-weekly-maintenance.log
+mkdir -p /var/lib/nsfwdroid/alert-dedupe
+```
+
+Optional flags in `/etc/nsfwdroid.env`:
+
+- `NSFWDROID_WEEKLY_INGEST=1` — also run `ingest-all` during the weekly window (usually unnecessary with daily ingest).
+- `NSFWDROID_WEEKLY_NPM_CI=1` — run `npm ci --omit=dev` during the window (slow on small droplets).
+
+Banner / API: `GET /api/health` includes `maintenanceNotice` while `data/maintenance-notice.json` is active (or `MAINTENANCE_NOTICE_UNTIL` is set). After a successful weekly run, the notice file is removed.
+
+Manual test (off-window):
+
+```bash
+./scripts/maintenance-notice.sh
+curl -s http://localhost:3000/api/health | jq .maintenanceNotice
+./scripts/weekly-maintenance.sh   # only run when you intend downtime
+```
+
+### Watchdog policy: auto-fix first, email when it fails
+
+**Recommendation (implemented):** The 5‑minute watchdog **auto-fixes** common outages (stale PGlite `postmaster.pid`, `systemctl restart`, `reset-failed` + retry) because a short blip should not wait for a human. **Email is rate-limited** (default **30 minutes** per alert key) when restart fails or health is still bad after recovery — that is when you care about sustained **502/503/504** at the edge.
+
+Weekly maintenance sets `data/.weekly-maintenance.lock` so the watchdog does **not** fight an intentional stop.
+
+### Weekly newsletter (member list)
+
+Footer signup + double opt-in are live in the app (`POST /api/newsletter/subscribe`). **Mass send stays off** until `NEWSLETTER_ENABLED=1` in `/etc/nsfwdroid.env`.
+
+| Variable | Purpose |
+| --- | --- |
+| `NEWSLETTER_ENABLED` | `1` allows `scripts/send-weekly-newsletter.ts` to mail active subscribers |
+| `NEWSLETTER_PUBLIC_BASE_URL` | Confirm/unsubscribe links (default `NEXT_PUBLIC_SITE_URL`) |
+| `RESEND_API_KEY` | Resend API (same as ops alerts) |
+| `ALERT_EMAIL_FROM` or `NEWSLETTER_FROM` | From address for Resend API. **Production (verified):** `nsfwdroid.com` is verified in Resend — use e.g. `ALERT_EMAIL_FROM="NSFW Droid <alerts@nsfwdroid.com>"` and `NEWSLETTER_FROM="NSFW Droid <newsletter@nsfwdroid.com>"` (quoted in `/etc/nsfwdroid.env`). Sandbox only: `onboarding@resend.dev`. Optional `NEWSLETTER_FROM_NAME` if the address is bare (app default: **NSFW Droid**) |
+
+**Manual test (local or droplet):**
+
+```bash
+npm run db:migrate
+# Footer flow: POST subscribe, click confirm link in inbox, visit /newsletter?status=confirmed
+curl -sS -X POST http://localhost:3000/api/newsletter/subscribe \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"you@example.com"}'
+
+tsx scripts/weekly-newsletter-pick.ts | jq .
+NEWSLETTER_ENABLED=0 tsx scripts/send-weekly-newsletter.ts --dry-run   # must abort
+NEWSLETTER_ENABLED=1 tsx scripts/send-weekly-newsletter.ts --dry-run   # JSON summary only
+```
+
+**Cron install (optional — does not enable mass send):** Copy the stub, uncomment the schedule line, create the log. Leave `NEWSLETTER_ENABLED` unset or `0` until you intend to mail subscribers.
+
+```bash
+cp deploy/cron.d/nsfwdroid-weekly-newsletter /etc/cron.d/nsfwdroid-weekly-newsletter
+# Edit: remove leading `#` on the `0 12 * * 0` line (Sunday 12:00 UTC)
+chmod 644 /etc/cron.d/nsfwdroid-weekly-newsletter
+touch /var/log/nsfwdroid-newsletter.log
+chown root:root /var/log/nsfwdroid-newsletter.log
+```
+
+Prefer running **after** weekly maintenance when `NSFWDROID_WEEKLY_INGEST=1`. The job no-ops unless `NEWSLETTER_ENABLED=1` and `RESEND_API_KEY` are set in `/etc/nsfwdroid.env`.
+
+**Homepage featured rail:** set comma-separated slugs in env (order preserved), or set `chart_bucket = featured` + `chart_rank` on listings in admin/DB:
+
+```bash
+# FEATURED_LISTING_SLUGS=slug-one,slug-two
+```
+
+### Ops email alerts
+
+Configure in `/etc/nsfwdroid.env` (never commit). If `ALERT_EMAIL_TO` is unset, scripts log and skip mail.
+
+| Variable | Purpose |
+| --- | --- |
+| `ALERT_EMAIL_TO` | Recipient (required to send) |
+| `ALERT_EMAIL_FROM` | From address (default `alerts@nsfwdroid.com`). Resend accepts `Name <email>` — production droplet uses `NSFW Droid <alerts@nsfwdroid.com>` (domain verified in Resend) |
+| `RESEND_API_KEY` | Preferred: [Resend](https://resend.com) HTTP API |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | Optional SMTP via `curl` |
+| `ALERT_DEDUPE_MINUTES` | Same `--key` max once per N minutes (default `30`) |
+| `ALERT_DEDUPE_DIR` | Dedupe stamps (default `/var/lib/nsfwdroid/alert-dedupe`) |
+
+Fallback: `sendmail` if installed. Script: `scripts/alert-email.sh` (used by watchdog + weekly cron).
+
+Example:
+
+```bash
+ALERT_EMAIL_TO=you@example.com
+ALERT_EMAIL_FROM="NSFW Droid <alerts@nsfwdroid.com>"
+NEWSLETTER_FROM="NSFW Droid <newsletter@nsfwdroid.com>"
+RESEND_API_KEY=re_xxxxxxxx
+```
+
+`scripts/alert-email.sh` uses Resend when `RESEND_API_KEY` is set and **exits on API errors** (e.g. HTTP 403) instead of falling back to `sendmail`.
 
 ---
 

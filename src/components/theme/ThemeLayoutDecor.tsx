@@ -13,17 +13,17 @@ type Props = {
 
 const SLOT_CLASS: Record<Exclude<ThemeLayoutDecorSlot, "page-pattern">, string> = {
   "corner-tl":
-    "pointer-events-none fixed left-0 top-[4.5rem] z-[1] hidden h-20 w-16 object-contain object-left opacity-50 sm:block md:h-28 md:w-24 md:opacity-55",
+    "pointer-events-none fixed left-0 top-[5.25rem] z-[1] hidden h-24 w-20 object-contain object-left object-top opacity-50 sm:block md:top-[4.75rem] md:h-32 md:w-28 md:opacity-55 lg:top-[5rem]",
   "corner-tr":
-    "pointer-events-none fixed right-0 top-[4.5rem] z-[1] hidden h-20 w-16 object-contain object-right opacity-50 sm:block md:h-28 md:w-24 md:opacity-55",
+    "pointer-events-none fixed right-0 top-[5.25rem] z-[1] hidden h-24 w-20 object-contain object-right object-top opacity-50 sm:block md:top-[4.75rem] md:h-32 md:w-28 md:opacity-55 lg:top-[5rem]",
   "corner-bl":
     "pointer-events-none fixed bottom-6 left-2 z-[1] hidden h-12 w-12 object-contain opacity-40 md:block md:h-16 md:w-16",
   "corner-br":
     "pointer-events-none fixed bottom-6 right-2 z-[1] hidden h-12 w-12 object-contain opacity-40 md:block md:h-16 md:w-16",
   "hero-accent-left":
-    "pointer-events-none absolute bottom-3 left-3 z-[3] h-8 w-8 object-contain object-left-bottom opacity-80 max-[479px]:hidden sm:bottom-4 sm:left-4 sm:h-14 sm:w-14 sm:opacity-100",
+    "pointer-events-none absolute bottom-2 left-2 z-[3] h-10 w-10 object-contain object-left-bottom opacity-80 max-[479px]:hidden sm:bottom-3 sm:left-3 sm:h-16 sm:w-16 sm:opacity-100 md:bottom-4 md:left-4",
   "hero-accent-right":
-    "pointer-events-none absolute bottom-3 right-3 z-[3] h-8 w-8 object-contain object-right-bottom opacity-80 max-[479px]:hidden sm:bottom-4 sm:right-4 sm:h-12 sm:w-12 sm:opacity-100",
+    "pointer-events-none absolute bottom-2 right-2 z-[3] h-10 w-10 object-contain object-right-bottom opacity-80 max-[479px]:hidden sm:bottom-3 sm:right-3 sm:h-14 sm:w-14 sm:opacity-100 md:bottom-4 md:right-4",
 };
 
 const DEFAULT_OPACITY: Partial<Record<ThemeLayoutDecorSlot, number>> = {

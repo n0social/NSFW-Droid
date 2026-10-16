@@ -1,6 +1,6 @@
-import { and, asc, desc, eq, ilike, isNotNull, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, sql } from "drizzle-orm";
 import { listings, listingTags, tags, type Listing, type Tag } from "@/db/schema";
-import { getHotListings, getRecentPopular } from "@/lib/analytics";
+import { getRecentPopular } from "@/lib/analytics";
 import {
   FEATURED_RAIL_NICHE_TAG_SLUGS,
   rankForFeaturedRail,
@@ -8,12 +8,19 @@ import {
 import { getTagSlugsByListingIds, listBrowseTags } from "@/lib/listing-tags";
 import { safeCatalogQuery } from "@/lib/db-safe";
 import { publicCatalogLinkStatus } from "@/lib/catalog-visibility";
+import {
+  getRecentNewListings,
+  listingFirstSeenAtExpr,
+  newListingPublishedSinceCondition,
+} from "@/lib/new-listings";
 
 export type BrowseFilters = {
-  rail?: "hot" | "trending" | null;
+  rail?: "new" | "trending" | null;
   tag?: string | null;
   vanilla?: boolean;
   q?: string | null;
+  sort?: "new" | null;
+  page?: number;
 };
 
 export type BrowseResult = {
@@ -23,7 +30,7 @@ export type BrowseResult = {
   catalogUnavailable?: boolean;
 };
 
-const BROWSE_PAGE_LIMIT = 120;
+import { BROWSE_PAGE_SIZE } from "@/lib/browse-constants";
 
 export async function getBrowseListings(filters: BrowseFilters): Promise<BrowseResult> {
   const empty: BrowseResult = { listings: [], tags: [], total: 0 };
@@ -33,19 +40,15 @@ export async function getBrowseListings(filters: BrowseFilters): Promise<BrowseR
     const tagSlug = filters.tag?.trim().toLowerCase() || null;
     const q = filters.q?.trim() || null;
     const vanillaOnly = filters.vanilla === true;
+    const sortNew = filters.sort === "new";
+    const page = Math.max(1, Math.floor(filters.page ?? 1));
+    const offset = (page - 1) * BROWSE_PAGE_SIZE;
+    const useFeaturedRanking = page === 1 && !tagSlug && !filters.rail && !q && !sortNew && !vanillaOnly;
 
     let base: Listing[] = [];
 
-    if (filters.rail === "hot") {
-      const hot = await getHotListings(48);
-      base = hot.length > 0
-        ? hot
-        : await db
-            .select()
-            .from(listings)
-            .where(and(publicCatalogLinkStatus(), isNotNull(listings.chartRank)))
-            .orderBy(asc(listings.chartRank))
-            .limit(48);
+    if (filters.rail === "new") {
+      base = await getRecentNewListings(48);
     } else if (filters.rail === "trending") {
       const trending = await getRecentPopular(48);
       base =
@@ -54,8 +57,8 @@ export async function getBrowseListings(filters: BrowseFilters): Promise<BrowseR
           : await db
               .select()
               .from(listings)
-              .where(publicCatalogLinkStatus())
-              .orderBy(desc(listings.publishedAt))
+              .where(and(publicCatalogLinkStatus(), newListingPublishedSinceCondition()))
+              .orderBy(desc(listingFirstSeenAtExpr()))
               .limit(48);
     } else {
       const conditions = [];
@@ -75,23 +78,27 @@ export async function getBrowseListings(filters: BrowseFilters): Promise<BrowseR
             and(
               publicCatalogLinkStatus(),
               eq(listingTags.tagId, tagRow.id),
+              ...(sortNew ? [newListingPublishedSinceCondition()] : []),
               ...(q ? [ilike(listings.title, `%${q}%`)] : []),
             ),
           )
-          .orderBy(desc(listings.publishedAt))
-          .limit(BROWSE_PAGE_LIMIT);
+          .orderBy(desc(sortNew ? listingFirstSeenAtExpr() : listings.publishedAt))
+          .limit(BROWSE_PAGE_SIZE)
+          .offset(offset);
         base = tagged.map((r) => r.listing);
       } else {
+        const catalogWhere = and(
+          publicCatalogLinkStatus(),
+          ...(sortNew ? [newListingPublishedSinceCondition()] : []),
+          ...conditions,
+        );
         base = await db
           .select()
           .from(listings)
-          .where(
-            conditions.length
-              ? and(publicCatalogLinkStatus(), ...conditions)
-              : publicCatalogLinkStatus(),
-          )
-          .orderBy(desc(listings.publishedAt))
-          .limit(BROWSE_PAGE_LIMIT);
+          .where(catalogWhere)
+          .orderBy(desc(sortNew ? listingFirstSeenAtExpr() : listings.publishedAt))
+          .limit(BROWSE_PAGE_SIZE)
+          .offset(offset);
       }
     }
 
@@ -101,13 +108,18 @@ export async function getBrowseListings(filters: BrowseFilters): Promise<BrowseR
     let filtered = base;
     if (vanillaOnly) {
       filtered = base.filter((l) => !listingHasNicheFromMap(tagsById, l.id));
-    } else if (!tagSlug && !filters.rail && !q) {
-      filtered = rankForFeaturedRail(base, tagsById, BROWSE_PAGE_LIMIT);
+    } else if (useFeaturedRanking) {
+      filtered = rankForFeaturedRail(base, tagsById, BROWSE_PAGE_SIZE);
     }
 
+    const countWhere =
+      sortNew || filters.rail === "new"
+        ? and(publicCatalogLinkStatus(), newListingPublishedSinceCondition())
+        : publicCatalogLinkStatus();
     const [countRow] = await db
       .select({ count: sql<number>`count(*)::int` })
-      .from(listings);
+      .from(listings)
+      .where(countWhere);
 
     return {
       listings: filtered,

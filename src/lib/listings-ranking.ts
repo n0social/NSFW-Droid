@@ -28,9 +28,11 @@ export const RAIL_TRENDING_LIMIT = 12;
 /** Pull extra analytics rows before niche deprioritization and backfill. */
 export const ANALYTICS_RANK_POOL = 48;
 
-/** Added to outbound-click score for homepage “hottest” rail (all-time favorites). */
+/** Outbound clicks in the last {@link HOT_ENGAGEMENT_DAYS} days + favorites in the same window. */
+export const HOT_ENGAGEMENT_DAYS = 7;
 export const RANK_WEIGHT_FAVORITE_ON_HOT = 3;
-/** Added per recent favorite on “trending” (48h views + 48h favorites). */
+/** 48h listing views, scored by velocity (engagement / √(days in catalog)). */
+export const TRENDING_VIEW_HOURS = 48;
 export const RANK_WEIGHT_FAVORITE_ON_TRENDING = 2;
 
 export function blendedEngagementScore(
@@ -87,6 +89,37 @@ export function mergeEngagementSignals(
   }
 
   return sortEngagementRows([...byId.values()], favoriteWeight).slice(0, limit);
+}
+
+/** Momentum score: recent engagement divided by √(days since first catalog appearance). */
+export function trendingVelocityScore(
+  views: number,
+  favorites: number,
+  favoriteWeight: number,
+  firstSeenAt: Date,
+  now = new Date(),
+): number {
+  const ms = Math.max(0, now.getTime() - firstSeenAt.getTime());
+  const daysInCatalog = Math.max(1, ms / (24 * 60 * 60 * 1000));
+  const engagement = blendedEngagementScore(views, favorites, favoriteWeight);
+  return engagement / Math.sqrt(daysInCatalog);
+}
+
+export function sortTrendingVelocityRows(
+  rows: EngagementRankRow[],
+  firstSeenAtByListingId: ReadonlyMap<string, Date>,
+  favoriteWeight: number,
+  now = new Date(),
+): EngagementRankRow[] {
+  return [...rows].sort((a, b) => {
+    const seenA = firstSeenAtByListingId.get(a.listingId) ?? now;
+    const seenB = firstSeenAtByListingId.get(b.listingId) ?? now;
+    const scoreA = trendingVelocityScore(a.primary, a.favorites, favoriteWeight, seenA, now);
+    const scoreB = trendingVelocityScore(b.primary, b.favorites, favoriteWeight, seenB, now);
+    if (scoreB !== scoreA) return scoreB - scoreA;
+    if (b.primary !== a.primary) return b.primary - a.primary;
+    return a.listingId.localeCompare(b.listingId);
+  });
 }
 
 export function listingHasNicheTag(tagSlugs: readonly string[]): boolean {

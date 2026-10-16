@@ -11,10 +11,16 @@ import {
   isMatureItchItem,
 } from "../src/lib/catalog-maturity";
 import { defaultItchFeedUrls } from "./lib/itch-feeds";
+import {
+  feedItemMatchesSeed,
+  itchManualExternalId,
+  loadItchManualGameSeeds,
+  type ItchManualGameSeed,
+} from "./lib/itch-manual-seeds";
 import { extractItchItemTags, itchPlatformsFromItem } from "./lib/tag-extract";
 import { itchAffiliateCodeFromEnv, itchAffiliateUrlForOfficial } from "../src/lib/itch-affiliate";
 
-function feedUrls(): string[] {
+async function feedUrls(): Promise<string[]> {
   const raw = process.env.ITCH_FEED_URLS?.trim();
   if (raw) {
     return raw
@@ -41,17 +47,134 @@ async function fetchFeed(url: string, attempt = 0): Promise<Response> {
   return res;
 }
 
+function responseLooksLikeRss(res: Response, bodyPeek: string): boolean {
+  const ct = res.headers.get("content-type") ?? "";
+  if (ct.includes("xml") || ct.includes("rss")) return true;
+  const t = bodyPeek.trimStart();
+  return t.startsWith("<?xml") || t.startsWith("<rss");
+}
+
+async function upsertManualSeed(
+  seed: ItchManualGameSeed,
+  reason: string,
+): Promise<boolean> {
+  const externalId = itchManualExternalId(seed);
+  const link = seed.officialUrl.trim();
+  return upsertCandidate({
+    source: "itch",
+    externalId,
+    title: seed.title.trim(),
+    outboundUrl: link,
+    rawPayload: {
+      manualItchSeed: true,
+      manualSeedReason: reason,
+      notes: seed.notes ?? null,
+      officialUrl: link,
+      feedUrl: seed.feedUrl ?? null,
+    },
+    tags: [{ slug: "itch-manual-seed", label: "Manual itch seed", kind: "source" }],
+  });
+}
+
+async function ingestManualSeed(seed: ItchManualGameSeed) {
+  const feedUrl = seed.feedUrl?.trim();
+  if (!feedUrl) {
+    const ok = await upsertManualSeed(seed, "no_feed_url");
+    return { mode: "static" as const, inserted: ok ? 1 : 0, error: null };
+  }
+
+  const res = await fetchFeed(feedUrl);
+  if (res.status === 403) {
+    console.warn(
+      `[itch-manual] HTTP 403 for feed ${feedUrl} (${seed.title}); static seed when possible`,
+    );
+    const ok = await upsertManualSeed(seed, "feed_403");
+    return { mode: "static_after_403" as const, inserted: ok ? 1 : 0, error: "HTTP 403" };
+  }
+  if (!res.ok) {
+    console.warn(`[itch-manual] HTTP ${res.status} for ${feedUrl} (${seed.title})`);
+    const ok = await upsertManualSeed(seed, `feed_http_${res.status}`);
+    return {
+      mode: "static_after_error" as const,
+      inserted: ok ? 1 : 0,
+      error: `HTTP ${res.status}`,
+    };
+  }
+
+  const xml = await res.text();
+  if (!responseLooksLikeRss(res, xml)) {
+    console.warn(
+      `[itch-manual] non-XML response for ${feedUrl} (${seed.title}); static seed`,
+    );
+    const ok = await upsertManualSeed(seed, "feed_not_xml");
+    return { mode: "static_not_xml" as const, inserted: ok ? 1 : 0, error: "not_xml" };
+  }
+
+  const parser = new XMLParser({ ignoreAttributes: false });
+  const doc = parser.parse(xml);
+  const items = doc?.rss?.channel?.item;
+  const list = Array.isArray(items) ? items : items ? [items] : [];
+
+  const match = list.find((item: Record<string, unknown>) => {
+    const link = String(item.link ?? "").trim();
+    return link && feedItemMatchesSeed(link, seed);
+  });
+
+  if (!match) {
+    const ok = await upsertManualSeed(seed, "feed_no_matching_item");
+    return { mode: "static_no_match" as const, inserted: ok ? 1 : 0, error: null };
+  }
+
+  const plainTitle = String(match.plainTitle ?? "").trim();
+  const rssTitle = String(match.title ?? "").trim();
+  const title = plainTitle || rssTitle || seed.title;
+  const link = String(match.link ?? seed.officialUrl).trim();
+  const guid = String(match.guid?.["#text"] ?? match.guid ?? link).trim();
+  const tagList = extractItchItemTags(match as Record<string, unknown>, feedUrl);
+  const affiliateUrl = itchAffiliateUrlForOfficial(link);
+
+  const ok = await upsertCandidate({
+    source: "itch",
+    externalId: guid,
+    title,
+    outboundUrl: link,
+    rawPayload: {
+      ...match,
+      feedUrl,
+      manualItchSeed: true,
+      manualSeedMatch: seed.title,
+      platforms: itchPlatformsFromItem(match as Record<string, unknown>),
+      extractedTags: tagList,
+      ...(affiliateUrl ? { affiliate_url: affiliateUrl } : {}),
+    },
+    tags: tagList,
+  });
+  return { mode: "rss_match" as const, inserted: ok ? 1 : 0, error: null };
+}
+
 async function ingestFeed(url: string) {
   const res = await fetchFeed(url);
   if (!res.ok) {
+    const err =
+      res.status === 403
+        ? `HTTP 403 (blocked — use data/itch-manual-game-urls.json)`
+        : `HTTP ${res.status}`;
     return {
       feedItems: 0,
       newCandidates: 0,
       itemsWithTags: 0,
-      error: `HTTP ${res.status}`,
+      error: err,
     };
   }
   const xml = await res.text();
+  if (!responseLooksLikeRss(res, xml)) {
+    return {
+      feedItems: 0,
+      newCandidates: 0,
+      itemsWithTags: 0,
+      error: "not_xml (search RSS often returns HTML)",
+    };
+  }
   const parser = new XMLParser({ ignoreAttributes: false });
   const doc = parser.parse(xml);
   const items = doc?.rss?.channel?.item;
@@ -108,13 +231,23 @@ async function ingestFeed(url: string) {
 }
 
 export async function runItchIngest() {
-  const urls = feedUrls();
+  const urls = await feedUrls();
   let totalItems = 0;
   let totalInserted = 0;
   let totalTagged = 0;
   let totalSkippedNonMature = 0;
   let totalAffiliateUrlsSet = 0;
   const feedErrors: { url: string; error: string }[] = [];
+  const manualSeeds = await loadItchManualGameSeeds();
+  const manualResults: Record<string, unknown>[] = [];
+  let manualInserted = 0;
+  for (const seed of manualSeeds) {
+    const r = await ingestManualSeed(seed);
+    manualInserted += r.inserted;
+    manualResults.push({ title: seed.title, ...r });
+    await sleep(feedDelayMs());
+  }
+
   for (const url of urls) {
     const r = await ingestFeed(url);
     if ("error" in r && r.error) {
@@ -141,6 +274,9 @@ export async function runItchIngest() {
     itchAffiliateEnabled: Boolean(itchAffiliateCode),
     itchNsfwOnly: isItchNsfwOnlyMode(),
     feedErrors,
+    manualSeeds: manualSeeds.length,
+    manualInserted,
+    manualResults,
   });
   return {
     source: "itch",
@@ -153,6 +289,9 @@ export async function runItchIngest() {
     itchAffiliateEnabled: Boolean(itchAffiliateCode),
     itchNsfwOnly: isItchNsfwOnlyMode(),
     feedErrors,
+    manualSeeds: manualSeeds.length,
+    manualInserted,
+    manualResults,
   };
 }
 

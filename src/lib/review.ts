@@ -7,6 +7,7 @@ import {
   extractCoverImageUrl,
 } from "@/lib/listing-cover";
 import { slugify } from "@/lib/slug";
+import { resolveListingAffiliateUrl } from "@/lib/listing-affiliate";
 
 export async function approveCandidate(
   candidateId: string,
@@ -30,19 +31,32 @@ export async function approveCandidate(
   const raw = c.rawPayload as { platforms?: string[]; affiliate_url?: string } | null;
   const affiliateUrl =
     opts?.affiliateUrl !== undefined
-      ? opts.affiliateUrl
-      : raw?.affiliate_url?.trim()
-        ? raw.affiliate_url.trim()
-        : null;
+      ? opts.affiliateUrl?.trim()
+        ? opts.affiliateUrl.trim()
+        : null
+      : resolveListingAffiliateUrl(c.outboundUrl, {
+          rawAffiliate: raw?.affiliate_url,
+          existingAffiliate: existingListing?.affiliateUrl,
+        });
 
   if (existingListing) {
     await copyCandidateTagsToListing(candidateId, existingListing.id);
-    if (affiliateUrl && affiliateUrl !== existingListing.affiliateUrl) {
+    const listingPatch = {
+      title: c.title,
+      officialUrl: c.outboundUrl,
+      affiliateUrl,
+      updatedAt: new Date(),
+    };
+    if (
+      listingPatch.title !== existingListing.title ||
+      listingPatch.officialUrl !== existingListing.officialUrl ||
+      listingPatch.affiliateUrl !== existingListing.affiliateUrl
+    ) {
       await db
         .update(listings)
-        .set({ affiliateUrl, updatedAt: new Date() })
+        .set(listingPatch)
         .where(eq(listings.id, existingListing.id));
-      existingListing.affiliateUrl = affiliateUrl;
+      Object.assign(existingListing, listingPatch);
     }
     await db
       .update(candidates)
@@ -71,6 +85,7 @@ export async function approveCandidate(
       coverImageUrl,
       source: c.source,
       externalId: c.externalId,
+      firstSeenAt: c.firstSeenAt,
       chartBucket: opts?.chartBucket ?? (opts?.chartRank ? "top_grossing" : "new"),
       chartRank: opts?.chartRank ?? null,
     })

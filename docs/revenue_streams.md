@@ -62,7 +62,7 @@ It fits live-service games with ongoing purchases, and it needs an SDK, fraud ch
 
 - **A paid membership for the store itself.** Players already pay creators on Patreon and buy games on Steam. A fee to browse your links has nothing to attach to until the hosted library is deep enough that the membership includes games.
 - **A fee to list.** Charging developers to upload, before anyone is browsing, empties the catalog. Revisit a listing fee only after featured placement is selling.
-- **Email sponsorship.** A list you own is worth selling against, once the list exists. Collect it from the age-gated site. The message is still an ad, so the adult-network and disclosure rules apply.
+- **Email sponsorship.** A list you own is worth selling against, once the list exists. Collect it from the age-gated site. The message is still an ad, so the adult-network and disclosure rules apply. Member newsletter product spec: [reward_program.md](reward_program.md).
 
 ## What to turn on first
 
