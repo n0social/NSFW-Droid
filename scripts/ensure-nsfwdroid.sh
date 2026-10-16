@@ -9,7 +9,8 @@ SERVICE="${NSFWDROID_SERVICE:-nsfwdroid}"
 HEALTH_URL="${NSFWDROID_HEALTH_URL:-http://127.0.0.1:3000/api/health}"
 LOG_FILE="${NSFWDROID_WATCHDOG_LOG:-/var/log/nsfwdroid-watchdog.log}"
 CATALOG_DIR="$APP_DIR/data/catalog"
-LOCK_FILE="$APP_DIR/data/.weekly-maintenance.lock"
+WEEKLY_LOCK_FILE="$APP_DIR/data/.weekly-maintenance.lock"
+CATALOG_MAINT_LOCK_FILE="$APP_DIR/data/.catalog-maintenance.lock"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="${NSFWDROID_ENV_FILE:-/etc/nsfwdroid.env}"
 
@@ -17,7 +18,7 @@ log() {
   echo "[$(date -Is)] [ensure-nsfwdroid] $*" | tee -a "$LOG_FILE"
 }
 
-if [[ -f "$LOCK_FILE" ]]; then
+if [[ -f "$WEEKLY_LOCK_FILE" || -f "$CATALOG_MAINT_LOCK_FILE ]]; then
   exit 0
 fi
 

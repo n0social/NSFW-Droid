@@ -8,6 +8,7 @@ APP_DIR="${NSFWDROID_APP_DIR:-/var/www/nsfwdroid}"
 ENV_FILE="${NSFWDROID_ENV_FILE:-/etc/nsfwdroid.env}"
 SERVICE="${NSFWDROID_SERVICE:-nsfwdroid}"
 CATALOG_DIR="$APP_DIR/data/catalog"
+LOCK_FILE="$APP_DIR/data/.catalog-maintenance.lock"
 LOG_TAG="catalog-maintenance"
 
 log() {
@@ -45,7 +46,14 @@ ensure_started() {
   fi
 }
 
-trap 'rc=$?; ensure_started || true; exit "$rc"' EXIT
+release_lock() {
+  rm -f "$LOCK_FILE"
+}
+
+trap 'rc=$?; release_lock; ensure_started || true; exit "$rc"' EXIT
+
+mkdir -p "$(dirname "$LOCK_FILE")"
+echo "$$" >"$LOCK_FILE"
 
 if [[ $# -lt 1 || "$1" != "--" ]]; then
   echo "Usage: $0 -- <command> [args...]" >&2
