@@ -19,6 +19,8 @@
     "catalog:check-links": "tsx scripts/db-migrate.ts && tsx scripts/check-listing-links.ts",
     "catalog:audit-outbound": "tsx scripts/db-migrate.ts && tsx scripts/audit-outbound-pairs.ts",
     "creators:verify-links": "tsx scripts/verify-creators-links.ts",
+    "creators:verify-sfm-tutorials": "tsx scripts/verify-sfm-tutorials.ts",
+    "creators:verify-blender-assets": "tsx scripts/verify-creator-assets-links.ts",
     "catalog:repair-outbound": "tsx scripts/db-migrate.ts && tsx scripts/repair-outbound-pairs.ts",
     "test:tos-screen": "tsx scripts/test-tos-screen.ts",
     "db:backfill-covers": "tsx scripts/db-migrate.ts && tsx scripts/backfill-listing-covers.ts",
