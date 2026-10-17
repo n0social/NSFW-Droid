@@ -35,6 +35,11 @@ function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+/** Itch often answers the droplet with 403. That is a block, not a dead page. */
+export function linkProbeIsInconclusive(status: number): boolean {
+  return status === 403 || status === 429;
+}
+
 async function probeUrl(url: string): Promise<UrlCheck> {
   const trimmed = url.trim();
   if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
@@ -61,8 +66,8 @@ async function probeUrl(url: string): Promise<UrlCheck> {
         signal: controller.signal,
       });
     }
-    if (res.status === 429) {
-      return { url: trimmed, ok: true, status: 429, error: "rate_limited_skip" };
+    if (linkProbeIsInconclusive(res.status)) {
+      return { url: trimmed, ok: true, status: res.status, error: "inconclusive_skip" };
     }
     const ok = res.ok || (res.status >= 300 && res.status < 400);
     return { url: trimmed, ok, status: res.status };
@@ -118,7 +123,7 @@ async function main() {
     for (const url of urls) {
       const c = await probeUrl(url);
       checks.push(c);
-      if (c.error === "rate_limited_skip") {
+      if (c.error === "inconclusive_skip" || c.error === "rate_limited_skip") {
         skippedRateLimit += 1;
         continue;
       }
@@ -127,7 +132,10 @@ async function main() {
     }
 
     checked += 1;
-    if (checks.some((c) => c.error === "rate_limited_skip") && !hardFail) {
+    if (
+      checks.some((c) => c.error === "inconclusive_skip" || c.error === "rate_limited_skip") &&
+      !hardFail
+    ) {
       await sleep(delayMs());
       continue;
     }
@@ -178,6 +186,8 @@ async function main() {
   await closeCatalogDb();
 }
 
+const invokedDirectly = process.argv[1]?.includes("check-listing-links");
+if (invokedDirectly) {
 main().catch(async (e) => {
   console.error(e);
   await recordIngestRun({
@@ -188,3 +198,4 @@ main().catch(async (e) => {
   }).catch(() => {});
   process.exit(1);
 });
+}

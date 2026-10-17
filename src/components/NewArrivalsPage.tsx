@@ -100,6 +100,7 @@ export function NewArrivalsPage({
                     rank={i + 1}
                     layout="grid"
                     blur={effectiveBlur}
+                    ageVerified={ageVerified}
                     themeAssets={themeAssets}
                   />
                 ))}
@@ -119,6 +120,7 @@ export function NewArrivalsPage({
                     index={i + hero.length}
                     layout="grid"
                     blur={effectiveBlur}
+                    ageVerified={ageVerified}
                     themeAssets={themeAssets}
                   />
                 ))}

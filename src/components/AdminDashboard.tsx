@@ -42,7 +42,7 @@ function TopList({
             <li key={row.listingId} className="flex items-baseline justify-between gap-2 text-xs">
               <span className="font-bold text-[#FF4D8D] tabular-nums">{i + 1}.</span>
               <Link
-                href={`/api/go/${row.listingId}`}
+                href={`/game/${row.slug}`}
                 className="min-w-0 flex-1 truncate font-semibold text-[#F9A8D4] hover:underline"
               >
                 {row.title}
@@ -87,8 +87,11 @@ export function AdminDashboard() {
   return (
     <AdminShell title="Admin dashboard">
       <p className="text-xs text-[#E9D5FF]/80">
-        Live metrics refresh every 30s on load. Rails blend outbound clicks/views with user favorites
-        (weights in <code className="text-[#F9A8D4]">listings-ranking.ts</code>). Daily click chart:{" "}
+        Live metrics refresh every 30s. Play clicks are age-verified visits to a store link.
+        Each browser gets its own session cookie, so unique browsers are not the shared age-gate
+        value. Card impressions count when a card is half on screen, once per browser per day.
+        Ingest does not write either number. Rails still blend raw events with favorites
+        (weights in <code className="text-[#F9A8D4]">listings-ranking.ts</code>). Daily chart:{" "}
         <Link href="/admin/traffic" className="text-[#FF4D8D] underline">Traffic marker</Link>.
       </p>
 
@@ -121,14 +124,14 @@ export function AdminDashboard() {
             />
             <StatCard label="Accounts" value={data.users.total} hint={`+${data.users.signups24h} / 24h`} />
             <StatCard
-              label="Outbound clicks"
-              value={data.analytics.outboundClicks24h}
-              hint={`${data.analytics.outboundClicks7d} / 7d · affiliate ${data.analytics.affiliateClicks24h} / official ${data.analytics.officialClicks24h} (24h)`}
+              label="Play clicks"
+              value={data.analytics.playClicks24h}
+              hint={`${data.analytics.playClicks7d} / 7d · ${data.analytics.uniquePlayBrowsers24h} unique browsers / 24h · ${data.analytics.unverifiedGoHits24h} unverified /api/go hits excluded · affiliate ${data.analytics.affiliateClicks24h} / official ${data.analytics.officialClicks24h}`}
             />
             <StatCard
-              label="Listing views"
-              value={data.analytics.listingViews24h}
-              hint={`${data.analytics.pageViews24h} page views / 24h`}
+              label="Card impressions"
+              value={data.analytics.cardImpressions24h}
+              hint={`${data.analytics.cardImpressions7d} / 7d · ${data.analytics.uniqueImpressionBrowsers24h} unique browsers / 24h · ${data.analytics.detailViews24h} game-page opens / 24h. A card counts once it is half on screen, once per browser per day.`}
             />
           </div>
 
@@ -164,8 +167,8 @@ export function AdminDashboard() {
           )}
 
           <div className="mt-6 grid gap-4 lg:grid-cols-3">
-            <TopList title="Top clicks (7d)" rows={data.top.clicks7d} emptyLabel="No clicks yet." />
-            <TopList title="Top views (48h)" rows={data.top.views48h} emptyLabel="No views yet." />
+            <TopList title="Top play clicks (7d)" rows={data.top.clicks7d} emptyLabel="No play clicks yet." />
+            <TopList title="Top card impressions (48h)" rows={data.top.views48h} emptyLabel="No card impressions yet." />
             <TopList title="Most favorited" rows={data.top.favorites} emptyLabel="No favorites yet." />
           </div>
 
