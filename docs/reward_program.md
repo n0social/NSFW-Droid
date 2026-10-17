@@ -107,7 +107,7 @@ We are **not** selling games or a browse paywall in Phase 1. Payment infrastruct
 | Field | Spec |
 | --- | --- |
 | **List** | Emails from (a) `user_profile` where `newsletter_opt_in = true` and email from Firebase, plus (b) optional public footer signup → **Resend Audience** (`RESEND_NEWSLETTER_AUDIENCE_ID`) **or** Postgres `newsletter_subscriber` with **double opt-in** |
-| **Cadence** | Once per week — **Friday 20:00 UTC** (`deploy/cron.d/nsfwdroid-weekly-newsletter`). Picks use a rolling 7-day analytics window at send time (not tied to Tuesday maintenance). |
+| **Cadence** | Once per week — **Friday 9:00 PM US Eastern** (`deploy/cron.d/nsfwdroid-weekly-newsletter`, `CRON_TZ=America/New_York`). Picks use a rolling 7-day analytics window at send time. |
 | **Audience** | 18+ site; members and subscribers who confirmed opt-in |
 | **Subject (exact)** | `Thanks for being a member: Here's our favorite NSFW games of the week` |
 

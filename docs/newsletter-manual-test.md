@@ -42,6 +42,6 @@ tsx scripts/weekly-newsletter-pick.ts
 NEWSLETTER_ENABLED=1 NEWSLETTER_TRANSPORT=sendmail tsx scripts/send-weekly-newsletter.ts --dry-run
 ```
 
-**Production:** `NEWSLETTER_ENABLED=1`, `NEWSLETTER_TRANSPORT=sendmail`, and cron `deploy/cron.d/nsfwdroid-weekly-newsletter` (Friday 20:00 UTC). Picks rank by 7-day `listing_view` + weighted `outbound_click` (not favorites). Use `--dry-run` before the first live send after changing picks logic.
+**Production:** `NEWSLETTER_ENABLED=1`, `NEWSLETTER_TRANSPORT=sendmail`, and cron `deploy/cron.d/nsfwdroid-weekly-newsletter` (Friday 9:00 PM US Eastern). Picks rank by 7-day `listing_view` + weighted `outbound_click` (not favorites). Use `--dry-run` before the first live send after changing picks logic.
 
 **Queue inspection (droplet):** `exim -bp` lists deferred mail while port 25 is blocked.
