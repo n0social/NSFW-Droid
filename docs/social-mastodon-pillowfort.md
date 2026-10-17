@@ -76,7 +76,7 @@ npx tsx scripts/mastodon-update-profile.ts \
 
 The script `POST`s each image to `/api/v2/media`, then `PATCH /api/v1/accounts/update_credentials` with the files plus note, website field, and `bot=false`. Confirm with `npx tsx scripts/mastodon-verify-token.ts`.
 
-If the PATCH returns **403**, the token was minted without `write:accounts`. Production app **`nsfwdroid-ingest-bot`** currently grants `read`, `write:statuses`, `write:media` only — enough to post catalog items, not to change avatar/header/note.
+If the PATCH returns **403**, the token was minted without `write:accounts`. Mastodon **cannot add scopes to an existing OAuth app** — create a new Development app (or `POST /api/v1/apps`) with `read write:statuses write:media write:accounts` up front, then re-authorize and replace `MASTODON_ACCESS_TOKEN` on the droplet. Production uses **`nsfwdroid-profile-bot`** (full scopes) for both posting and profile.
 
 **2026-10-17 apply:** `POST /api/v2/media` for the Vesper avatar and bunny banner **succeeded**. `PATCH /api/v1/accounts/update_credentials` returned **403** (`This action is outside the authorized scopes`). Profile still has the default missing avatar/header and empty note. To finish live:
 
