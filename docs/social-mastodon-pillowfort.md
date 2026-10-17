@@ -99,7 +99,7 @@ Register **`@nsfwdroid@your-instance`** (brand account). Use **content warnings*
 ### Post shape (Mastodon)
 
 - **Text:** title, one line, link to game page, `#nsfw` / `#nsfwgames` / `#visualnovel` as appropriate (don’t hashtag-spam).
-- **Media:** optional cover image (upload media, attach `media_ids`) — only if instance policy allows explicit thumbs.
+- **Media:** listing **cover image** (same `cover_image_url` as GameCard / game page), uploaded via `POST /api/v1/media` and attached by default (`MASTODON_ATTACH_COVER=1`; set `0` for text-only). Marked **sensitive** when media is attached.
 - **Visibility:** `public` or `unlisted` if you want less fediverse firehose noise.
 - **Rate limits:** instance-dependent; plan **≤3 posts per ingest run**, **≤15/day** across platforms until reputation is established.
 
@@ -151,6 +151,7 @@ MASTODON_ACCESS_TOKEN=           # user token, write:statuses write:media write:
 SOCIAL_MASTODON_ENABLED=1
 SOCIAL_MAX_PER_INGEST=3
 SOCIAL_MAX_PER_DAY=15
+MASTODON_ATTACH_COVER=1
 
 # Pillowfort (later)
 PILLOWFORT_ENABLED=0
