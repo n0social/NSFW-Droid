@@ -47,8 +47,9 @@ export function isSocialDryRun(): boolean {
   return parseEnvBool(process.env.SOCIAL_DRY_RUN, false);
 }
 
+/** Attach listing cover image to Mastodon posts (same URL as on-site cards). Set to 0 to disable. */
 export function mastodonAttachCover(): boolean {
-  return parseEnvBool(process.env.MASTODON_ATTACH_COVER, false);
+  return parseEnvBool(process.env.MASTODON_ATTACH_COVER, true);
 }
 
 export function mastodonVisibility(): "public" | "unlisted" | "private" | "direct" {

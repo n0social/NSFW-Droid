@@ -1,5 +1,23 @@
+import { siteUrl } from "@/lib/site";
 import { formatMastodonStatus, type SocialPostPayload } from "@/lib/social/compose";
+import { resolveListingCoverUrl } from "@/lib/social/cover-url";
 import { mastodonVisibility } from "@/lib/social/config";
+
+const COVER_FETCH_TIMEOUT_MS = 30_000;
+const COVER_MAX_BYTES = 8 * 1024 * 1024;
+
+function coverFetchUserAgent(): string {
+  const base = siteUrl.replace(/\/$/, "");
+  return `NSFWDroid-Social/1.0 (+${base})`;
+}
+
+function filenameForCover(contentType: string | null): string {
+  const mime = (contentType ?? "").toLowerCase();
+  if (mime.includes("png")) return "cover.png";
+  if (mime.includes("webp")) return "cover.webp";
+  if (mime.includes("gif")) return "cover.gif";
+  return "cover.jpg";
+}
 
 function instanceBase(): string {
   const raw = process.env.MASTODON_INSTANCE_URL?.trim().replace(/\/$/, "");
@@ -24,13 +42,24 @@ export async function uploadMastodonMedia(
   imageUrl: string,
   description?: string,
 ): Promise<string> {
-  const imageRes = await fetch(imageUrl);
+  const resolved = resolveListingCoverUrl(imageUrl) ?? imageUrl;
+  const imageRes = await fetch(resolved, {
+    headers: { "User-Agent": coverFetchUserAgent(), Accept: "image/*,*/*;q=0.8" },
+    signal: AbortSignal.timeout(COVER_FETCH_TIMEOUT_MS),
+    redirect: "follow",
+  });
   if (!imageRes.ok) {
     throw new Error(`cover_fetch_failed:${imageRes.status}`);
   }
-  const blob = await imageRes.blob();
+  const buf = Buffer.from(await imageRes.arrayBuffer());
+  if (buf.length > COVER_MAX_BYTES) {
+    throw new Error(`cover_too_large:${buf.length}`);
+  }
+  const blob = new Blob([buf], {
+    type: imageRes.headers.get("content-type") ?? "image/jpeg",
+  });
   const form = new FormData();
-  form.append("file", blob, "cover.jpg");
+  form.append("file", blob, filenameForCover(imageRes.headers.get("content-type")));
   if (description) form.append("description", description.slice(0, 420));
 
   const res = await mastodonFetch("/api/v1/media", { method: "POST", body: form });
@@ -58,10 +87,11 @@ export async function postMastodonStatus(
   }
 
   const mediaIds: string[] = [];
-  if (options?.attachCover && payload.coverImageUrl) {
+  const coverUrl = resolveListingCoverUrl(payload.coverImageUrl);
+  if (options?.attachCover && coverUrl) {
     try {
       const mediaId = await uploadMastodonMedia(
-        payload.coverImageUrl,
+        coverUrl,
         `${payload.title} cover`,
       );
       mediaIds.push(mediaId);
