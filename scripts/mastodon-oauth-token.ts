@@ -1,6 +1,7 @@
 /**
  * Mastodon user access token (OAuth2 authorization code + oob redirect).
  * Never put account passwords in env — only client id/secret and the one-time code.
+ * Profile edits (avatar/header/note) need write:accounts in addition to posting scopes.
  *
  * Usage:
  *   MASTODON_INSTANCE_URL=https://mastodon.social \
@@ -14,7 +15,7 @@
  */
 import "dotenv/config";
 
-const SCOPES = "read write:statuses write:media";
+const SCOPES = "read write:statuses write:media write:accounts";
 const REDIRECT_URI = "urn:ietf:wg:oauth:2.0:oob";
 
 function baseUrl(): string {

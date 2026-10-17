@@ -10,7 +10,7 @@ The **fediverse** is the network of **ActivityPub** apps (Mastodon, Pixelfed, et
 2. Post via **Mastodon’s HTTP API** (`POST /api/v1/statuses`, optional `POST /api/v1/media`).
 3. Other servers see those posts if they follow you or via hashtags — you do **not** need to implement ActivityPub yourself.
 
-Docs: [authorized apps](https://docs.joinmastodon.org/client/authorized/), [post status](https://docs.joinmastodon.org/methods/statuses/), scopes `write:statuses` + `write:media`.
+Docs: [authorized apps](https://docs.joinmastodon.org/client/authorized/), [post status](https://docs.joinmastodon.org/methods/statuses/), [update credentials](https://docs.joinmastodon.org/methods/accounts/#update_credentials). Scopes: `write:statuses` + `write:media` for posting; add `write:accounts` to change the profile (avatar, header, note, fields).
 
 ### Getting an API token (no password on the server)
 
@@ -44,6 +44,46 @@ MASTODON_ACCESS_TOKEN=...
 ```
 
 7. Verify: `npx tsx scripts/mastodon-verify-token.ts` (with the same env vars).
+
+### Profile (avatar, banner, bio)
+
+Production look for `@nsfwdroid@mastodon.social`:
+
+| Field | Value |
+| --- | --- |
+| Display name | NSFW Droid |
+| Bot | `false` (catalog account, not a bot flag) |
+| Website field | `https://www.nsfwdroid.com` |
+| Avatar | Close-up of **Vesper** (square ~400×400, readable at small size) |
+| Header | Marketing banner ~1500×500 — “NSFW Droid — Top NSFW mobile & web games listing. Sign up for the weekly newsletter.” with Vesper in a cute pink bunny outfit (18+ catalog promo, not explicit) |
+
+Default bio (under Mastodon’s 500-character note limit):
+
+```
+Top NSFW mobile & web games listing. Follow for new catalog drops. Sign up for the weekly newsletter on the site. 18+ only. Hosted by Vesper.
+
+https://www.nsfwdroid.com
+```
+
+Apply from the droplet (images stay off git; generated copies live in agent artifacts):
+
+```bash
+set -a && source /etc/nsfwdroid.env && set +a
+npx tsx scripts/mastodon-update-profile.ts \
+  --avatar=/path/mastodon-avatar-vesper.png \
+  --header=/path/mastodon-banner-vesper-bunny.png
+```
+
+The script `POST`s each image to `/api/v2/media`, then `PATCH /api/v1/accounts/update_credentials` with the files plus note, website field, and `bot=false`. Confirm with `npx tsx scripts/mastodon-verify-token.ts`.
+
+If the PATCH returns **403**, the token was minted without `write:accounts`. Production app **`nsfwdroid-ingest-bot`** currently grants `read`, `write:statuses`, `write:media` only — enough to post catalog items, not to change avatar/header/note.
+
+**2026-10-17 apply:** `POST /api/v2/media` for the Vesper avatar and bunny banner **succeeded**. `PATCH /api/v1/accounts/update_credentials` returned **403** (`This action is outside the authorized scopes`). Profile still has the default missing avatar/header and empty note. To finish live:
+
+1. Mastodon → **Preferences → Development → nsfwdroid-ingest-bot** — include **`write:accounts`** on the app.
+2. Re-run `scripts/mastodon-oauth-token.ts` authorize/exchange (helper scopes now include `write:accounts`).
+3. Replace `MASTODON_ACCESS_TOKEN` on the droplet (never commit).
+4. Re-run `npx tsx scripts/mastodon-update-profile.ts` with the avatar/header PNGs.
 
 **Security:** Do not put account passwords in chat, git, or `/etc/nsfwdroid.env`. If a password was shared elsewhere, change it in Mastodon → Password and use only the token for automation.
 
@@ -107,7 +147,7 @@ cron / end of catalog-ingest-cron.sh
 ```bash
 # Mastodon
 MASTODON_INSTANCE_URL=https://your.instance
-MASTODON_ACCESS_TOKEN=           # user token, write:statuses write:media
+MASTODON_ACCESS_TOKEN=           # user token, write:statuses write:media write:accounts
 SOCIAL_MASTODON_ENABLED=1
 SOCIAL_MAX_PER_INGEST=3
 SOCIAL_MAX_PER_DAY=15
