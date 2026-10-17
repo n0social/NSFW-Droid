@@ -12,6 +12,14 @@ type Row = { kind: "studio" | "game" | "community"; id: string; label: string; h
 
 const TIMEOUT_MS = Number(process.env.LINK_CHECK_TIMEOUT_MS ?? "15000");
 
+/** Hosts that often return 403 to automated probes but work in a normal browser. */
+const BOT_WALL_HOSTS = new Set([
+  "hanime.tv",
+  "nhentai.net",
+  "iwara.tv",
+  "sfmlab.com",
+]);
+
 function rows(): Row[] {
   const studios = CURATED_STUDIOS.map((s) => ({
     kind: "studio" as const,
@@ -61,6 +69,15 @@ async function probe(url: string): Promise<{ ok: boolean; status?: number; final
     }
     if (res.status === 429) {
       return { ok: true, status: 429, final: res.url, error: "rate_limited_ok" };
+    }
+    let hostname = "";
+    try {
+      hostname = new URL(res.url || trimmed).hostname.replace(/^www\./, "");
+    } catch {
+      /* ignore */
+    }
+    if (res.status === 403 && BOT_WALL_HOSTS.has(hostname)) {
+      return { ok: true, status: 403, final: res.url, error: "bot_wall_ok" };
     }
     const ok = res.ok || (res.status >= 300 && res.status < 400);
     return { ok, status: res.status, final: res.url };

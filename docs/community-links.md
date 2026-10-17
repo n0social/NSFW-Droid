@@ -37,3 +37,4 @@ When you email adult **game catalog** directories ([directory-submissions.md](di
 | Date | Change |
 | --- | --- |
 | 2026-10-17 | Initial `/links` page, header dropdown, curated data file |
+| 2026-10-17 | Expanded hentai + SFM hubs (Porn Dude–aligned picks; SFMLab + SmutBase, SFMCompile) |
