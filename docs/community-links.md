@@ -9,6 +9,7 @@ Public route: **https://www.nsfwdroid.com/links** — curated outbound URLs for 
 **Creators** in the site header opens a dropdown:
 
 - **Studios & games** → `/creators`
+- **Creator assets** → `/creators/assets` (sounds & VO — see [creator-assets-sounds.md](creator-assets-sounds.md))
 - **Community links** → `/links`
 
 ## Editing the list
