@@ -46,23 +46,27 @@ function authorizeUrl(): string {
 }
 
 async function exchangeCode(code: string): Promise<void> {
+  const body = new URLSearchParams({
+    grant_type: "authorization_code",
+    client_id: clientId(),
+    client_secret: clientSecret(),
+    redirect_uri: REDIRECT_URI,
+    code: code.trim(),
+  });
   const res = await fetch(`${baseUrl()}/oauth/token`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      grant_type: "authorization_code",
-      client_id: clientId(),
-      client_secret: clientSecret(),
-      redirect_uri: REDIRECT_URI,
-      code: code.trim(),
-      scope: SCOPES,
-    }),
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body,
   });
-  const body = await res.text();
+  const responseText = await res.text();
   if (!res.ok) {
-    throw new Error(`token_exchange_${res.status}:${body.slice(0, 400)}`);
+    throw new Error(`token_exchange_${res.status}:${responseText.slice(0, 400)}`);
   }
-  const json = JSON.parse(body) as { access_token?: string; token_type?: string; scope?: string };
+  const json = JSON.parse(responseText) as {
+    access_token?: string;
+    token_type?: string;
+    scope?: string;
+  };
   if (!json.access_token) throw new Error("missing access_token in response");
   console.log(
     JSON.stringify({
