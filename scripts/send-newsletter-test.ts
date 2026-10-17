@@ -22,15 +22,13 @@ async function main() {
   const from = newsletterFromAddress();
   console.log(JSON.stringify({ transport, from, to }, null, 2));
 
-  if (transport === "sendmail") {
-    const dns = await checkLocalMailDns(from);
-    if (dns.issues.length) {
-      console.error("DNS issues:", dns.issues.join(" | "));
-      process.exit(1);
-    }
-    if (dns.warnings.length) {
-      console.warn("DNS warnings:", dns.warnings.join(" | "));
-    }
+  const dns = await checkLocalMailDns(from);
+  if (dns.issues.length) {
+    console.error("DNS issues:", dns.issues.join(" | "));
+    process.exit(1);
+  }
+  if (dns.warnings.length) {
+    console.warn("DNS warnings:", dns.warnings.join(" | "));
   }
 
   const result = await sendNewsletterEmail({
