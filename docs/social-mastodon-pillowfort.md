@@ -54,7 +54,7 @@ cron / end of catalog-ingest-cron.sh
     → social_drain.ts       # Mastodon (+ Pillowfort when ready)
 ```
 
-**Table `social_outbox` (planned):**
+**Table `social_outbox` (migration `drizzle/0013_social_outbox.sql`):**
 
 | Column | Purpose |
 | --- | --- |
@@ -89,9 +89,22 @@ PILLOWFORT_ENABLED=0
 - **Do not** post every candidate row — only **live published** listings.
 - **Videos:** separate enqueue from `video-feeds` with outbound policy respected (link to your `/videos` page, not hotlinking if source forbids).
 
+## Ops (droplet)
+
+After ingest (`scripts/catalog-ingest-cron.sh`), when `SOCIAL_MASTODON_ENABLED=1` (or `SOCIAL_ENQUEUE_ENABLED=1` / `PILLOWFORT_ENABLED=1`):
+
+```bash
+npx tsx scripts/social-enqueue.ts   # new listings → pending rows
+npx tsx scripts/social-drain.ts     # Mastodon API (respects SOCIAL_MAX_PER_DAY)
+```
+
+Logs append to `/var/log/nsfwdroid-social.log` (override with `NSFWDROID_SOCIAL_LOG`).
+
+Local compose check: `npx tsx scripts/test-social-compose.ts`.
+
 ## Implementation order
 
-1. **Mastodon only:** outbox migration, enqueue after ingest, drain script, ops log `/var/log/nsfwdroid-social.log`.
+1. **Mastodon only:** outbox migration, enqueue after ingest, drain script, ops log `/var/log/nsfwdroid-social.log`. **Done in repo** — enable on droplet once instance + token are set.
 2. **Admin preview (optional):** `/admin` queue of pending social posts before drain.
 3. **Pillowfort:** manual mirror → permission → adapter.
 4. Tune rates from engagement and instance mod feedback.
