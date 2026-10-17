@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Watchdog: restart nsfwdroid if the unit is down or /api/health fails on localhost.
-# Skips recovery during intentional weekly maintenance (.weekly-maintenance.lock).
+# Skips recovery while weekly or catalog maintenance locks are present.
 # On persistent failure, sends a rate-limited ops email (see scripts/alert-email.sh).
 set -euo pipefail
 
@@ -18,7 +18,14 @@ log() {
   echo "[$(date -Is)] [ensure-nsfwdroid] $*" | tee -a "$LOG_FILE"
 }
 
-if [[ -f "$WEEKLY_LOCK_FILE" || -f "$CATALOG_MAINT_LOCK_FILE ]]; then
+maintenance_lock_present() {
+  [[ -f "$WEEKLY_LOCK_FILE" || -f "$CATALOG_MAINT_LOCK_FILE" ]]
+}
+
+# Ingest cron and this watchdog both fire at :00. This early check can run
+# before catalog-maintenance.sh creates its lock. The check after the health
+# probe is what stops a restart from canceling that stop and skipping ingest.
+if maintenance_lock_present; then
   exit 0
 fi
 
@@ -64,6 +71,11 @@ elif ! health_ok; then
 fi
 
 if [[ -z "$reason" ]]; then
+  exit 0
+fi
+
+if maintenance_lock_present; then
+  log "skipping recovery; maintenance lock is present ($reason)"
   exit 0
 fi
 

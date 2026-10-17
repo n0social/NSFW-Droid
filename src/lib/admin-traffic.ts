@@ -1,7 +1,8 @@
-import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { adminAuditLog, analyticsEvents, listings } from "@/db/schema";
 import { logAdminAction } from "@/lib/admin-audit";
+import { visitorClickConditions, visitorOutboundClickSql } from "@/lib/analytics-quality";
 import type { TopListingRow } from "@/lib/admin-dashboard";
 
 export type DailyTrafficRow = {
@@ -20,6 +21,7 @@ export type AdminTrafficSnapshot = {
   windowDays: number;
   totals: {
     outboundClicks: number;
+    unverifiedGoHits: number;
     listingViews: number;
     pageViews: number;
     allEvents: number;
@@ -43,10 +45,12 @@ export async function getAdminTrafficSnapshot(windowDays = 30): Promise<AdminTra
   const sinceWindow = new Date(now - windowDays * 24 * 60 * 60 * 1000);
   const since7d = new Date(now - 7 * 24 * 60 * 60 * 1000);
 
+  const play = visitorOutboundClickSql();
   const totalsResult = await db.execute(sql`
     SELECT
-      (SELECT count(*)::int FROM analytics_event WHERE event_type = 'outbound_click') AS outbound_clicks,
-      (SELECT count(*)::int FROM analytics_event WHERE event_type = 'listing_view') AS listing_views,
+      (SELECT count(*)::int FROM analytics_event WHERE ${play}) AS outbound_clicks,
+      (SELECT count(*)::int FROM analytics_event WHERE event_type = 'outbound_click' AND NOT (${play})) AS unverified_go_hits,
+      (SELECT count(*)::int FROM analytics_event WHERE event_type = 'listing_view' AND path = '/') AS listing_views,
       (SELECT count(*)::int FROM analytics_event WHERE event_type = 'page_view') AS page_views,
       (SELECT count(*)::int FROM analytics_event) AS all_events
   `);
@@ -66,19 +70,19 @@ export async function getAdminTrafficSnapshot(windowDays = 30): Promise<AdminTra
     LEFT JOIN (
       SELECT (created_at AT TIME ZONE 'UTC')::date AS day, count(*)::int AS clicks
       FROM analytics_event
-      WHERE event_type = 'outbound_click' AND created_at >= ${sinceWindow}
+      WHERE ${play} AND created_at >= ${sinceWindow}
       GROUP BY 1
     ) c ON c.day = d.day
     LEFT JOIN (
       SELECT (created_at AT TIME ZONE 'UTC')::date AS day, count(*)::int AS views
       FROM analytics_event
-      WHERE event_type = 'listing_view' AND created_at >= ${sinceWindow}
+      WHERE event_type = 'listing_view' AND path = '/' AND created_at >= ${sinceWindow}
       GROUP BY 1
     ) v ON v.day = d.day
     ORDER BY d.day
   `);
 
-  const topClicks7d = await topListingsByEvent("outbound_click", since7d, 15);
+  const topClicks7d = await topPlayClicks(since7d, 15);
 
   const markerRows = await db
     .select({ createdAt: adminAuditLog.createdAt })
@@ -104,6 +108,7 @@ export async function getAdminTrafficSnapshot(windowDays = 30): Promise<AdminTra
     windowDays,
     totals: {
       outboundClicks: Number(totals.outbound_clicks ?? 0),
+      unverifiedGoHits: Number(totals.unverified_go_hits ?? 0),
       listingViews: Number(totals.listing_views ?? 0),
       pageViews: Number(totals.page_views ?? 0),
       allEvents: Number(totals.all_events ?? 0),
@@ -177,11 +182,7 @@ export async function ensureTrafficMarkerBaseline(): Promise<string | null> {
   return new Date().toISOString();
 }
 
-async function topListingsByEvent(
-  eventType: "outbound_click" | "listing_view",
-  since: Date,
-  limit: number,
-): Promise<TopListingRow[]> {
+async function topPlayClicks(since: Date, limit: number): Promise<TopListingRow[]> {
   const db = await getDb();
   const rows = await db
     .select({
@@ -192,7 +193,7 @@ async function topListingsByEvent(
     })
     .from(analyticsEvents)
     .innerJoin(listings, eq(listings.id, analyticsEvents.listingId))
-    .where(and(eq(analyticsEvents.eventType, eventType), gte(analyticsEvents.createdAt, since)))
+    .where(visitorClickConditions(since))
     .groupBy(analyticsEvents.listingId, listings.title, listings.slug)
     .orderBy(desc(sql`count(*)`))
     .limit(limit);
@@ -206,3 +207,4 @@ async function topListingsByEvent(
       count: r.count,
     }));
 }
+
