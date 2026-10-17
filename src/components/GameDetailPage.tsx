@@ -66,6 +66,7 @@ export function GameDetailPage({
   }, [coverUrl]);
 
   useEffect(() => {
+    if (!ageVerified) return;
     fetch("/api/analytics/view", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -74,7 +75,7 @@ export function GameDetailPage({
         path: gameListingPath(listing.slug),
       }),
     }).catch(() => {});
-  }, [listing.id, listing.slug]);
+  }, [ageVerified, listing.id, listing.slug]);
 
   return (
     <>
@@ -210,6 +211,7 @@ export function GameDetailPage({
                     game={game}
                     index={i}
                     blur={effectiveBlur}
+                    ageVerified={ageVerified}
                     themeAssets={themeAssets}
                   />
                 ))}

@@ -14,7 +14,9 @@ export default async function PrivacyPage() {
         <h1 className="mt-4 text-2xl font-black">Privacy</h1>
         <p className="mt-4 text-sm leading-relaxed text-[#E9D5FF]/90">
           <strong className="text-[#FFF1F7]">Essential cookies.</strong> We set{" "}
-          <code className="text-[#F9A8D4]">age_verified</code> after you pass the age gate, optional{" "}
+          <code className="text-[#F9A8D4]">age_verified</code> after you pass the age gate,{" "}
+          <code className="text-[#F9A8D4]">analytics_sid</code> so play clicks and card impressions
+          can be counted per browser, optional{" "}
           <code className="text-[#F9A8D4]">blur_covers</code> for cover blur, and{" "}
           <code className="text-[#F9A8D4]">USER_SESSION</code> when you sign in (signed httpOnly
           session). These are required for site function and are not used for cross-site advertising.

@@ -240,6 +240,7 @@ export function BrowseCatalog({
                     index={i}
                     layout="grid"
                     blur={effectiveBlur}
+                    ageVerified={ageVerified}
                     themeAssets={themeAssets}
                   />
                 ))}

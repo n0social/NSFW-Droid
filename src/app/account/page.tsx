@@ -191,7 +191,14 @@ export default function AccountPage() {
               ) : (
                 <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4">
                   {favorites.map((g, i) => (
-                    <GameCard key={g.id} game={g} index={i} layout="grid" blur={blurDefault} />
+                    <GameCard
+                      key={g.id}
+                      game={g}
+                      index={i}
+                      layout="grid"
+                      blur={blurDefault}
+                      ageVerified
+                    />
                   ))}
                 </div>
               )}

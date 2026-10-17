@@ -88,8 +88,9 @@ export function AdminDashboard() {
     <AdminShell title="Admin dashboard">
       <p className="text-xs text-[#E9D5FF]/80">
         Live metrics refresh every 30s. Play clicks are age-verified visits to a store link.
-        Card impressions fire once per card painted on screen, including repeat loads. Ingest does
-        not write either number. Rails still blend raw events with favorites
+        Each browser gets its own session cookie, so unique browsers are not the shared age-gate
+        value. Card impressions count when a card is half on screen, once per browser per day.
+        Ingest does not write either number. Rails still blend raw events with favorites
         (weights in <code className="text-[#F9A8D4]">listings-ranking.ts</code>). Daily chart:{" "}
         <Link href="/admin/traffic" className="text-[#FF4D8D] underline">Traffic marker</Link>.
       </p>
@@ -125,12 +126,12 @@ export function AdminDashboard() {
             <StatCard
               label="Play clicks"
               value={data.analytics.playClicks24h}
-              hint={`${data.analytics.playClicks7d} / 7d · ${data.analytics.unverifiedGoHits24h} unverified /api/go hits excluded (24h) · affiliate ${data.analytics.affiliateClicks24h} / official ${data.analytics.officialClicks24h}`}
+              hint={`${data.analytics.playClicks7d} / 7d · ${data.analytics.uniquePlayBrowsers24h} unique browsers / 24h · ${data.analytics.unverifiedGoHits24h} unverified /api/go hits excluded · affiliate ${data.analytics.affiliateClicks24h} / official ${data.analytics.officialClicks24h}`}
             />
             <StatCard
               label="Card impressions"
               value={data.analytics.cardImpressions24h}
-              hint={`${data.analytics.cardImpressions7d} / 7d · ${data.analytics.detailViews24h} game-page opens / 24h`}
+              hint={`${data.analytics.cardImpressions7d} / 7d · ${data.analytics.uniqueImpressionBrowsers24h} unique browsers / 24h · ${data.analytics.detailViews24h} game-page opens / 24h. A card counts once it is half on screen, once per browser per day.`}
             />
           </div>
 

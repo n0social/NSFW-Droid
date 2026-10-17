@@ -1,5 +1,9 @@
 import { and, desc, eq, gte, sql, type SQL } from "drizzle-orm";
-import { visitorClickConditions, visitorOutboundClickSql } from "@/lib/analytics-quality";
+import {
+  uniqueBrowserSessionSql,
+  visitorClickConditions,
+  visitorOutboundClickSql,
+} from "@/lib/analytics-quality";
 import { getDb } from "@/db";
 import {
   countListingsAddedInDays,
@@ -41,6 +45,9 @@ export type AdminDashboardSnapshot = {
     /** Age-verified same-host plays. Excludes crawler GETs and /admin. */
     playClicks24h: number;
     playClicks7d: number;
+    /** Distinct analytics_sid values. The old shared age-gate hash is excluded. */
+    uniquePlayBrowsers24h: number;
+    uniqueImpressionBrowsers24h: number;
     /** /api/go hits that are not play clicks (no age cookie, no referrer, or admin). */
     unverifiedGoHits24h: number;
     outboundClicks24h: number;
@@ -134,10 +141,13 @@ export async function getAdminDashboardSnapshot(): Promise<AdminDashboardSnapsho
   `);
 
   const play = visitorOutboundClickSql();
+  const browsers = uniqueBrowserSessionSql();
   const analyticsResult = await db.execute(sql`
     SELECT
       (SELECT count(*)::int FROM analytics_event WHERE ${play} AND created_at >= ${since24h}) AS play_clicks_24h,
       (SELECT count(*)::int FROM analytics_event WHERE ${play} AND created_at >= ${since7d}) AS play_clicks_7d,
+      (SELECT count(distinct session_hash)::int FROM analytics_event WHERE ${play} AND ${browsers} AND created_at >= ${since24h}) AS unique_play_browsers_24h,
+      (SELECT count(distinct session_hash)::int FROM analytics_event WHERE event_type = 'listing_view' AND path = '/' AND ${browsers} AND created_at >= ${since24h}) AS unique_impression_browsers_24h,
       (SELECT count(*)::int FROM analytics_event WHERE event_type = 'outbound_click' AND created_at >= ${since24h} AND NOT (${play})) AS unverified_go_24h,
       (SELECT count(*)::int FROM analytics_event WHERE event_type = 'outbound_click' AND created_at >= ${since24h}) AS clicks_24h,
       (SELECT count(*)::int FROM analytics_event WHERE event_type = 'outbound_click' AND created_at >= ${since7d}) AS clicks_7d,
@@ -221,6 +231,8 @@ export async function getAdminDashboardSnapshot(): Promise<AdminDashboardSnapsho
     analytics: {
       playClicks24h: analytics.play_clicks_24h ?? 0,
       playClicks7d: analytics.play_clicks_7d ?? 0,
+      uniquePlayBrowsers24h: analytics.unique_play_browsers_24h ?? 0,
+      uniqueImpressionBrowsers24h: analytics.unique_impression_browsers_24h ?? 0,
       unverifiedGoHits24h: analytics.unverified_go_24h ?? 0,
       outboundClicks24h: analytics.clicks_24h ?? 0,
       outboundClicks7d: analytics.clicks_7d ?? 0,
