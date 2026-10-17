@@ -21,9 +21,9 @@ function TrafficBarChart({ daily }: { daily: AdminTrafficSnapshot["daily"] }) {
   if (daily.every((d) => d.outboundClicks === 0 && d.listingViews === 0)) {
     return (
       <p className="mt-4 text-xs text-[#E9D5FF]/70">
-        No outbound clicks or listing views in this window yet. Clicks are recorded on{" "}
-        <code className="text-[#F9A8D4]">/api/go/[listingId]</code>; views on game detail and card
-        impressions.
+        No play clicks or card impressions in this window yet. Play clicks are age-verified
+        visits to <code className="text-[#F9A8D4]">/api/go/[listingId]</code>. Card impressions
+        are recorded when a homepage card is painted.
       </p>
     );
   }
@@ -42,7 +42,7 @@ function TrafficBarChart({ daily }: { daily: AdminTrafficSnapshot["daily"] }) {
             <div
               key={row.day}
               className="group flex min-w-0 flex-1 flex-col items-center justify-end"
-              title={`${row.day}: ${row.outboundClicks} outbound · ${row.listingViews} views`}
+              title={`${row.day}: ${row.outboundClicks} play clicks · ${row.listingViews} card impressions`}
             >
               <span className="mb-1 text-[9px] tabular-nums text-[#E9D5FF]/80">
                 {row.outboundClicks > 0 ? row.outboundClicks : ""}
@@ -57,7 +57,7 @@ function TrafficBarChart({ daily }: { daily: AdminTrafficSnapshot["daily"] }) {
         })}
       </div>
       <p className="mt-3 text-[10px] text-[#E9D5FF]/60">
-        Bar height = outbound clicks per UTC day (last {daily.length} days). Hover a bar for views.
+        Bar height = play clicks per UTC day (last {daily.length} days). Hover a bar for card impressions.
       </p>
     </div>
   );
@@ -69,7 +69,7 @@ function TopList({
   rows: AdminTrafficSnapshot["topClicks7d"];
 }) {
   if (rows.length === 0) {
-    return <p className="mt-3 text-xs text-[#E9D5FF]/70">No outbound clicks in the last 7 days.</p>;
+    return <p className="mt-3 text-xs text-[#E9D5FF]/70">No play clicks in the last 7 days.</p>;
   }
   return (
     <ol className="mt-3 space-y-2">
@@ -120,10 +120,13 @@ export function AdminTraffic() {
   return (
     <AdminShell title="Traffic marker">
       <p className="text-xs text-[#E9D5FF]/80">
-        First-party <strong className="font-bold text-[#FFF1F7]">outbound_click</strong> and{" "}
-        <strong className="font-bold text-[#FFF1F7]">listing_view</strong> rows from{" "}
-        <code className="text-[#F9A8D4]">analytics_event</code> — same pipeline as home rails and{" "}
-        <Link href="/admin" className="text-[#FF4D8D] underline">admin dashboard</Link>.
+        Play clicks are age-verified visits from a public page to{" "}
+        <code className="text-[#F9A8D4]">/api/go</code>. Requests with no age cookie, no referrer, or
+        an admin referrer stay out of these totals
+        {data ? ` (${data.totals.unverifiedGoHits} excluded all time)` : ""}. Card impressions are{" "}
+        <code className="text-[#F9A8D4]">listing_view</code> rows with path <code className="text-[#F9A8D4]">/</code>{" "}
+        — one per card painted, not a game-page open. Ingest does not write these rows.{" "}
+        <Link href="/admin" className="text-[#FF4D8D] underline">Dashboard</Link>.
       </p>
 
       {loading && !data && <p className="mt-6 text-sm text-[#E9D5FF]">Loading…</p>}
@@ -144,7 +147,7 @@ export function AdminTraffic() {
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-xl border border-[#C026D3]/30 bg-[#241033] p-4">
               <p className="text-[10px] font-bold uppercase tracking-wide text-[#E9D5FF]/70">
-                Outbound clicks (all time)
+                Play clicks (all time)
               </p>
               <p className="mt-1 text-2xl font-black tabular-nums text-[#FFF1F7]">
                 {data.totals.outboundClicks}
@@ -152,7 +155,7 @@ export function AdminTraffic() {
             </div>
             <div className="rounded-xl border border-[#C026D3]/30 bg-[#241033] p-4">
               <p className="text-[10px] font-bold uppercase tracking-wide text-[#E9D5FF]/70">
-                Listing views (all time)
+                Card impressions (all time)
               </p>
               <p className="mt-1 text-2xl font-black tabular-nums text-[#FFF1F7]">
                 {data.totals.listingViews}
@@ -166,7 +169,7 @@ export function AdminTraffic() {
                 {data.dailySummary.today.outboundClicks}
               </p>
               <p className="mt-1 text-[10px] text-[#E9D5FF]/60">
-                {data.dailySummary.today.listingViews} listing views
+                {data.dailySummary.today.listingViews} card impressions
               </p>
             </div>
             <div className="rounded-xl border border-[#C026D3]/30 bg-[#241033] p-4">
@@ -177,18 +180,18 @@ export function AdminTraffic() {
                 {data.dailySummary.yesterday.outboundClicks}
               </p>
               <p className="mt-1 text-[10px] text-[#E9D5FF]/60">
-                {data.dailySummary.yesterday.listingViews} listing views
+                {data.dailySummary.yesterday.listingViews} card impressions
               </p>
             </div>
           </div>
 
           <p className="mt-2 text-[10px] text-[#E9D5FF]/50">
-            Last 7 UTC days: {data.dailySummary.last7d.outboundClicks} outbound ·{" "}
-            {data.dailySummary.last7d.listingViews} listing views
+            Last 7 UTC days: {data.dailySummary.last7d.outboundClicks} play clicks ·{" "}
+            {data.dailySummary.last7d.listingViews} card impressions
           </p>
 
           <section className="mt-6 rounded-xl border border-[#C026D3]/30 bg-[#241033] p-4">
-            <h2 className="text-sm font-black">Daily outbound clicks</h2>
+            <h2 className="text-sm font-black">Daily play clicks</h2>
             <TrafficBarChart daily={data.daily} />
           </section>
 
@@ -199,8 +202,8 @@ export function AdminTraffic() {
                 <thead className="text-[#E9D5FF]/70">
                   <tr>
                     <th className="px-2 py-1.5 font-bold">Day</th>
-                    <th className="px-2 py-1.5 font-bold text-right">Outbound</th>
-                    <th className="px-2 py-1.5 font-bold text-right">Listing views</th>
+                    <th className="px-2 py-1.5 font-bold text-right">Play clicks</th>
+                    <th className="px-2 py-1.5 font-bold text-right">Card impressions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -217,7 +220,7 @@ export function AdminTraffic() {
           </section>
 
           <section className="mt-6 rounded-xl border border-[#C026D3]/30 bg-[#241033] p-4">
-            <h2 className="text-sm font-black">Top listings by outbound clicks (7d)</h2>
+            <h2 className="text-sm font-black">Top listings by play clicks (7d)</h2>
             <TopList rows={data.topClicks7d} />
           </section>
         </>
