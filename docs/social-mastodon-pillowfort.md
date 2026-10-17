@@ -12,6 +12,41 @@ The **fediverse** is the network of **ActivityPub** apps (Mastodon, Pixelfed, et
 
 Docs: [authorized apps](https://docs.joinmastodon.org/client/authorized/), [post status](https://docs.joinmastodon.org/methods/statuses/), scopes `write:statuses` + `write:media`.
 
+### Getting an API token (no password on the server)
+
+Mastodon does **not** use your account password for posting. You create a **Development** app once, then store only **`MASTODON_ACCESS_TOKEN`** on the droplet.
+
+**Production account (lookup):** `@nsfwdroid@mastodon.social` → `MASTODON_INSTANCE_URL=https://mastodon.social`
+
+1. Log in on the web (mastodon.social usually wants the **email** you signed up with, not only the username).
+2. **Preferences → Development** → your app (e.g. `cursor`) with redirect **`urn:ietf:wg:oauth:2.0:oob`**.
+3. Copy **Client key** → `MASTODON_CLIENT_ID`, **Client secret** → `MASTODON_CLIENT_SECRET` (local shell only; never commit).
+4. Print the authorize link and approve the app in the browser:
+
+```bash
+MASTODON_INSTANCE_URL=https://mastodon.social \
+MASTODON_CLIENT_ID=... MASTODON_CLIENT_SECRET=... \
+npx tsx scripts/mastodon-oauth-token.ts authorize
+```
+
+5. After you authorize, Mastodon shows a **code** on the page. Exchange it (output includes `access_token`):
+
+```bash
+npx tsx scripts/mastodon-oauth-token.ts exchange --code=PASTE_CODE_HERE
+```
+
+6. On the droplet (`/etc/nsfwdroid.env`):
+
+```bash
+SOCIAL_MASTODON_ENABLED=1
+MASTODON_INSTANCE_URL=https://mastodon.social
+MASTODON_ACCESS_TOKEN=...
+```
+
+7. Verify: `npx tsx scripts/mastodon-verify-token.ts` (with the same env vars).
+
+**Security:** Do not put account passwords in chat, git, or `/etc/nsfwdroid.env`. If a password was shared elsewhere, change it in Mastodon → Password and use only the token for automation.
+
 ### Choosing an instance (18+ game catalog)
 
 Pick a server whose rules allow **marked NSFW** game promos and **linking to your site** (many instances discourage pure outbound ads). Prefer:
