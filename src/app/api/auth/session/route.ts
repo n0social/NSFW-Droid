@@ -5,6 +5,7 @@ import {
   userSessionCookieOptions,
   verifySignedSessionValue,
 } from "@/lib/session-cookie";
+import { AGE_VERIFIED_COOKIE, ageVerifiedCookieOptions } from "@/lib/cookies";
 import { USER_SESSION_COOKIE } from "@/lib/user-session";
 
 export async function POST(request: Request) {
@@ -54,6 +55,7 @@ export async function POST(request: Request) {
 
   const res = NextResponse.json({ ok: true });
   res.cookies.set(USER_SESSION_COOKIE, sessionValue, userSessionCookieOptions);
+  res.cookies.set(AGE_VERIFIED_COOKIE, "1", ageVerifiedCookieOptions());
   return res;
 }
 
