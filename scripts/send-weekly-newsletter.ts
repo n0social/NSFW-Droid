@@ -1,8 +1,7 @@
 /**
- * Send the weekly member newsletter.
+ * Send the weekly member newsletter via droplet Exim (`sendmail`).
  *
- * Droplet: NEWSLETTER_ENABLED=1 and NEWSLETTER_TRANSPORT=sendmail (Exim on localhost).
- * Brevo remains available when NEWSLETTER_TRANSPORT=brevo and BREVO_API_KEY is set.
+ * Prerequisites: NEWSLETTER_ENABLED=1, NEWSLETTER_TRANSPORT=sendmail (default)
  *
  * Usage:
  *   tsx scripts/send-weekly-newsletter.ts --dry-run
@@ -16,7 +15,6 @@ import {
   WEEKLY_NEWSLETTER_SUBJECT,
 } from "../src/lib/newsletter/config";
 import { fetchWeeklyNewsletterPicks } from "../src/lib/newsletter/picks";
-import { checkBrevoDomainDns } from "../src/lib/newsletter/brevo-dns";
 import { checkLocalMailDns } from "../src/lib/newsletter/local-dns";
 import { newsletterTransport } from "../src/lib/newsletter/send";
 import { sendWeeklyNewsletterToSubscriber } from "../src/lib/newsletter/send-weekly-to-subscriber";
@@ -41,6 +39,7 @@ async function main() {
     dryRun,
     subject: WEEKLY_NEWSLETTER_SUBJECT,
     from: newsletterFromAddress(),
+    transport: newsletterTransport(),
     pickCount: pickResult.picks.length,
     subscriberCount: subscribers.length,
     windowDays: pickResult.windowDays,
@@ -59,13 +58,6 @@ async function main() {
     process.exit(1);
   }
 
-  const transport = newsletterTransport();
-  if (transport === "brevo" && !process.env.BREVO_API_KEY?.trim()) {
-    console.error("[send-weekly-newsletter] Missing BREVO_API_KEY");
-    await closeCatalogDb();
-    process.exit(1);
-  }
-
   if (!subscribers.length) {
     console.error("[send-weekly-newsletter] No active subscribers");
     await closeCatalogDb();
@@ -73,10 +65,7 @@ async function main() {
   }
 
   if (!skipDns) {
-    const dns =
-      transport === "sendmail"
-        ? await checkLocalMailDns(summary.from)
-        : await checkBrevoDomainDns(summary.from);
+    const dns = await checkLocalMailDns(summary.from);
     if (dns.issues.length) {
       console.error(
         "[send-weekly-newsletter] DNS issues (fix before live send):",

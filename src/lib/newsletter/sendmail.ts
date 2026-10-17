@@ -38,9 +38,16 @@ export function buildNewsletterMime(input: SendmailInput): {
   const boundary = `nsfwdroid_${randomUUID().replace(/-/g, "")}`;
   const date = new Date().toUTCString().replace("GMT", "+0000");
 
+  const replyTo =
+    process.env.NEWSLETTER_REPLY_TO?.trim() ||
+    process.env.NEWSLETTER_FROM?.trim() ||
+    process.env.ALERT_EMAIL_FROM?.trim() ||
+    fromHeader;
+
   const headers = [
     `From: ${fromHeader}`,
     `To: ${input.to}`,
+    `Reply-To: ${replyTo}`,
     `Subject: ${encodeHeader(input.subject)}`,
     `Date: ${date}`,
     `Message-ID: ${messageId}`,
@@ -50,6 +57,8 @@ export function buildNewsletterMime(input: SendmailInput): {
     const url = input.listUnsubscribeUrl.trim();
     headers.push(`List-Unsubscribe: <${url}>`);
     headers.push("List-Unsubscribe-Post: List-Unsubscribe=One-Click");
+    headers.push(`List-ID: <weekly.${domain}>`);
+    headers.push("Precedence: bulk");
   }
   headers.push(`Content-Type: multipart/alternative; boundary="${boundary}"`);
 

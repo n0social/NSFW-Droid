@@ -20,6 +20,8 @@ if (!raw.includes(`Message-ID: ${messageId}\r\n`)) problems.push("message-id");
 if (!raw.includes("List-Unsubscribe: <https://www.nsfwdroid.com/api/newsletter/unsubscribe?token=abc>")) {
   problems.push("list-unsubscribe");
 }
+if (!raw.includes("List-ID: <weekly.nsfwdroid.com>")) problems.push("list-id");
+if (!raw.includes("Reply-To: NSFW Droid <newsletter@nsfwdroid.com>")) problems.push("reply-to");
 if (!raw.includes("Content-Type: text/html; charset=UTF-8")) problems.push("html part");
 const htmlB64 = Buffer.from("<p>Hello & welcome</p>", "utf8").toString("base64");
 if (!raw.includes(htmlB64)) problems.push("html body");

@@ -17,6 +17,22 @@ NEWSLETTER_TRANSPORT=sendmail tsx scripts/check-newsletter-dns.ts
 
 Fix any `issues` in NameSilo (and PTR via DigitalOcean) before expecting inbox delivery. `send-weekly-newsletter.ts` aborts on DNS issues unless you pass `--skip-dns-check` (emergency only).
 
+## Inbox vs spam (droplet Exim)
+
+Weekly mail is **multipart/alternative** (plain + HTML) with **List-Unsubscribe**, **List-ID**, **Reply-To**, and envelope sender matching `newsletter@nsfwdroid.com` (`sendmail -f`). Exim adds **DKIM** when `deploy/setup-local-mail.sh` is installed.
+
+| Check | Why it matters |
+| --- | --- |
+| SPF includes droplet IP | Gmail/Yahoo reject or spam-folder without alignment |
+| `nsfwdroid._domainkey` TXT | DKIM signature must verify |
+| `_dmarc` published | Receivers trust the domain more with DMARC (start `p=none`, monitor) |
+| rDNS `mail.nsfwdroid.com` | Weak/missing PTR is a common spam signal for self-hosted mail |
+| Same From in env and DNS | `NEWSLETTER_FROM` must match the domain you authenticate |
+
+**One-off test:** `tsx scripts/send-newsletter-test.ts --to you@example.com` (droplet, with env loaded). Inspect Gmail → Show original for `spf=pass`, `dkim=pass`, `dmarc=pass`.
+
+Confirm/double-opt-in mail uses the same transport but omits list headers (transactional). If only the weekly message spams, fix bulk DNS; if confirm mail spams too, fix PTR/SPF/DKIM first.
+
 ## Footer subscribe (double opt-in)
 
 1. Open any page with `SiteFooter` (home, browse, game detail).

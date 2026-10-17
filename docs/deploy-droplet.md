@@ -273,7 +273,7 @@ Footer signup + double opt-in are live in the app (`POST /api/newsletter/subscri
 | Variable | Purpose |
 | --- | --- |
 | `NEWSLETTER_ENABLED` | `1` allows `scripts/send-weekly-newsletter.ts` to mail active subscribers |
-| `NEWSLETTER_TRANSPORT` | `sendmail` (default on droplet) — hands MIME to Exim on `127.0.0.1:25`. Optional `brevo` + `BREVO_API_KEY` if you switch ESP later |
+| `NEWSLETTER_TRANSPORT` | `sendmail` (default on droplet) — hands MIME to Exim on `127.0.0.1:25` |
 | `NEWSLETTER_PUBLIC_BASE_URL` | Confirm/unsubscribe links (default `NEXT_PUBLIC_SITE_URL`) |
 | `ALERT_EMAIL_FROM` or `NEWSLETTER_FROM` | From address for newsletter MIME. **Production:** `NEWSLETTER_FROM="NSFW Droid <newsletter@nsfwdroid.com>"` (quoted in `/etc/nsfwdroid.env`). Optional `NEWSLETTER_FROM_NAME` if the address is bare (app default: **NSFW Droid**) |
 
