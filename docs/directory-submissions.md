@@ -3,7 +3,7 @@
 **Last updated:** 17 October 2026  
 **Priority:** When you have bandwidth for **inbound traffic that is not social media**, pursue listings on directories that already curate **NSFW games** or **adult game catalogs** — not general tube-site roundups unless they have a clear **games / hentai games** category.
 
-**Related:** [social-engagement-playbook.md](social-engagement-playbook.md) (inbound model), [considerations.md](considerations.md) (link-out catalog), [affiliate](https://www.nsfwdroid.com/affiliate) (live disclosure page).
+**Related:** [social-engagement-playbook.md](social-engagement-playbook.md) (inbound model), [considerations.md](considerations.md) (link-out catalog), live disclosure at `https://www.nsfwdroid.com/affiliate`.
 
 ---
 
@@ -15,7 +15,9 @@
 
 **Cadence:** not weekly — aim for **1–3 quality outreach emails per quarter** when you find a directory that fits. Log every attempt in the [tracking table](#submission-tracking) below.
 
-**Site pitch URL:** [https://www.nsfwdroid.com](https://www.nsfwdroid.com) (homepage) or [https://www.nsfwdroid.com/browse](https://www.nsfwdroid.com/browse) (catalog). Example game page for reviewers: pick any live `/game/{slug}` with cover + working store link.
+**Site pitch URL:** [https://www.nsfwdroid.com](https://www.nsfwdroid.com) (homepage) or [https://www.nsfwdroid.com/browse](https://www.nsfwdroid.com/browse) (catalog). We also maintain a curated **Community links** page at [https://www.nsfwdroid.com/links](https://www.nsfwdroid.com/links) for other NSFW game catalogs and related hubs (see [community-links.md](community-links.md)) — useful when directories ask for reciprocal value.
+
+Example game page for reviewers: pick any live `/game/{slug}` with cover + working store link.
 
 ---
 
@@ -77,7 +79,9 @@ What we are:
 What we are not:
 • Not a tube, cam, or creator platform — only a game listing site with outbound links.
 
-If a catalog like ours fits your criteria, we’d appreciate being considered for a listing or review. I’m happy to answer questions about content policy, how listings are sourced, or to provide a different example URL.
+If a catalog like ours fits your criteria, we’d appreciate being considered for a listing or review. We also publish curated outbound links to other game-focused hubs (not tube lists) at https://www.nsfwdroid.com/links — happy to add vetted directories there when appropriate.
+
+I’m happy to answer questions about content policy, how listings are sourced, or to provide a different example URL.
 
 Thank you for the work you do curating [niche] resources.
 
