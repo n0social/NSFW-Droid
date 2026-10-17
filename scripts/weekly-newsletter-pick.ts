@@ -1,6 +1,7 @@
 /**
  * Weekly top-6 listings for the member newsletter (Phase 1).
  * Outputs JSON: { windowDays, filteredCount, picks: [...] }
+ * Rank: 7-day listing_view + weighted outbound_click (not member favorites).
  * Eligibility: published, link ok, no TOS hold/review block, no blocked tags, no offensive titles.
  *
  * Usage: tsx scripts/weekly-newsletter-pick.ts

@@ -311,7 +311,7 @@ NEWSLETTER_ENABLED=0 tsx scripts/send-weekly-newsletter.ts --dry-run   # must ab
 NEWSLETTER_ENABLED=1 tsx scripts/send-weekly-newsletter.ts --dry-run   # JSON summary only
 ```
 
-**Cron install:** Copy `deploy/cron.d/nsfwdroid-weekly-newsletter` (schedule **Sunday 12:00 UTC**). The job no-ops unless `NEWSLETTER_ENABLED=1`.
+**Cron install:** Copy `deploy/cron.d/nsfwdroid-weekly-newsletter` (schedule **Friday 20:00 UTC**). The job no-ops unless `NEWSLETTER_ENABLED=1`.
 
 ```bash
 cp deploy/cron.d/nsfwdroid-weekly-newsletter /etc/cron.d/nsfwdroid-weekly-newsletter
@@ -320,7 +320,7 @@ touch /var/log/nsfwdroid-newsletter.log
 chown root:root /var/log/nsfwdroid-newsletter.log
 ```
 
-Runs as **root** via `catalog-maintenance.sh` (brief stop/start of `nsfwdroid` for PGlite). Prefer **Sunday 12:00 UTC** after the Tue weekly maintenance window. The job no-ops unless `NEWSLETTER_ENABLED=1` and newsletter DNS checks pass (or you pass `--skip-dns-check` on a manual run).
+Runs as **root** via `catalog-maintenance.sh` (brief stop/start of `nsfwdroid` for PGlite). Scheduled **Friday 20:00 UTC**. The job no-ops unless `NEWSLETTER_ENABLED=1` and newsletter DNS checks pass (or you pass `--skip-dns-check` on a manual run).
 
 **Homepage featured rail:** set comma-separated slugs in env (order preserved), or set `chart_bucket = featured` + `chart_rank` on listings in admin/DB:
 

@@ -107,7 +107,7 @@ We are **not** selling games or a browse paywall in Phase 1. Payment infrastruct
 | Field | Spec |
 | --- | --- |
 | **List** | Emails from (a) `user_profile` where `newsletter_opt_in = true` and email from Firebase, plus (b) optional public footer signup → **Resend Audience** (`RESEND_NEWSLETTER_AUDIENCE_ID`) **or** Postgres `newsletter_subscriber` with **double opt-in** |
-| **Cadence** | Once per week, after ingest accumulation — e.g. **Sunday 12:00 UTC** or **after Tuesday weekly maintenance** ([weekly-maintenance.sh](../scripts/weekly-maintenance.sh)) when `NSFWDROID_WEEKLY_INGEST=1` |
+| **Cadence** | Once per week — **Friday 20:00 UTC** (`deploy/cron.d/nsfwdroid-weekly-newsletter`). Picks use a rolling 7-day analytics window at send time (not tied to Tuesday maintenance). |
 | **Audience** | 18+ site; members and subscribers who confirmed opt-in |
 | **Subject (exact)** | `Thanks for being a member: Here's our favorite NSFW games of the week` |
 
@@ -116,11 +116,11 @@ We are **not** selling games or a browse paywall in Phase 1. Payment infrastruct
 1. **Window:** rolling **7 days** UTC of `analytics_event` (configurable `NEWSLETTER_RANK_DAYS=7`).
 2. **Eligible listings:** `published`, `catalog_stale = false`, `link_status = 'ok'` — any ingest source (itch, Steam, manual, submit).
 3. **Pick filter** (`src/lib/newsletter/pick-eligibility.ts`, applied in `fetchWeeklyNewsletterPicks` and demo send): exclude rows with linked `candidate` **review_status ≠ approved**, **TOS hold** (`raw_payload.tosScreen.hold`), **tos-screen** match on title, **blocked browse tag slugs** (`src/lib/tag-filter.ts` blocklist — ripper, jeff killer, etc.), or **offensive title patterns** (violent / creepypasta junk). Rank pool considers up to 80 scored listings, then takes the first 6 that pass.
-4. **Signal:** blended engagement for the week:
-   - Primary: `listing_view` counts in window.
-   - Secondary: `outbound_click` counts (weight clicks higher than views — default **2×** in pick script).
-   - Optional tie-break: `user_favorite` counts (signed-in only), same spirit as `RANK_WEIGHT_FAVORITE_ON_TRENDING` in `src/lib/listings-ranking.ts`.
-5. **Output:** **6** games, ordered by score. **#1** is the hero headline (highest signal).
+4. **Signal:** blended **analytics only** (not member favorites):
+   - `listing_view` counts in the window (1×).
+   - `outbound_click` counts (default **2×** via `NEWSLETTER_CLICK_WEIGHT`).
+   - Score = views + clicks × weight; tie-break: more clicks, then stable `listingId`.
+5. **Output:** **6** games, ordered by score. **#1** is the hero headline (highest blended signal).
 
 Stub implementation: `scripts/weekly-newsletter-pick.ts` (JSON to stdout for cron/logging).
 

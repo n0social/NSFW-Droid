@@ -55,7 +55,7 @@ These are real, and they wait.
 - A developer page that shows the status of a submission.
 - Dead-link and “still adult?” rechecks when a source updates a game.
 - Analytics on outbound clicks, separated by affiliate and plain link.
-- Member rewards and verification payments — spec in [reward_program.md](reward_program.md) (Phase 0+). **Weekly newsletter** (footer double opt-in + Sunday cron) is live when `NEWSLETTER_ENABLED=1` on the droplet; points/badges remain future work.
+- Member rewards and verification payments — spec in [reward_program.md](reward_program.md) (Phase 0+). **Weekly newsletter** (footer double opt-in + Friday evening cron) is live when `NEWSLETTER_ENABLED=1` on the droplet; points/badges remain future work.
 - The Android client, Object Storage, and the upload terms, in that order, when a developer asks us to host a build.
 - Vesper art, from the brief, storefront outfit first.
 
