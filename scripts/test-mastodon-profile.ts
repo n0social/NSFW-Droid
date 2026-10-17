@@ -3,7 +3,7 @@ import {
   DEFAULT_DISPLAY_NAME,
   DEFAULT_NOTE,
   DEFAULT_WEBSITE,
-} from "./mastodon-update-profile.ts";
+} from "./mastodon-update-profile";
 
 assert.equal(DEFAULT_DISPLAY_NAME, "NSFW Droid");
 assert.equal(DEFAULT_WEBSITE, "https://www.nsfwdroid.com");
