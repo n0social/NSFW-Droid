@@ -73,8 +73,16 @@ if [[ -f "$ENV_FILE" ]]; then
   set +a
 fi
 
+run_as_app_user() {
+  if [[ "$(id -u)" -eq 0 ]]; then
+    runuser -u www-data -- env NPM_CONFIG_CACHE="${NPM_CONFIG_CACHE:-/var/www/.npm}" "$@"
+  else
+    "$@"
+  fi
+}
+
 log "running: $*"
-"$@"
+run_as_app_user "$@"
 
 if [[ -d "$CATALOG_DIR" ]]; then
   chown -R www-data:www-data "$CATALOG_DIR"
