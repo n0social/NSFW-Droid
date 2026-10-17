@@ -28,22 +28,31 @@ export const ADMIN_REFERRER_RE = "^https?://[^/]+/admin($|/|\\?)";
  */
 export function shouldRecordOutboundClick(input: {
   requestUrl: string;
+  /** Public Host or X-Forwarded-Host. Behind the proxy, request.url is the internal address. */
+  siteHost?: string | null;
   referrer: string | null | undefined;
   ageVerified: boolean;
 }): boolean {
   if (!input.ageVerified) return false;
   if (!input.referrer) return false;
   let ref: URL;
-  let req: URL;
   try {
     ref = new URL(input.referrer);
-    req = new URL(input.requestUrl);
   } catch {
     return false;
   }
-  if (ref.host !== req.host) return false;
+  const siteHost = (input.siteHost || safeHost(input.requestUrl) || "").split(",")[0].trim().toLowerCase();
+  if (!siteHost || ref.host.toLowerCase() !== siteHost) return false;
   if (ref.pathname === "/admin" || ref.pathname.startsWith("/admin/")) return false;
   return true;
+}
+
+function safeHost(url: string): string | null {
+  try {
+    return new URL(url).host;
+  } catch {
+    return null;
+  }
 }
 
 /** SQL predicate for outbound_click rows that match shouldRecordOutboundClick. */

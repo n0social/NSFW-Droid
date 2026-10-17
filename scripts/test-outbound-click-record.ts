@@ -77,6 +77,28 @@ expect(
   false,
 );
 
+expect(
+  "proxy internal request url, public host header",
+  shouldRecordOutboundClick({
+    requestUrl: "http://127.0.0.1:3000/api/go/abc",
+    siteHost: "www.nsfwdroid.com",
+    referrer: "https://www.nsfwdroid.com/browse",
+    ageVerified: true,
+  }),
+  true,
+);
+
+expect(
+  "forwarded host list uses the first host",
+  shouldRecordOutboundClick({
+    requestUrl: "http://127.0.0.1:3000/api/go/abc",
+    siteHost: "www.nsfwdroid.com, nsfwdroid.com",
+    referrer: "https://www.nsfwdroid.com/",
+    ageVerified: true,
+  }),
+  true,
+);
+
 if (problems.length) {
   console.error(problems.join("\n"));
   process.exit(1);
