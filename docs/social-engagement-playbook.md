@@ -9,6 +9,7 @@ Fediverse rules and where adult-game creators host **will change** — bump the 
 
 **Technical setup (OAuth, cron, outbox):** [social-mastodon-pillowfort.md](social-mastodon-pillowfort.md)  
 **Newsletter (Friday, Exim on droplet):** [newsletter-manual-test.md](newsletter-manual-test.md)  
+**Adult game directories (The Porn Dude–style lists):** [directory-submissions.md](directory-submissions.md) — **priority reminder** + example outreach email  
 **Product context:** [reward_program.md](reward_program.md)
 
 ---
@@ -21,6 +22,8 @@ You are **not** forgetting to “do social.” You only need to remember what **
 2. **Mastodon drain** → public posts with title, **game link**, cover, hashtags (discovery beacon, not a conversation account).  
 3. **Friday newsletter** → opted-in members get top picks (return traffic).  
 4. **Site** → browse, search engines, game pages, outbound store links.
+
+**Priority when you have time (not social):** contact **NSFW game catalog directories** — see [directory-submissions.md](directory-submissions.md) (tracking table + copy-paste email). Aim for a few pitches per quarter, not daily work.
 
 **Optional, rare:** once a quarter, skim [Ops checklist](#ops-checklist-quarterly-optional-10-min) so logs/DNS are healthy. That is infrastructure, not “posting on social.”
 
@@ -36,6 +39,7 @@ You are **not** forgetting to “do social.” You only need to remember what **
 | **Fediverse profile** | `discoverable` / `indexable` account; bio + header point to site | Set once (see social doc); no daily checks |
 | **Dev or player shares** | They link your game page or boost your bot post | Passive; you do not need to follow them first |
 | **Newsletter forward** | Subscriber shares an issue | Double opt-in list on site |
+| **Adult directory listings** | Someone finds you on a “best NSFW games” / catalog list | Manual outreach — [directory-submissions.md](directory-submissions.md) |
 
 **Not in scope for you:** following accounts, replying, boosting, Discord/Reddit campaigns, or “building community” on Mastodon. Those can help **if** you ever want them; they are **not** required for this strategy.
 
@@ -94,6 +98,8 @@ Only for **when something breaks** or you have not looked in months. Not “soci
 - [ ] Glance admin **outbound clicks** / views — trend over months, not daily.
 
 **Calendar title suggestion:** `NSFW Droid — quarterly ops (10 min)` — **not** “social media.”
+
+Optional same quarter: `NSFW Droid — directory outreach (30 min)` — pick one list from [directory-submissions.md](directory-submissions.md), send the example email if it fits.
 
 ---
 
@@ -160,3 +166,4 @@ If you are not doing this, **ignore this appendix.**
 | --- | --- |
 | 2026-10-17 | Initial playbook (included weekly manual social — superseded same day) |
 | 2026-10-17 | Reframed for **inbound / they come to us**; removed expectation of manual Mastodon work |
+| 2026-10-17 | Linked [directory-submissions.md](directory-submissions.md) (game-catalog directories + example email) |
