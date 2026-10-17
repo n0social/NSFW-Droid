@@ -3,9 +3,9 @@ import { and, eq, gte, sql, type SQL } from "drizzle-orm";
 import { analyticsEvents } from "@/db/schema";
 
 /**
- * Age gate sets `age_verified=1` for every visitor who taps Yes.
- * `recordEvent` stores the SHA-256 prefix of that cookie, so every
- * age-verified browser shares one session hash. It is not a person id.
+ * Historical rows hashed the age-gate cookie (`1`) or the literal `anon`.
+ * Those two hashes are shared by every old browser. New events use
+ * `analytics_sid`, one id per browser.
  */
 export const AGE_VERIFIED_COOKIE_VALUE = "1";
 
@@ -13,6 +13,10 @@ export const AGE_VERIFIED_SESSION_HASH = createHash("sha256")
   .update(AGE_VERIFIED_COOKIE_VALUE)
   .digest("hex")
   .slice(0, 32);
+
+export const ANON_SESSION_HASH = createHash("sha256").update("anon").digest("hex").slice(0, 32);
+
+export const SHARED_LEGACY_SESSION_HASHES = [AGE_VERIFIED_SESSION_HASH, ANON_SESSION_HASH] as const;
 
 /** Public site, localhost, or the apex/www host, with a path. */
 export const VISITOR_REFERRER_RE =
@@ -58,15 +62,22 @@ function safeHost(url: string): string | null {
 /** SQL predicate for outbound_click rows that match shouldRecordOutboundClick. */
 export function visitorOutboundClickSql(): SQL {
   return sql`event_type = 'outbound_click'
-    AND session_hash = ${AGE_VERIFIED_SESSION_HASH}
+    AND referrer IS NOT NULL
     AND referrer ~ ${VISITOR_REFERRER_RE}
     AND referrer !~ ${ADMIN_REFERRER_RE}`;
+}
+
+/** Browsers with their own analytics_sid. Excludes the old shared age-gate hash. */
+export function uniqueBrowserSessionSql(): SQL {
+  return sql`session_hash is not null
+    AND session_hash <> ${AGE_VERIFIED_SESSION_HASH}
+    AND session_hash <> ${ANON_SESSION_HASH}`;
 }
 
 export function visitorClickConditions(since?: Date): SQL {
   const parts: SQL[] = [
     eq(analyticsEvents.eventType, "outbound_click"),
-    eq(analyticsEvents.sessionHash, AGE_VERIFIED_SESSION_HASH),
+    sql`${analyticsEvents.referrer} IS NOT NULL`,
     sql`${analyticsEvents.referrer} ~ ${VISITOR_REFERRER_RE}`,
     sql`${analyticsEvents.referrer} !~ ${ADMIN_REFERRER_RE}`,
   ];

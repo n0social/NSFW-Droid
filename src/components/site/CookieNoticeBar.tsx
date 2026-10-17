@@ -36,6 +36,7 @@ export function CookieNoticeBar() {
       <div className="mx-auto flex max-w-5xl flex-col items-center gap-3 sm:flex-row sm:justify-between sm:gap-4">
         <p className="text-[11px] leading-relaxed text-[#E9D5FF]/90">
           We use essential cookies for age verification (<code className="text-[#F9A8D4]">age_verified</code>
+          ), a per-browser analytics id (<code className="text-[#F9A8D4]">analytics_sid</code>
           ), optional cover blur, and signed-in sessions (
           <code className="text-[#F9A8D4]">USER_SESSION</code>). Analytics and ad partners may set
           additional cookies when enabled — see our{" "}

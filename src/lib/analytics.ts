@@ -26,6 +26,14 @@ export async function recordEvent(input: {
     const sessionHash = input.sessionId
       ? createHash("sha256").update(input.sessionId).digest("hex").slice(0, 32)
       : null;
+    if (
+      input.eventType === "listing_view" &&
+      input.listingId &&
+      sessionHash &&
+      (await hasRecentListingView(input.listingId, sessionHash, input.path ?? ""))
+    ) {
+      return;
+    }
     await db.insert(analyticsEvents).values({
       eventType: input.eventType,
       listingId: input.listingId ?? null,
@@ -37,6 +45,26 @@ export async function recordEvent(input: {
   } catch (err) {
     console.error("[analytics] recordEvent failed:", err);
   }
+}
+
+/** One card or detail impression per browser per listing per path per day. */
+async function hasRecentListingView(
+  listingId: string,
+  sessionHash: string,
+  path: string,
+): Promise<boolean> {
+  const db = await getDb();
+  const prior = await db.execute(sql`
+    select 1 as one
+    from analytics_event
+    where event_type = 'listing_view'
+      and listing_id = ${listingId}::uuid
+      and session_hash = ${sessionHash}
+      and coalesce(path, '') = ${path}
+      and created_at >= now() - interval '24 hours'
+    limit 1
+  `);
+  return prior.rows.length > 0;
 }
 
 /** Leaderboard favorite signal: rows in `user_favorite` only (authenticated saves). */
