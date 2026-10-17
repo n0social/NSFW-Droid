@@ -78,5 +78,24 @@ export async function checkLocalMailDns(fromHeader: string): Promise<LocalMailDn
     warnings.push(`_dmarc.${domain} is not published`);
   }
 
+  if (mailIps.length) {
+    try {
+      const ptrHosts = await dns.reverse(mailIps[0]);
+      const want = mailHost.toLowerCase();
+      const ok = ptrHosts.some(
+        (h) => h.toLowerCase() === want || h.toLowerCase().endsWith(`.${want}`),
+      );
+      if (!ok) {
+        warnings.push(
+          `PTR for ${mailIps[0]} is ${ptrHosts.join(", ") || "missing"} (DigitalOcean should set rDNS to ${mailHost})`,
+        );
+      }
+    } catch {
+      warnings.push(
+        `No PTR for ${mailIps[0]} (ask DigitalOcean for rDNS → ${mailHost} when unblocking port 25)`,
+      );
+    }
+  }
+
   return { domain, issues, warnings };
 }

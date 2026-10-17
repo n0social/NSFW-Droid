@@ -5,17 +5,17 @@ See [reward_program.md](reward_program.md) for product spec.
 ## Prerequisites
 
 - `npm run db:migrate` (creates `newsletter_subscriber`)
-- `BREVO_API_KEY` in env (local `.env` or droplet `/etc/nsfwdroid.env`)
-- **From / sender name:** Confirm and weekly mail use `sendBrevoEmail`, which builds the Brevo `sender` from env (set the same address in Brevo → Senders).
-  - **Production:** In [Brevo → Senders, Domains & Dedicated IPs → Domains](https://app.brevo.com/senders/domain), authenticate **nsfwdroid.com** (SPF, DKIM, and brevo-code TXT in NameSilo — see [deploy-droplet.md](deploy-droplet.md)). Then set on the droplet, e.g. `NEWSLETTER_FROM=NSFW Droid <newsletter@nsfwdroid.com>` or `ALERT_EMAIL_FROM=newsletter@nsfwdroid.com` (shared with ops alerts if you use one address). The app defaults the display name to **NSFW Droid** (`NEWSLETTER_FROM_NAME` overrides).
+- **Production transport:** `NEWSLETTER_TRANSPORT=sendmail` and Exim on the droplet (`deploy/setup-local-mail.sh`). Outbound delivery needs DigitalOcean to unblock port 25; until then mail sits in the Exim queue.
+- **From / sender name:** Confirm and weekly mail use `sendNewsletterEmail` → local `sendmail` (Exim). Set e.g. `NEWSLETTER_FROM="NSFW Droid <newsletter@nsfwdroid.com>"` in `/etc/nsfwdroid.env` (display name defaults to **NSFW Droid**; override with `NEWSLETTER_FROM_NAME`).
+- Ops alerts remain on Resend (`RESEND_API_KEY` in `scripts/alert-email.sh`), not the newsletter path.
 
 ## DNS check (before first live send)
 
 ```bash
-tsx scripts/check-newsletter-dns.ts
+NEWSLETTER_TRANSPORT=sendmail tsx scripts/check-newsletter-dns.ts
 ```
 
-Fix any `issues` in NameSilo before sending. `send-weekly-newsletter.ts` aborts on DNS issues unless you pass `--skip-dns-check` (emergency only).
+Fix any `issues` in NameSilo (and PTR via DigitalOcean) before expecting inbox delivery. `send-weekly-newsletter.ts` aborts on DNS issues unless you pass `--skip-dns-check` (emergency only).
 
 ## Footer subscribe (double opt-in)
 
@@ -39,7 +39,9 @@ Honeypot: if JSON includes `"website":"spam"`, API returns success without sendi
 
 ```bash
 tsx scripts/weekly-newsletter-pick.ts
-NEWSLETTER_ENABLED=1 tsx scripts/send-weekly-newsletter.ts --dry-run
+NEWSLETTER_ENABLED=1 NEWSLETTER_TRANSPORT=sendmail tsx scripts/send-weekly-newsletter.ts --dry-run
 ```
 
-**Production:** `NEWSLETTER_ENABLED=1` and `BREVO_API_KEY` in `/etc/nsfwdroid.env` and cron `deploy/cron.d/nsfwdroid-weekly-newsletter` (Sunday 12:00 UTC). Use `--dry-run` before the first live send after changing picks logic.
+**Production:** `NEWSLETTER_ENABLED=1`, `NEWSLETTER_TRANSPORT=sendmail`, and cron `deploy/cron.d/nsfwdroid-weekly-newsletter` (Sunday 12:00 UTC). Use `--dry-run` before the first live send after changing picks logic.
+
+**Queue inspection (droplet):** `exim -bp` lists deferred mail while port 25 is blocked.

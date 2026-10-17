@@ -47,7 +47,7 @@ These are product directions, not shipped features.
 | Phase | Scope | Ship criteria |
 | --- | --- | --- |
 | **0 — Docs** | This document, env placeholders, script stubs | Now |
-| **1 — Newsletter** | Weekly top-6 email to opted-in members + standalone subscribe | Brevo domain authenticated, `NEWSLETTER_FROM` / `BREVO_API_KEY` on droplet, legal copy reviewed |
+| **1 — Newsletter** | Weekly top-6 email to opted-in members + standalone subscribe | Exim on droplet (`NEWSLETTER_TRANSPORT=sendmail`), SPF/DKIM/DMARC + `mail` A record, DigitalOcean port 25 + PTR, `NEWSLETTER_FROM` on droplet, legal copy reviewed |
 | **2 — Points & badges** | Ledger table, profile UI, anti-abuse rules | Phase 1 stable; counsel OK on gamification copy |
 | **3 — Paid perks (optional)** | Stripe Customer, verification micro-charge or AV vendor, tips | PCI path via Stripe hosted; **not live until counsel** for card-as-age-gate |
 
@@ -140,12 +140,12 @@ Stub implementation: `scripts/weekly-newsletter-pick.ts` (JSON to stdout for cro
 | --- | --- | --- |
 | 1. Rankings query | `scripts/weekly-newsletter-pick.ts` | Run manually: `tsx scripts/weekly-newsletter-pick.ts` |
 | 2. HTML template | `emails/weekly-top-six.tsx` (React Email) **or** `emails/weekly-top-six.html` | React Email needs `react-email` + `@react-email/components` dependency when implemented |
-| 3. Send batch | `scripts/send-weekly-newsletter.ts` | Brevo Transactional API; gated on `NEWSLETTER_ENABLED=1` |
+| 3. Send batch | `scripts/send-weekly-newsletter.ts` | Local Exim (`sendmail`); gated on `NEWSLETTER_ENABLED=1` |
 | 4. Cron | Droplet `cron` or post–`weekly-maintenance-inner.sh` | After ingest; log to `/var/log/nsfwdroid-newsletter.log` |
-| 5. Subscribe API | `POST /api/newsletter/subscribe` | Double opt-in email via Brevo |
+| 5. Subscribe API | `POST /api/newsletter/subscribe` | Double opt-in email via Exim |
 | 6. Unsubscribe | Signed HMAC link + `List-Unsubscribe` | One-click per CAN-SPAM |
 
-**Brevo / from-address:** `BREVO_API_KEY`, `NEWSLETTER_FROM` or `ALERT_EMAIL_FROM` (domain authenticated in Brevo). See [deploy-droplet.md](deploy-droplet.md) and [.env.example](../.env.example).
+**Transport / from-address:** `NEWSLETTER_TRANSPORT=sendmail`, `NEWSLETTER_FROM` or `ALERT_EMAIL_FROM`, plus DNS in [deploy-droplet.md](deploy-droplet.md) and [.env.example](../.env.example). Ops alerts stay on Resend.
 
 **Env flags (Phase 1):**
 
