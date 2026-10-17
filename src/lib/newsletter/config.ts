@@ -1,7 +1,7 @@
 import { siteUrl } from "@/lib/site";
 
 export const DEFAULT_NEWSLETTER_FROM_NAME = "NSFW Droid";
-/** Fallback when no From env is set (local dev only — Brevo requires a verified domain in production). */
+/** Fallback when no From env is set (local dev only). */
 const NEWSLETTER_DEV_FALLBACK_FROM = "newsletter@example.com";
 
 /** Parses `Display Name <addr@domain>` or a bare email address. */

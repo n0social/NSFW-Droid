@@ -1,7 +1,7 @@
 /**
- * Send the weekly member newsletter via Brevo.
+ * Send the weekly member newsletter via droplet Exim (`sendmail`).
  *
- * Prerequisites: NEWSLETTER_ENABLED=1, BREVO_API_KEY, NEWSLETTER_FROM or ALERT_EMAIL_FROM
+ * Prerequisites: NEWSLETTER_ENABLED=1, NEWSLETTER_TRANSPORT=sendmail (default)
  *
  * Usage:
  *   tsx scripts/send-weekly-newsletter.ts --dry-run
@@ -15,7 +15,8 @@ import {
   WEEKLY_NEWSLETTER_SUBJECT,
 } from "../src/lib/newsletter/config";
 import { fetchWeeklyNewsletterPicks } from "../src/lib/newsletter/picks";
-import { checkBrevoDomainDns } from "../src/lib/newsletter/brevo-dns";
+import { checkLocalMailDns } from "../src/lib/newsletter/local-dns";
+import { newsletterTransport } from "../src/lib/newsletter/send";
 import { sendWeeklyNewsletterToSubscriber } from "../src/lib/newsletter/send-weekly-to-subscriber";
 import { listActiveSubscribers } from "../src/lib/newsletter/subscriber";
 
@@ -38,6 +39,7 @@ async function main() {
     dryRun,
     subject: WEEKLY_NEWSLETTER_SUBJECT,
     from: newsletterFromAddress(),
+    transport: newsletterTransport(),
     pickCount: pickResult.picks.length,
     subscriberCount: subscribers.length,
     windowDays: pickResult.windowDays,
@@ -56,12 +58,6 @@ async function main() {
     process.exit(1);
   }
 
-  if (!process.env.BREVO_API_KEY?.trim()) {
-    console.error("[send-weekly-newsletter] Missing BREVO_API_KEY");
-    await closeCatalogDb();
-    process.exit(1);
-  }
-
   if (!subscribers.length) {
     console.error("[send-weekly-newsletter] No active subscribers");
     await closeCatalogDb();
@@ -69,10 +65,10 @@ async function main() {
   }
 
   if (!skipDns) {
-    const dns = await checkBrevoDomainDns(summary.from);
+    const dns = await checkLocalMailDns(summary.from);
     if (dns.issues.length) {
       console.error(
-        "[send-weekly-newsletter] Brevo DNS issues (fix before live send):",
+        "[send-weekly-newsletter] DNS issues (fix before live send):",
         dns.issues.join(" | "),
       );
       process.exit(1);

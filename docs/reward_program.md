@@ -47,7 +47,7 @@ These are product directions, not shipped features.
 | Phase | Scope | Ship criteria |
 | --- | --- | --- |
 | **0 — Docs** | This document, env placeholders, script stubs | Now |
-| **1 — Newsletter** | Weekly top-6 email to opted-in members + standalone subscribe | Brevo domain authenticated, `NEWSLETTER_FROM` / `BREVO_API_KEY` on droplet, legal copy reviewed |
+| **1 — Newsletter** | Weekly top-6 email to opted-in members + standalone subscribe | Exim on droplet (`NEWSLETTER_TRANSPORT=sendmail`), SPF/DKIM/DMARC + `mail` A record, DigitalOcean port 25 + PTR, `NEWSLETTER_FROM` on droplet, legal copy reviewed |
 | **2 — Points & badges** | Ledger table, profile UI, anti-abuse rules | Phase 1 stable; counsel OK on gamification copy |
 | **3 — Paid perks (optional)** | Stripe Customer, verification micro-charge or AV vendor, tips | PCI path via Stripe hosted; **not live until counsel** for card-as-age-gate |
 
@@ -107,7 +107,7 @@ We are **not** selling games or a browse paywall in Phase 1. Payment infrastruct
 | Field | Spec |
 | --- | --- |
 | **List** | Emails from (a) `user_profile` where `newsletter_opt_in = true` and email from Firebase, plus (b) optional public footer signup → **Resend Audience** (`RESEND_NEWSLETTER_AUDIENCE_ID`) **or** Postgres `newsletter_subscriber` with **double opt-in** |
-| **Cadence** | Once per week, after ingest accumulation — e.g. **Sunday 12:00 UTC** or **after Tuesday weekly maintenance** ([weekly-maintenance.sh](../scripts/weekly-maintenance.sh)) when `NSFWDROID_WEEKLY_INGEST=1` |
+| **Cadence** | Once per week — **Friday 9:00 PM US Eastern** (`deploy/cron.d/nsfwdroid-weekly-newsletter`, `CRON_TZ=America/New_York`). Picks use a rolling 7-day analytics window at send time. |
 | **Audience** | 18+ site; members and subscribers who confirmed opt-in |
 | **Subject (exact)** | `Thanks for being a member: Here's our favorite NSFW games of the week` |
 
@@ -116,11 +116,11 @@ We are **not** selling games or a browse paywall in Phase 1. Payment infrastruct
 1. **Window:** rolling **7 days** UTC of `analytics_event` (configurable `NEWSLETTER_RANK_DAYS=7`).
 2. **Eligible listings:** `published`, `catalog_stale = false`, `link_status = 'ok'` — any ingest source (itch, Steam, manual, submit).
 3. **Pick filter** (`src/lib/newsletter/pick-eligibility.ts`, applied in `fetchWeeklyNewsletterPicks` and demo send): exclude rows with linked `candidate` **review_status ≠ approved**, **TOS hold** (`raw_payload.tosScreen.hold`), **tos-screen** match on title, **blocked browse tag slugs** (`src/lib/tag-filter.ts` blocklist — ripper, jeff killer, etc.), or **offensive title patterns** (violent / creepypasta junk). Rank pool considers up to 80 scored listings, then takes the first 6 that pass.
-4. **Signal:** blended engagement for the week:
-   - Primary: `listing_view` counts in window.
-   - Secondary: `outbound_click` counts (weight clicks higher than views — default **2×** in pick script).
-   - Optional tie-break: `user_favorite` counts (signed-in only), same spirit as `RANK_WEIGHT_FAVORITE_ON_TRENDING` in `src/lib/listings-ranking.ts`.
-5. **Output:** **6** games, ordered by score. **#1** is the hero headline (highest signal).
+4. **Signal:** blended **analytics only** (not member favorites):
+   - `listing_view` counts in the window (1×).
+   - `outbound_click` counts (default **2×** via `NEWSLETTER_CLICK_WEIGHT`).
+   - Score = views + clicks × weight; tie-break: more clicks, then stable `listingId`.
+5. **Output:** **6** games, ordered by score. **#1** is the hero headline (highest blended signal).
 
 Stub implementation: `scripts/weekly-newsletter-pick.ts` (JSON to stdout for cron/logging).
 
@@ -140,12 +140,12 @@ Stub implementation: `scripts/weekly-newsletter-pick.ts` (JSON to stdout for cro
 | --- | --- | --- |
 | 1. Rankings query | `scripts/weekly-newsletter-pick.ts` | Run manually: `tsx scripts/weekly-newsletter-pick.ts` |
 | 2. HTML template | `emails/weekly-top-six.tsx` (React Email) **or** `emails/weekly-top-six.html` | React Email needs `react-email` + `@react-email/components` dependency when implemented |
-| 3. Send batch | `scripts/send-weekly-newsletter.ts` | Brevo Transactional API; gated on `NEWSLETTER_ENABLED=1` |
+| 3. Send batch | `scripts/send-weekly-newsletter.ts` | Local Exim (`sendmail`); gated on `NEWSLETTER_ENABLED=1` |
 | 4. Cron | Droplet `cron` or post–`weekly-maintenance-inner.sh` | After ingest; log to `/var/log/nsfwdroid-newsletter.log` |
-| 5. Subscribe API | `POST /api/newsletter/subscribe` | Double opt-in email via Brevo |
+| 5. Subscribe API | `POST /api/newsletter/subscribe` | Double opt-in email via Exim |
 | 6. Unsubscribe | Signed HMAC link + `List-Unsubscribe` | One-click per CAN-SPAM |
 
-**Brevo / from-address:** `BREVO_API_KEY`, `NEWSLETTER_FROM` or `ALERT_EMAIL_FROM` (domain authenticated in Brevo). See [deploy-droplet.md](deploy-droplet.md) and [.env.example](../.env.example).
+**Transport / from-address:** `NEWSLETTER_TRANSPORT=sendmail`, `NEWSLETTER_FROM` or `ALERT_EMAIL_FROM`, plus DNS in [deploy-droplet.md](deploy-droplet.md) and [.env.example](../.env.example). Ops alerts stay on Resend.
 
 **Env flags (Phase 1):**
 

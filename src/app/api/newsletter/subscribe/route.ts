@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { newsletterPublicBaseUrl } from "@/lib/newsletter/config";
-import { sendBrevoEmail } from "@/lib/newsletter/brevo";
+import { sendNewsletterEmail } from "@/lib/newsletter/send";
 import { renderConfirmSubscriptionHtml } from "@/lib/newsletter/weekly-email";
 import { upsertPendingSubscriber } from "@/lib/newsletter/subscriber";
 import { isValidSubscriberEmail, normalizeSubscriberEmail } from "@/lib/newsletter/tokens";
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   const base = newsletterPublicBaseUrl();
   const confirmUrl = `${base}/api/newsletter/confirm?token=${encodeURIComponent(token)}`;
 
-  const send = await sendBrevoEmail({
+  const send = await sendNewsletterEmail({
     to: normalized,
     subject: "Confirm your NSFW Droid weekly games list",
     html: renderConfirmSubscriptionHtml({ confirmUrl }),

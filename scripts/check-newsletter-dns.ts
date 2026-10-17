@@ -1,16 +1,18 @@
 /**
- * Verify Brevo domain authentication DNS for the configured newsletter From address.
+ * Verify Exim-on-droplet DNS for the configured newsletter From address.
  *
  * Usage: tsx scripts/check-newsletter-dns.ts
  */
 import "dotenv/config";
 import { newsletterFromAddress } from "../src/lib/newsletter/config";
-import { checkBrevoDomainDns } from "../src/lib/newsletter/brevo-dns";
+import { checkLocalMailDns } from "../src/lib/newsletter/local-dns";
+import { newsletterTransport } from "../src/lib/newsletter/send";
 
 async function main() {
   const from = newsletterFromAddress();
-  const result = await checkBrevoDomainDns(from);
-  console.log(JSON.stringify({ from, ...result }, null, 2));
+  const transport = newsletterTransport();
+  const result = await checkLocalMailDns(from);
+  console.log(JSON.stringify({ from, transport, ...result }, null, 2));
   if (result.issues.length) {
     process.exit(1);
   }

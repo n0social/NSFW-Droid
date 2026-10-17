@@ -264,24 +264,32 @@ Weekly maintenance sets `data/.weekly-maintenance.lock` so the watchdog does **n
 
 ### Weekly newsletter (member list)
 
-Footer signup + double opt-in are live in the app (`POST /api/newsletter/subscribe`). **Mass send** requires `NEWSLETTER_ENABLED=1` in `/etc/nsfwdroid.env` (production: on) plus a Brevo-authenticated domain and `BREVO_API_KEY`.
+Footer signup + double opt-in are live in the app (`POST /api/newsletter/subscribe`). **Mass send** requires `NEWSLETTER_ENABLED=1` and `NEWSLETTER_TRANSPORT=sendmail` in `/etc/nsfwdroid.env`. Exim on the droplet (`deploy/setup-local-mail.sh`) accepts mail on localhost, DKIM-signs it, and delivers it. Outbound port 25 must be open at DigitalOcean (and rDNS should point at `mail.nsfwdroid.com`) or messages stay in the Exim queue.
+
+**After port 25 is unblocked:** `exim -q` (or `exim -qff`) to flush the queue; `scripts/mail-service-status.sh` for DNS + queue snapshot; `tsx scripts/send-newsletter-test.ts --to you@example.com` for a one-off delivery test.
+
+**Decision (16 Oct 2026):** stay on this droplet mail system. Wait for DigitalOcean to allow or deny outbound port 25 before adding another sender. Do not move the newsletter to Amazon SES unless someone asks for that. If port 25 is denied, the platforms to evaluate are **Azure Communication Services Email** (Azure’s transactional mail service) and **Google Workspace SMTP relay**. Google Cloud has no first-party equivalent of SES; its own docs point at partner SMTP (SendGrid, Mailgun, Mailjet) or Workspace relay on ports 465/587. Read each vendor’s adult-content terms before choosing. Resend, Brevo, Mailchimp, SendGrid, Mailgun, SocketLabs, and Elastic Email already restrict or ban sexually explicit mail.
 
 | Variable | Purpose |
 | --- | --- |
 | `NEWSLETTER_ENABLED` | `1` allows `scripts/send-weekly-newsletter.ts` to mail active subscribers |
+| `NEWSLETTER_TRANSPORT` | `sendmail` (default on droplet) — hands MIME to Exim on `127.0.0.1:25` |
 | `NEWSLETTER_PUBLIC_BASE_URL` | Confirm/unsubscribe links (default `NEXT_PUBLIC_SITE_URL`) |
-| `BREVO_API_KEY` | [Brevo](https://app.brevo.com) Transactional Email API key (SMTP & API → API keys) |
-| `ALERT_EMAIL_FROM` or `NEWSLETTER_FROM` | From address for Brevo. **Production:** authenticate `nsfwdroid.com` in Brevo — use e.g. `ALERT_EMAIL_FROM="NSFW Droid <alerts@nsfwdroid.com>"` and `NEWSLETTER_FROM="NSFW Droid <newsletter@nsfwdroid.com>"` (quoted in `/etc/nsfwdroid.env`). Optional `NEWSLETTER_FROM_NAME` if the address is bare (app default: **NSFW Droid**) |
+| `ALERT_EMAIL_FROM` or `NEWSLETTER_FROM` | From address for newsletter MIME. **Production:** `NEWSLETTER_FROM="NSFW Droid <newsletter@nsfwdroid.com>"` (quoted in `/etc/nsfwdroid.env`). Optional `NEWSLETTER_FROM_NAME` if the address is bare (app default: **NSFW Droid**) |
 
-**Brevo DNS (NameSilo):** In Brevo → **Senders, Domains & Dedicated IPs** → **Domains** → add `nsfwdroid.com`. Brevo shows records to publish:
+**One-time on droplet:** `chmod +x deploy/setup-local-mail.sh && ./deploy/setup-local-mail.sh` installs Exim (localhost only), generates DKIM under `/etc/exim4/dkim/`, and prints the public DKIM TXT. Set `NEWSLETTER_TRANSPORT=sendmail` in `/etc/nsfwdroid.env`.
+
+**Local mail DNS (NameSilo + DigitalOcean):**
 
 | Record | Host | Purpose |
 | --- | --- | --- |
-| TXT | `@` (root) | Domain verification (`brevo-code:…`) — merge with existing TXT if NameSilo only allows one SPF/TXT row (combine SPF strings) |
-| TXT | `@` | SPF: `v=spf1 include:spf.brevo.com ~all` (merge with any existing SPF; only one SPF TXT per domain) |
-| TXT | `mail._domainkey` | DKIM (value from Brevo dashboard) |
+| A | `mail` | Droplet public IP (`159.203.136.220`) |
+| TXT | `@` | SPF must include `ip4:159.203.136.220` (merge with existing Firebase SPF — one SPF TXT per domain) |
+| TXT | `nsfwdroid._domainkey` | DKIM from `setup-local-mail.sh` output (selector `nsfwdroid`) |
+| TXT | `_dmarc` | e.g. `v=DMARC1; p=none` (tighten after monitoring) |
+| rDNS (DO support) | droplet IP | PTR → `mail.nsfwdroid.com` when they unblock outbound **port 25** |
 
-If you previously pointed `send.nsfwdroid.com` at Forge for another ESP, that does not satisfy Brevo; you can leave Forge in place for other mail. Wait until Brevo shows the domain as **Authenticated**, then run:
+Until DigitalOcean allows outbound SMTP, Exim **queues** mail locally; subscribe/confirm still accept messages but delivery waits on the ticket. Then run:
 
 ```bash
 tsx scripts/check-newsletter-dns.ts
@@ -303,7 +311,7 @@ NEWSLETTER_ENABLED=0 tsx scripts/send-weekly-newsletter.ts --dry-run   # must ab
 NEWSLETTER_ENABLED=1 tsx scripts/send-weekly-newsletter.ts --dry-run   # JSON summary only
 ```
 
-**Cron install:** Copy `deploy/cron.d/nsfwdroid-weekly-newsletter` (schedule **Sunday 12:00 UTC**). The job no-ops unless `NEWSLETTER_ENABLED=1`.
+**Cron install:** Copy `deploy/cron.d/nsfwdroid-weekly-newsletter` (schedule **Friday 9:00 PM US Eastern** via `CRON_TZ=America/New_York`). The job no-ops unless `NEWSLETTER_ENABLED=1`.
 
 ```bash
 cp deploy/cron.d/nsfwdroid-weekly-newsletter /etc/cron.d/nsfwdroid-weekly-newsletter
@@ -312,7 +320,7 @@ touch /var/log/nsfwdroid-newsletter.log
 chown root:root /var/log/nsfwdroid-newsletter.log
 ```
 
-Runs as **root** via `catalog-maintenance.sh` (brief stop/start of `nsfwdroid` for PGlite). Prefer **Sunday 12:00 UTC** after the Tue weekly maintenance window. The job no-ops unless `NEWSLETTER_ENABLED=1` and `BREVO_API_KEY` are set in `/etc/nsfwdroid.env`.
+Runs as **root** via `catalog-maintenance.sh` (brief stop/start of `nsfwdroid` for PGlite). Scheduled **Friday 9:00 PM US Eastern**. The job no-ops unless `NEWSLETTER_ENABLED=1` and newsletter DNS checks pass (or you pass `--skip-dns-check` on a manual run).
 
 **Homepage featured rail:** set comma-separated slugs in env (order preserved), or set `chart_bucket = featured` + `chart_rank` on listings in admin/DB:
 
