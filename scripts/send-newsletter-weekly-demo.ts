@@ -16,7 +16,7 @@ import {
 } from "../src/lib/newsletter/config";
 import { assessNewsletterPickEligibility, loadNewsletterPickEligibilityContext } from "../src/lib/newsletter/pick-eligibility";
 import { fetchWeeklyNewsletterPicks, type WeeklyPick } from "../src/lib/newsletter/picks";
-import { sendBrevoEmail } from "../src/lib/newsletter/brevo";
+import { sendNewsletterEmail } from "../src/lib/newsletter/send";
 import {
   renderWeeklyNewsletterHtml,
   renderWeeklyNewsletterText,
@@ -174,7 +174,7 @@ async function main() {
   const results: { to: string; ok: boolean; error?: string }[] = [];
 
   for (const to of DEMO_RECIPIENTS) {
-    const result = await sendBrevoEmail({
+    const result = await sendNewsletterEmail({
       to,
       subject: DEMO_SUBJECT,
       html,

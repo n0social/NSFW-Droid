@@ -6,11 +6,17 @@ import {
   loadNewsletterPickEligibilityContext,
 } from "@/lib/newsletter/pick-eligibility";
 
+/** Top-N games in the member weekly email (ranked by blended analytics, not favorites). */
 export const PICK_COUNT = 6;
 const DEFAULT_DAYS = 7;
 const DEFAULT_CLICK_WEIGHT = 2;
 /** How many ranked rows to consider before eligibility filtering. */
 const CANDIDATE_POOL = 80;
+
+/**
+ * Rank score = listing_view count + outbound_click count × NEWSLETTER_CLICK_WEIGHT (default 2).
+ * Member favorites are not used. See docs/reward_program.md § Content selection.
+ */
 
 export type WeeklyPick = {
   rank: number;

@@ -1,11 +1,7 @@
 import { cookies } from "next/headers";
 import { Storefront } from "@/components/Storefront";
-import {
-  AGE_VERIFIED_COOKIE,
-  BLUR_COVERS_COOKIE,
-  parseAgeVerified,
-  parseBlurCovers,
-} from "@/lib/cookies";
+import { isAgeVerifiedRequest } from "@/lib/age-verified-server";
+import { BLUR_COVERS_COOKIE, parseBlurCovers } from "@/lib/cookies";
 import { getListingsForStorefront, getPublishedListingCount } from "@/lib/listings";
 import { resolveThemeForRequest } from "@/lib/themes/preferences";
 import { themeDecorUrls } from "@/lib/themes/asset-url";
@@ -16,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const jar = await cookies();
-  const ageVerified = parseAgeVerified(jar.get(AGE_VERIFIED_COOKIE)?.value);
+  const ageVerified = await isAgeVerifiedRequest();
   const blurCovers = parseBlurCovers(jar.get(BLUR_COVERS_COOKIE)?.value);
 
   const { active } = await resolveThemeForRequest();
