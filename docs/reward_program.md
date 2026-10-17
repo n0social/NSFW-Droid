@@ -47,7 +47,7 @@ These are product directions, not shipped features.
 | Phase | Scope | Ship criteria |
 | --- | --- | --- |
 | **0 — Docs** | This document, env placeholders, script stubs | Now |
-| **1 — Newsletter** | Weekly top-6 email to opted-in members + standalone subscribe | Brevo domain authenticated, `NEWSLETTER_FROM` / `BREVO_API_KEY` on droplet, legal copy reviewed |
+| **1 — Newsletter** | Weekly top-6 email to opted-in members + standalone subscribe | Droplet Exim (`NEWSLETTER_TRANSPORT=sendmail`), DNS + `NEWSLETTER_FROM` on droplet, legal copy reviewed |
 | **2 — Points & badges** | Ledger table, profile UI, anti-abuse rules | Phase 1 stable; counsel OK on gamification copy |
 | **3 — Paid perks (optional)** | Stripe Customer, verification micro-charge or AV vendor, tips | PCI path via Stripe hosted; **not live until counsel** for card-as-age-gate |
 

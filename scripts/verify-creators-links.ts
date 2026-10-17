@@ -4,10 +4,11 @@
  *
  * Usage: npx tsx scripts/verify-creators-links.ts
  */
+import { CURATED_COMMUNITY_LINKS } from "../src/lib/community-links-curated";
 import { CURATED_GAMES, CURATED_STUDIOS } from "../src/lib/creators-curated";
 import { USER_AGENT } from "./lib/ingest-common";
 
-type Row = { kind: "studio" | "game"; id: string; label: string; href: string };
+type Row = { kind: "studio" | "game" | "community"; id: string; label: string; href: string };
 
 const TIMEOUT_MS = Number(process.env.LINK_CHECK_TIMEOUT_MS ?? "15000");
 
@@ -24,7 +25,13 @@ function rows(): Row[] {
     label: g.title,
     href: g.href,
   }));
-  return [...studios, ...games];
+  const community = CURATED_COMMUNITY_LINKS.map((l) => ({
+    kind: "community" as const,
+    id: l.id,
+    label: l.name,
+    href: l.href,
+  }));
+  return [...studios, ...games, ...community];
 }
 
 async function probe(url: string): Promise<{ ok: boolean; status?: number; final?: string; error?: string }> {

@@ -40,6 +40,18 @@ export const listingReportReasonEnum = pgEnum("listing_report_reason", [
   "other",
 ]);
 
+export const socialPlatformEnum = pgEnum("social_platform", [
+  "mastodon",
+  "pillowfort",
+]);
+
+export const socialOutboxStatusEnum = pgEnum("social_outbox_status", [
+  "pending",
+  "posted",
+  "failed",
+  "skipped",
+]);
+
 export const ingestSources = pgTable("ingest_source", {
   name: text("name").primaryKey(),
   enabled: text("enabled").notNull().default("true"),
@@ -101,6 +113,27 @@ export const listings = pgTable("listing", {
   source: sourceEnum("source"),
   externalId: text("external_id"),
 });
+
+export const socialOutbox = pgTable(
+  "social_outbox",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    listingId: uuid("listing_id")
+      .notNull()
+      .references(() => listings.id, { onDelete: "cascade" }),
+    platform: socialPlatformEnum("platform").notNull(),
+    status: socialOutboxStatusEnum("status").notNull().default("pending"),
+    payload: jsonb("payload").notNull(),
+    externalId: text("external_id"),
+    error: text("error"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    postedAt: timestamp("posted_at", { withTimezone: true }),
+  },
+  (t) => [
+    uniqueIndex("social_outbox_listing_platform_idx").on(t.listingId, t.platform),
+  ],
+);
 
 export const listingReports = pgTable("listing_report", {
   id: uuid("id").defaultRandom().primaryKey(),

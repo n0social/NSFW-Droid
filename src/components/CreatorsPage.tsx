@@ -159,7 +159,11 @@ export function CreatorsPage({
               <Link href="/browse" className="font-bold text-[#FF4D8D] underline">
                 catalog
               </Link>{" "}
-              for titles we ingest automatically.
+              for titles we ingest automatically, or see{" "}
+              <Link href="/links" className="font-bold text-[#FF4D8D] underline">
+                Community links
+              </Link>{" "}
+              for other NSFW game hubs and animation sites.
             </p>
             <p className="mt-2 text-[10px] font-semibold text-[#E9D5FF]/55">
               {studioCount} studios · {gameCount} spotlight games · updated in{" "}

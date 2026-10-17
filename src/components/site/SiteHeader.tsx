@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { CreatorsNavMenu } from "@/components/site/CreatorsNavMenu";
 import { DroidMark } from "@/components/site/DroidMark";
 import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
 import { ThemeAssetImage } from "@/components/theme/ThemeAssetImage";
@@ -78,9 +79,7 @@ export function SiteHeader({ listingCount, ageVerified, themeAssets }: Props) {
           <Link href="/videos" className="rounded-full px-3 py-2 hover:bg-[var(--theme-surface)]">
             Videos
           </Link>
-          <Link href="/creators" className="rounded-full px-3 py-2 hover:bg-[var(--theme-surface)]">
-            Creators
-          </Link>
+          <CreatorsNavMenu variant="desktop" />
           <Link href="/submit" className="rounded-full px-3 py-2 hover:bg-[var(--theme-surface)]">
             Submit game
           </Link>
@@ -217,15 +216,7 @@ export function SiteHeader({ listingCount, ageVerified, themeAssets }: Props) {
                 Videos
               </Link>
             </li>
-            <li>
-              <Link
-                href="/creators"
-                onClick={() => setMenuOpen(false)}
-                className="flex min-h-[44px] w-full items-center rounded-xl px-3 hover:bg-[var(--theme-surface)]"
-              >
-                Creators
-              </Link>
-            </li>
+            <CreatorsNavMenu variant="mobile" onNavigate={() => setMenuOpen(false)} />
             <li>
               <Link
                 href="/submit"
