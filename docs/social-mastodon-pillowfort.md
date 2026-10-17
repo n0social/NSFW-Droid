@@ -193,3 +193,5 @@ Local compose check: `npx tsx scripts/test-social-compose.ts`.
 | **Mastodon / Pillowfort** | Discovery drip for **new** games (and optional videos) |
 | **Telegram** | Not in scope unless you add a channel later for subscribers |
 | **X/Twitter** | Out of scope unless soft weekly promo later |
+
+**Human engagement (follows, boosts, monthly review):** [social-engagement-playbook.md](social-engagement-playbook.md) — dated checklists so traffic work is not relying on memory.
