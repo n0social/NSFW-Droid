@@ -33,10 +33,12 @@ export async function GET(
     const ageCookie = jar.get(AGE_VERIFIED_COOKIE)?.value;
     const referrer = request.headers.get("referer");
     const sessionId = ageCookie ?? "anon";
+    const siteHost = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
 
     if (
       shouldRecordOutboundClick({
         requestUrl: request.url,
+        siteHost,
         referrer,
         ageVerified: ageCookie === "1",
       })
