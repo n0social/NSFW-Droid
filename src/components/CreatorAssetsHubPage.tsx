@@ -2,10 +2,15 @@
 
 import Link from "next/link";
 import {
+  CREATOR_ASSETS_BLENDER_GROUPS,
+  CURATED_CREATOR_ASSETS_BLENDER,
+  creatorAssetsBlenderByCategory,
+  type CuratedCreatorAssetsBlenderLink,
+} from "@/lib/creator-assets-blender-curated";
+import {
   CREATOR_SOUND_GROUPS,
   CURATED_CREATOR_SOUNDS,
   creatorSoundsByCategory,
-  type CuratedCreatorSound,
 } from "@/lib/creator-assets-sounds-curated";
 import { CREATOR_ASSETS_SECTIONS } from "@/lib/creator-assets-hub";
 import { SiteHeader } from "@/components/site/SiteHeader";
@@ -27,7 +32,14 @@ const CARD_GRADIENTS = [
   "linear-gradient(160deg, #1a3a4a 0%, #7c3aed 40%, #14061C 100%)",
 ];
 
-function SoundCard({ item, index }: { item: CuratedCreatorSound; index: number }) {
+type CuratedOutboundLink = {
+  name: string;
+  blurb: string;
+  href: string;
+  licenseNote?: string;
+};
+
+function CuratedOutboundCard({ item, index }: { item: CuratedOutboundLink; index: number }) {
   const initial = item.name.trim().charAt(0).toUpperCase();
   const gradient = CARD_GRADIENTS[index % CARD_GRADIENTS.length];
 
@@ -77,6 +89,7 @@ export function CreatorAssetsHubPage({
   layoutDecor = [],
 }: Props) {
   const soundCount = CURATED_CREATOR_SOUNDS.length;
+  const blenderCount = CURATED_CREATOR_ASSETS_BLENDER.length;
 
   return (
     <>
@@ -94,7 +107,7 @@ export function CreatorAssetsHubPage({
               Outbound picks for people building{" "}
               <strong className="font-bold text-[#FFF1F7]">NSFW games</strong> and{" "}
               <strong className="font-bold text-[#FFF1F7]">SFM / 3D</strong> scenes — starting with
-              sound libraries. For playable titles we list, use{" "}
+              sound libraries and Blender environment picks. For playable titles we list, use{" "}
               <Link href="/browse" className="font-bold text-[#FF4D8D] underline">
                 Browse
               </Link>
@@ -151,7 +164,7 @@ export function CreatorAssetsHubPage({
                   <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {items.map((item, index) => (
                       <li key={item.id}>
-                        <SoundCard item={item} index={index} />
+                        <CuratedOutboundCard item={item} index={index} />
                       </li>
                     ))}
                   </ul>
@@ -167,13 +180,36 @@ export function CreatorAssetsHubPage({
             </p>
           </section>
 
-          <section id="blender" className="mt-10 scroll-mt-6 border-t border-[var(--theme-primary)]/15 pt-8">
-            <h2 className="text-xs font-black uppercase tracking-wide text-[#E9D5FF]/40">
-              Blender & files
-            </h2>
-            <p className="mt-2 text-[11px] text-[#E9D5FF]/50">
-              Rig and scene file picks will share this hub when sibling curations ship.
-            </p>
+          <section id="blender" className="mt-14 scroll-mt-6 space-y-10 border-t border-[var(--theme-primary)]/15 pt-8" aria-labelledby="blender-heading">
+            <div>
+              <h2 id="blender-heading" className="text-xs font-black uppercase tracking-wide text-[#F9A8D4]">
+                Blender & files
+              </h2>
+              <p className="mt-1 text-[11px] text-[#E9D5FF]/65">
+                {blenderCount} curated links · edit in{" "}
+                <code className="text-[9px]">src/lib/creator-assets-blender-curated.ts</code>
+              </p>
+            </div>
+
+            {CREATOR_ASSETS_BLENDER_GROUPS.map((group) => {
+              const items = creatorAssetsBlenderByCategory(group.key);
+              if (items.length === 0) return null;
+              return (
+                <div key={group.key}>
+                  <h3 className="text-xs font-black uppercase tracking-wide text-[#F9A8D4]">
+                    {group.label}
+                  </h3>
+                  <p className="mt-1 text-[11px] text-[#E9D5FF]/65">{group.hint}</p>
+                  <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {items.map((item: CuratedCreatorAssetsBlenderLink, index: number) => (
+                      <li key={item.id}>
+                        <CuratedOutboundCard item={item} index={index} />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
           </section>
         </main>
 

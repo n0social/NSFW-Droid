@@ -1,4 +1,11 @@
 import {
+  CREATOR_ASSETS_BLENDER_GROUPS,
+  CURATED_CREATOR_ASSETS_BLENDER,
+  creatorAssetsBlenderByCategory,
+  type CreatorAssetsBlenderCategory,
+  type CuratedCreatorAssetsBlenderLink,
+} from "@/lib/creator-assets-blender-curated";
+import {
   CREATOR_SOUND_GROUPS,
   CURATED_CREATOR_SOUNDS,
   creatorSoundsByCategory,
@@ -34,9 +41,9 @@ export const CREATOR_ASSETS_SECTIONS: CreatorAssetsSectionMeta[] = [
   {
     key: "blender",
     label: "Blender & files",
-    hint: "Rigs and scene files — coming soon",
+    hint: "Open3DLab, SmutBase, itch.io environments, Patreon scene packs",
     href: "/creators/assets#blender",
-    available: false,
+    available: true,
   },
 ];
 
@@ -47,6 +54,11 @@ export type CreatorAssetsHubExport = {
     items: CuratedCreatorSound[];
     byCategory: (category: CreatorSoundCategory) => CuratedCreatorSound[];
   };
+  blender: {
+    groups: typeof CREATOR_ASSETS_BLENDER_GROUPS;
+    items: CuratedCreatorAssetsBlenderLink[];
+    byCategory: (category: CreatorAssetsBlenderCategory) => CuratedCreatorAssetsBlenderLink[];
+  };
 };
 
 export function exportCreatorAssetsHub(): CreatorAssetsHubExport {
@@ -56,6 +68,11 @@ export function exportCreatorAssetsHub(): CreatorAssetsHubExport {
       groups: CREATOR_SOUND_GROUPS,
       items: CURATED_CREATOR_SOUNDS,
       byCategory: creatorSoundsByCategory,
+    },
+    blender: {
+      groups: CREATOR_ASSETS_BLENDER_GROUPS,
+      items: CURATED_CREATOR_ASSETS_BLENDER,
+      byCategory: creatorAssetsBlenderByCategory,
     },
   };
 }
