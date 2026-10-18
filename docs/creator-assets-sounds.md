@@ -14,8 +14,7 @@ Curated outbound links for **NSFW sound effects**, **moan/voice libraries**, and
 
 | Key | Purpose |
 | --- | --- |
-| `discovery` | itch.io tag browse and SFMLab collections |
-| `sfx-packs` | Non-vocal or mixed sex/erotic SFX for games |
+| `sfx-packs` | Non-vocal or mixed sex/erotic SFX for games (includes itch.io tag browse) |
 | `voice-moans` | Moans, dialogue, and VO packs |
 | `sfm-sounds` | Classic SFMLab projects (WAV, SFM install paths) |
 
