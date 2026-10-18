@@ -1,5 +1,7 @@
 /**
  * Build interactive SFM model pick sheet (radio per row + submit).
+ * Legacy NSFW SmutBase gallery candidates — prefer SFW retry:
+ *   node scripts/build-sfm-model-sfw-pick-submit.mjs
  * Usage: node scripts/build-sfm-model-pick-submit.mjs
  */
 import { readFile, writeFile } from "node:fs/promises";
