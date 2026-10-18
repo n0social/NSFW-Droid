@@ -26,7 +26,8 @@
     "db:backfill-covers": "tsx scripts/db-migrate.ts && tsx scripts/backfill-listing-covers.ts",
     "db:backfill-affiliate": "tsx scripts/db-migrate.ts && tsx scripts/backfill-listing-affiliate.ts",
     "validate:themes": "tsx scripts/validate-theme-packages.ts",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "creators:verify-blender-assets": "tsx scripts/verify-creator-assets-links.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.10",
