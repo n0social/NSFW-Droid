@@ -152,6 +152,7 @@ export function Storefront({
                         game={g}
                         index={i}
                         blur={effectiveBlur}
+                        ageVerified={ageVerified}
                         themeAssets={themeAssets}
                       />
                     ))}
@@ -186,6 +187,7 @@ export function Storefront({
                         game={g}
                         index={i}
                         blur={effectiveBlur}
+                        ageVerified={ageVerified}
                         themeAssets={themeAssets}
                       />
                     ))}
@@ -221,6 +223,7 @@ export function Storefront({
                         index={i + 2}
                         rank={i + 1}
                         blur={effectiveBlur}
+                        ageVerified={ageVerified}
                         themeAssets={themeAssets}
                       />
                     ))}

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { gameListingPath } from "@/lib/listing-routes";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Listing } from "@/db/schema";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useFavoritesContext } from "@/components/favorites/FavoritesProvider";
@@ -24,6 +24,8 @@ type Props = {
   wide?: boolean;
   layout?: "rail" | "grid";
   blur: boolean;
+  /** When false, the card is behind the age gate and must not record an impression. */
+  ageVerified?: boolean;
   themeAssets?: ThemeDecorFiles | null;
 };
 
@@ -42,7 +44,16 @@ function platformLabel(game: Listing) {
   return `${plats} · ${src}`;
 }
 
-export function GameCard({ game, index, rank, wide, layout = "rail", blur, themeAssets }: Props) {
+export function GameCard({
+  game,
+  index,
+  rank,
+  wide,
+  layout = "rail",
+  blur,
+  ageVerified = false,
+  themeAssets,
+}: Props) {
   const w =
     layout === "grid"
       ? "w-full"
@@ -57,6 +68,7 @@ export function GameCard({ game, index, rank, wide, layout = "rail", blur, theme
         : "h-[min(50vw,180px)] md:h-[168px]";
   const { user, configured: authConfigured } = useAuth();
   const { favoriteIds, toggleFavorite } = useFavoritesContext();
+  const cardRef = useRef<HTMLDivElement>(null);
   const [coverFailed, setCoverFailed] = useState(false);
   const [signInPrompt, setSignInPrompt] = useState(false);
   const coverUrl = game.coverImageUrl?.trim() || null;
@@ -67,12 +79,29 @@ export function GameCard({ game, index, rank, wide, layout = "rail", blur, theme
   }, [coverUrl]);
 
   useEffect(() => {
-    fetch("/api/analytics/view", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ listing_id: game.id, path: "/" }),
-    }).catch(() => {});
-  }, [game.id]);
+    if (!ageVerified) return;
+    const el = cardRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    let sent = false;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.some(
+          (entry) => entry.isIntersecting && entry.intersectionRatio >= 0.5,
+        );
+        if (!visible || sent) return;
+        sent = true;
+        observer.disconnect();
+        fetch("/api/analytics/view", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ listing_id: game.id, path: "/" }),
+        }).catch(() => {});
+      },
+      { threshold: [0.5] },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ageVerified, game.id]);
 
   const favorited = Boolean(user) && favoriteIds.has(game.id);
   const gradient = gradients[index % gradients.length];
@@ -82,6 +111,7 @@ export function GameCard({ game, index, rank, wide, layout = "rail", blur, theme
 
   return (
     <div
+      ref={cardRef}
       className={`${w} ${layout === "rail" ? "shrink-0 snap-start" : ""} overflow-hidden rounded-2xl shadow-[0_10px_28px_rgba(0,0,0,0.45)] bg-[#241033] relative`}
     >
       {showFavoriteControl && (

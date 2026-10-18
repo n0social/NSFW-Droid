@@ -222,7 +222,7 @@ All scheduled times below are **UTC** (droplet default). This is **separate** fr
 
 | When (UTC) | Cron file | What happens |
 | --- | --- | --- |
-| **Every 5 min** | `nsfwdroid-watchdog` | `ensure-nsfwdroid.sh` — auto-restart if unit down or local `/api/health` fails; **skipped** while weekly maintenance lock is present |
+| **Every 5 min** | `nsfwdroid-watchdog` | `ensure-nsfwdroid.sh` — auto-restart if unit down or local `/api/health` fails; **skipped** while the weekly or catalog maintenance lock is present. It re-checks that lock after the health probe so a stop started on the same minute (ingest at 06:00, 14:00, 22:00) is not canceled. |
 | **Tue 02:00** | `nsfwdroid-maintenance-notice` | Writes `data/maintenance-notice.json` → **amber site banner** until 04:00; optional **ops email** (1h warning) |
 | **Tue 03:00** | `nsfwdroid-weekly-maintenance` | Stops `nsfwdroid` → visitors see Caddy **`maintenance.html`** (502/503/504 path); runs `weekly-maintenance-inner.sh` via `catalog-maintenance.sh`; **hard `/api/health` checks** after start; service back when checks pass, **no later than 04:00 UTC** |
 | **Daily 06:00, 14:00, 22:00** | `nsfwdroid-ingest` | Unchanged — migrate → recycle → `ingest-all` |

@@ -61,8 +61,28 @@ if [[ $# -lt 1 || "$1" != "--" ]]; then
 fi
 shift
 
-log "stopping $SERVICE for maintenance"
-systemctl stop "$SERVICE"
+stop_service() {
+  local attempt
+  for attempt in 1 2 3 4 5 6 7 8; do
+    if ! systemctl is-active --quiet "$SERVICE"; then
+      return 0
+    fi
+    log "stopping $SERVICE for maintenance (attempt $attempt)"
+    stop_rc=0
+    systemctl stop "$SERVICE" || stop_rc=$?
+    if [[ "$stop_rc" -ne 0 ]]; then
+      log "systemctl stop did not complete (exit $stop_rc); checking whether $SERVICE is inactive"
+    fi
+    if ! systemctl is-active --quiet "$SERVICE"; then
+      return 0
+    fi
+    sleep 1
+  done
+  log "could not stop $SERVICE; aborting before opening the catalog"
+  return 1
+}
+
+stop_service
 stopped=true
 
 cd "$APP_DIR"

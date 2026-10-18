@@ -3,6 +3,18 @@ import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { listings } from "@/db/schema";
 import { recordEvent } from "@/lib/analytics";
+import {
+  isInternalAnalyticsRequest,
+  shouldRecordOutboundClick,
+} from "@/lib/analytics-quality";
+import { isAdminSession } from "@/lib/admin-auth";
+import {
+  ANALYTICS_SESSION_COOKIE,
+  analyticsSessionIdFromCookie,
+  attachAnalyticsSession,
+  createAnalyticsSessionId,
+} from "@/lib/analytics-session";
+import { AGE_VERIFIED_COOKIE } from "@/lib/cookies";
 import { isValidOutboundUrl, resolveOutboundLink } from "@/lib/outbound-link";
 import { cookies } from "next/headers";
 
@@ -28,18 +40,34 @@ export async function GET(
     }
 
     const jar = await cookies();
-    const sessionId = jar.get("age_verified")?.value ?? "anon";
+    const ageCookie = jar.get(AGE_VERIFIED_COOKIE)?.value;
+    const referrer = request.headers.get("referer");
+    const siteHost = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+    const ageVerified = ageCookie === "1";
+    const record = shouldRecordOutboundClick({
+      requestUrl: request.url,
+      siteHost,
+      referrer,
+      ageVerified,
+      userAgent: request.headers.get("user-agent"),
+      internalRequest: isInternalAnalyticsRequest(request.headers),
+      adminSession: await isAdminSession(),
+    });
 
+    const redirect = NextResponse.redirect(url, 302);
+    if (!record) return redirect;
+
+    const existing = analyticsSessionIdFromCookie(jar.get(ANALYTICS_SESSION_COOKIE)?.value);
+    const sessionId = existing ?? createAnalyticsSessionId();
     await recordEvent({
       eventType: "outbound_click",
       listingId: row.id,
       path: `/go/${listingId}`,
-      referrer: request.headers.get("referer") ?? undefined,
+      referrer: referrer ?? undefined,
       sessionId,
       metadata: { linkKind },
     });
-
-    return NextResponse.redirect(url, 302);
+    return attachAnalyticsSession(redirect, sessionId, Boolean(existing));
   } catch (err) {
     console.error("[go] redirect failed:", err);
     return NextResponse.redirect(new URL("/", request.url));
