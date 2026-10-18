@@ -7,7 +7,7 @@ export type CuratedSfmModel = {
   sourceGame: string;
   /** SmutBase / Open3DLab project UUID. */
   projectId: string;
-  /** Optional card image (nude preview). Prefer `/creator-models/{id}.webp` in repo or CDN URL from the model page. */
+  /** SFW card preview — `/creator-models/{id}.webp` (official/Steam/Blizzard marketing art; see `scripts/sfm-model-sfw-sources.json`). */
   previewImageSrc?: string;
   /** Editorial note — why this pick is in the top list. */
   pickNote: string;

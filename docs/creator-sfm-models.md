@@ -12,45 +12,27 @@ Help creators jump straight to **high-traffic NSFW SFM models** on **SmutBase** 
 - `src/lib/sfm-models-curated.ts` — top 10 list, `projectId` UUIDs, optional `previewImageSrc` under `public/creator-models/`
 - `src/lib/smutbase-url.ts` — outbound URLs use **`https://smutba.se/project/{uuid}/`** (same network as SmutBase; `smutbase.com` may redirect incorrectly from some networks)
 
-## Previews
+## Previews (SFW MVP)
 
-See `public/creator-models/README.md`. Until images exist, cards show a gradient fallback with the character name.
-
-## Picking showcase images (agent workflow)
-
-Scraped SmutBase gallery thumbs live **outside git** (Cloud Agent artifacts):
-
-| Path | Contents |
-| --- | --- |
-| `/opt/cursor/artifacts/sfm-model-candidates/{id}/` | Original PNG thumbs (`candidate-1.png`, …) |
-| `/opt/cursor/artifacts/sfm-model-candidates-nobg/{id}/` | Background-removed versions for card mockups |
-| `/opt/cursor/artifacts/sfm-model-candidates/manifest.json` | Per-model candidate list + source URLs |
-
-Regenerate the review page:
+Card images are **SFW** official marketing art (Steam library verticals, Blizzard hero key art) or a generated silhouette placeholder (Aunt Cass). They live in `public/creator-models/{id}.webp`.
 
 ```bash
-node scripts/build-sfm-model-pick-gallery.mjs
+node scripts/fetch-sfm-model-sfw-mvp.mjs
 ```
 
-Open **`/opt/cursor/artifacts/sfm-model-pick-review.html`** (paths are relative to the `artifacts/` folder).
+Source URLs and license notes: `scripts/sfm-model-sfw-sources.json`. Artifacts: `/opt/cursor/artifacts/sfm-model-mvp-sfw/`.
 
-**Reply format** — one line per character:
-
-```text
-tifa-lockhart: candidate-2
-widowmaker: candidate-1
-```
-
-Use the **character id** from `src/lib/sfm-models-curated.ts`, not the display name. Prefer standing / full-body nude previews when available.
-
-After you pick, the agent copies the chosen no-bg (or original) asset into `public/creator-models/{id}.webp` and updates verification.
-
-Re-scrape if candidates are missing:
+Review locally:
 
 ```bash
-node scripts/scrape-sfm-model-previews.mjs
-node scripts/build-sfm-model-pick-gallery.mjs
+node scripts/build-sfm-model-sfw-pick-review.mjs
 ```
+
+Until images exist, cards show a gradient fallback.
+
+## Legacy NSFW pick workflow (deprecated for cards)
+
+SmutBase gallery thumb scraping (`scripts/scrape-sfm-model-previews.mjs`, `build-sfm-model-pick-gallery.mjs`) was used for early NSFW candidate picks. **Do not use those thumbs for production card MVPs.**
 
 ## Verification
 

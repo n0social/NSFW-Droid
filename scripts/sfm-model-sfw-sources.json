@@ -1,0 +1,72 @@
+[
+  {
+    "id": "tifa-lockhart",
+    "characterName": "Tifa Lockhart",
+    "sourceUrl": "https://cdn.akamai.steamstatic.com/steam/apps/1462040/library_600x900_2x.jpg",
+    "sourcePage": "https://store.steampowered.com/app/1462040/FINAL_FANTASY_VII_REMAKE_INTERGRADE/",
+    "licenseNote": "Steam store library art (Square Enix / Valve CDN); SFW marketing asset."
+  },
+  {
+    "id": "widowmaker",
+    "characterName": "Widowmaker",
+    "sourceUrl": "https://blz-contentstack-images.akamaized.net/v3/assets/blt2477dcaf4ebd440c/bltf1291f31fd38e28b/631a8a981613910e6926bfc8/1600_Widowmaker.jpg",
+    "sourcePage": "https://overwatch.blizzard.com/en-us/heroes/widowmaker",
+    "licenseNote": "Blizzard official Overwatch hero key art (marketing)."
+  },
+  {
+    "id": "d-va",
+    "characterName": "D.Va",
+    "sourceUrl": "https://blz-contentstack-images.akamaized.net/v3/assets/blt2477dcaf4ebd440c/bltf8e9415141b0ec36/631a8b65e7bdcf0dd996c8e1/1600_Dva.jpg",
+    "sourcePage": "https://overwatch.blizzard.com/en-us/heroes/dva",
+    "licenseNote": "Blizzard official Overwatch hero key art (marketing)."
+  },
+  {
+    "id": "2b",
+    "characterName": "2B",
+    "sourceUrl": "https://cdn.akamai.steamstatic.com/steam/apps/524220/library_600x900_2x.jpg",
+    "sourcePage": "https://store.steampowered.com/app/524220/NieRAutomata/",
+    "licenseNote": "Steam store library art (Square Enix / Platinum / Valve CDN); SFW marketing asset."
+  },
+  {
+    "id": "tracer",
+    "characterName": "Tracer",
+    "sourceUrl": "https://blz-contentstack-images.akamaized.net/v3/assets/blt2477dcaf4ebd440c/bltb9e273d8483050b8/631a8aab3ab6f40dd2a90699/1600_Tracer.jpg",
+    "sourcePage": "https://overwatch.blizzard.com/en-us/heroes/tracer",
+    "licenseNote": "Blizzard official Overwatch hero key art (marketing)."
+  },
+  {
+    "id": "mercy",
+    "characterName": "Mercy",
+    "sourceUrl": "https://blz-contentstack-images.akamaized.net/v3/assets/blt2477dcaf4ebd440c/blta556d4020266a6db/631a8b1eeef3ae0e03c743a2/1600_Mercy.jpg",
+    "sourcePage": "https://overwatch.blizzard.com/en-us/heroes/mercy",
+    "licenseNote": "Blizzard official Overwatch hero key art (marketing)."
+  },
+  {
+    "id": "lady-dimitrescu",
+    "characterName": "Lady Dimitrescu",
+    "sourceUrl": "https://cdn.akamai.steamstatic.com/steam/apps/1196590/library_600x900_2x.jpg",
+    "sourcePage": "https://store.steampowered.com/app/1196590/Resident_Evil_Village/",
+    "licenseNote": "Steam store library art (Capcom / Valve CDN); SFW marketing asset."
+  },
+  {
+    "id": "jill-valentine",
+    "characterName": "Jill Valentine",
+    "sourceUrl": "https://cdn.akamai.steamstatic.com/steam/apps/952060/library_600x900_2x.jpg",
+    "sourcePage": "https://store.steampowered.com/app/952060/RESIDENT_EVIL_3/",
+    "licenseNote": "Steam store library art (Capcom / Valve CDN); SFW marketing asset."
+  },
+  {
+    "id": "lara-croft",
+    "characterName": "Lara Croft",
+    "sourceUrl": "https://cdn.akamai.steamstatic.com/steam/apps/203160/library_600x900_2x.jpg",
+    "sourcePage": "https://store.steampowered.com/app/203160/Tomb_Raider/",
+    "licenseNote": "Steam store library art (Crystal Dynamics / Square Enix / Valve CDN); SFW marketing asset."
+  },
+  {
+    "id": "aunt-cass",
+    "characterName": "Aunt Cass",
+    "sourceUrl": null,
+    "sourcePage": "https://www.disney.com/movies/big-hero-6",
+    "licenseNote": "No clear Commons/press single-character asset; generated SFW gradient card (no Disney artwork)."
+  }
+]
