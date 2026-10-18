@@ -28,8 +28,11 @@ export const ADMIN_REFERRER_RE = "^https?://[^/]+/admin($|/|\\?)";
 /** Ops scripts and cloud agents send this so verify traffic does not hit play stats. */
 export const INTERNAL_ANALYTICS_HEADER = "x-nsfwdroid-internal";
 
-const BOT_USER_AGENT_RE =
-  /curl\/|wget\/|HeadlessChrome|Googlebot|bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|facebookexternalhit|NSFW-Droid-Catalog|puppeteer|Playwright\/|python-requests|Go-http-client|axios\/|node-fetch|scrapy|httpie|GPTBot|Claude-Web|Bytespider/i;
+/** Shared by ingest-time UA checks and optional SQL purge on stored metadata.userAgent. */
+export const BOT_USER_AGENT_PG_RE =
+  "curl/|wget/|HeadlessChrome|Googlebot|bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|facebookexternalhit|NSFW-Droid-Catalog|puppeteer|Playwright/|python-requests|Go-http-client|axios/|node-fetch|scrapy|httpie|GPTBot|Claude-Web|Bytespider";
+
+const BOT_USER_AGENT_RE = new RegExp(BOT_USER_AGENT_PG_RE, "i");
 
 export type AnalyticsAudience = "visitors" | "all";
 
@@ -157,4 +160,26 @@ export function visitorClickConditions(since?: Date): SQL {
 /** Raw /api/go rows (includes crawler and admin-link noise). */
 export function allOutboundClickSql(): SQL {
   return sql`event_type = 'outbound_click'`;
+}
+
+/** metadata.userAgent present and matches known crawler/script patterns. */
+export function storedLikelyBotUserAgentSql(): SQL {
+  return sql`coalesce(metadata->>'userAgent', '') <> ''
+    AND metadata->>'userAgent' ~* ${BOT_USER_AGENT_PG_RE}`;
+}
+
+/**
+ * Rows that should drive home rails and post-purge totals: visitor SQL plus
+ * per-browser session_hash (not the legacy shared age-gate hash).
+ */
+export function visitorQualityOutboundClickSql(): SQL {
+  return sql`${visitorOutboundClickSql()}
+    AND ${uniqueBrowserSessionSql()}
+    AND NOT (${storedLikelyBotUserAgentSql()})`;
+}
+
+export function visitorQualityListingViewSql(extraPath?: SQL): SQL {
+  return sql`${visitorListingViewSql(extraPath)}
+    AND ${uniqueBrowserSessionSql()}
+    AND NOT (${storedLikelyBotUserAgentSql()})`;
 }
