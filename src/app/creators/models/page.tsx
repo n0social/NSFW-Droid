@@ -1,12 +1,8 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { CreatorModelsPage } from "@/components/CreatorModelsPage";
-import {
-  AGE_VERIFIED_COOKIE,
-  BLUR_COVERS_COOKIE,
-  parseAgeVerified,
-  parseBlurCovers,
-} from "@/lib/cookies";
+import { isAgeVerifiedRequest } from "@/lib/age-verified-server";
+import { BLUR_COVERS_COOKIE, parseBlurCovers } from "@/lib/cookies";
 import { getPublishedListingCount } from "@/lib/listings";
 import { resolveThemeForRequest } from "@/lib/themes/preferences";
 import { themeDecorUrls } from "@/lib/themes/asset-url";
@@ -22,7 +18,7 @@ export const metadata: Metadata = {
 
 export default async function CreatorModelsRoutePage() {
   const jar = await cookies();
-  const ageVerified = parseAgeVerified(jar.get(AGE_VERIFIED_COOKIE)?.value);
+  const ageVerified = await isAgeVerifiedRequest();
   const blurCovers = parseBlurCovers(jar.get(BLUR_COVERS_COOKIE)?.value);
 
   const { active } = await resolveThemeForRequest();

@@ -2,12 +2,8 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { GameDetailPage } from "@/components/GameDetailPage";
-import {
-  AGE_VERIFIED_COOKIE,
-  BLUR_COVERS_COOKIE,
-  parseAgeVerified,
-  parseBlurCovers,
-} from "@/lib/cookies";
+import { isAgeVerifiedRequest } from "@/lib/age-verified-server";
+import { BLUR_COVERS_COOKIE, parseBlurCovers } from "@/lib/cookies";
 import {
   getPublishedListingBySlug,
   getSimilarListings,
@@ -68,7 +64,7 @@ export default async function GameListingPage({ params }: PageProps) {
   if (!listing) notFound();
 
   const jar = await cookies();
-  const ageVerified = parseAgeVerified(jar.get(AGE_VERIFIED_COOKIE)?.value);
+  const ageVerified = await isAgeVerifiedRequest();
   const blurCovers = parseBlurCovers(jar.get(BLUR_COVERS_COOKIE)?.value);
 
   const tags = await getTagsForListingDetail(listing.id);

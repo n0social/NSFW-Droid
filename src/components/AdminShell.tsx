@@ -18,9 +18,9 @@ const NAV: { href: string; label: string; exact?: boolean }[] = [
 export function AdminShell({ title, children }: Props) {
   const pathname = usePathname();
 
-  async function logout() {
-    await fetch("/api/admin/logout", { method: "POST" });
-    window.location.href = "/admin/login";
+  async function signOut() {
+    await fetch("/api/admin/logout", { method: "POST", credentials: "same-origin" });
+    window.location.href = "/";
   }
 
   return (
@@ -33,10 +33,10 @@ export function AdminShell({ title, children }: Props) {
           </div>
           <button
             type="button"
-            onClick={logout}
-            className="rounded-full border border-[#C026D3]/50 px-4 py-2 text-xs font-bold text-[#E9D5FF]"
+            onClick={signOut}
+            className="rounded-full border border-[#FF4D8D]/60 bg-[#241033] px-4 py-2 text-xs font-bold text-[#FFF1F7] hover:border-[#FF4D8D]"
           >
-            Log out
+            Sign out
           </button>
         </div>
 
