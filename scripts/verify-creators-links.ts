@@ -4,11 +4,17 @@
  *
  * Usage: npx tsx scripts/verify-creators-links.ts
  */
+import { CURATED_SFM_TUTORIALS } from "../src/lib/creator-assets-sfm-tutorials-curated";
 import { CURATED_COMMUNITY_LINKS } from "../src/lib/community-links-curated";
 import { CURATED_GAMES, CURATED_STUDIOS } from "../src/lib/creators-curated";
 import { USER_AGENT } from "./lib/ingest-common";
 
-type Row = { kind: "studio" | "game" | "community"; id: string; label: string; href: string };
+type Row = {
+  kind: "studio" | "game" | "community" | "sfm-tutorial";
+  id: string;
+  label: string;
+  href: string;
+};
 
 const TIMEOUT_MS = Number(process.env.LINK_CHECK_TIMEOUT_MS ?? "15000");
 
@@ -18,6 +24,11 @@ const BOT_WALL_HOSTS = new Set([
   "nhentai.net",
   "iwara.tv",
   "sfmlab.com",
+  "smutba.se",
+  "steamcommunity.com",
+  "youtube.com",
+  "www.youtube.com",
+  "inletzone.com",
 ]);
 
 function rows(): Row[] {
@@ -39,7 +50,13 @@ function rows(): Row[] {
     label: l.name,
     href: l.href,
   }));
-  return [...studios, ...games, ...community];
+  const sfmTutorials = CURATED_SFM_TUTORIALS.map((t) => ({
+    kind: "sfm-tutorial" as const,
+    id: t.id,
+    label: t.name,
+    href: t.href,
+  }));
+  return [...studios, ...games, ...community, ...sfmTutorials];
 }
 
 async function probe(url: string): Promise<{ ok: boolean; status?: number; final?: string; error?: string }> {
