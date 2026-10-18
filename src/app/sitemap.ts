@@ -13,6 +13,7 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: `${siteUrl}/creators`, changeFrequency: "weekly", priority: 0.7 },
   { url: `${siteUrl}/creators/assets`, changeFrequency: "weekly", priority: 0.68 },
   { url: `${siteUrl}/creators/tutorials`, changeFrequency: "weekly", priority: 0.67 },
+  { url: `${siteUrl}/creators/models`, changeFrequency: "weekly", priority: 0.66 },
   { url: `${siteUrl}/links`, changeFrequency: "weekly", priority: 0.65 },
   { url: `${siteUrl}/submit`, changeFrequency: "monthly", priority: 0.5 },
   { url: `${siteUrl}/terms`, changeFrequency: "yearly", priority: 0.3 },
