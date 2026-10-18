@@ -1,5 +1,4 @@
 export type CreatorSoundCategory =
-  | "discovery"
   | "sfx-packs"
   | "voice-moans"
   | "sfm-sounds";
@@ -20,13 +19,8 @@ export const CREATOR_SOUND_GROUPS: {
   hint: string;
 }[] = [
   {
-    key: "discovery",
-    label: "Discovery hubs",
-    hint: "Browse tags and community collections — not exhaustive catalogs.",
-  },
-  {
     key: "sfx-packs",
-    label: "Sex SFX & foley",
+    label: "Sex SFX & sound effects",
     hint: "Penetration, wetness, slaps, and non-vocal scene audio for games and animation.",
   },
   {
@@ -51,14 +45,14 @@ export const CURATED_CREATOR_SOUNDS: CuratedCreatorSound[] = [
     name: "itch.io — adult sound effects",
     blurb: "Official game-assets browse for Adult + Sound effects tags — good starting point for new packs.",
     href: "https://itch.io/game-assets/tag-adult/tag-sound-effects",
-    category: "discovery",
+    category: "sfx-packs",
   },
   {
     id: "sfmlab-maf-sounds",
     name: "SFMLab — MAF sound collection",
     blurb: "Curated public list of high-traffic SFM sound projects (LordAardvark-era staples and VO rips).",
     href: "https://sfmlab.com/list/68337ab0-4974-4ad5-b499-2cf56dc607ee/",
-    category: "discovery",
+    category: "sfm-sounds",
   },
   {
     id: "monsterbox-hentai-sfx",
@@ -78,7 +72,7 @@ export const CURATED_CREATOR_SOUNDS: CuratedCreatorSound[] = [
   },
   {
     id: "philly-nsfw-sfx",
-    name: "Philly — NSFW SFX Pack",
+    name: "Kentaro — NSFW SFX Pack",
     blurb: "Compact Ogg set aimed at RPG Maker / indie eroge (masturbation, sex, orgasm).",
     href: "https://kento-games.itch.io/nsfw-sfx-pack",
     category: "sfx-packs",
