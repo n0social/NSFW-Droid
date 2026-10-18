@@ -25,7 +25,7 @@ node scripts/build-sfm-model-sfw-pick-review.mjs
 # open /opt/cursor/artifacts/sfm-model-sfw-mvp-review.html
 ```
 
-**Rights:** Card images are official Steam / Blizzard marketing art or a generated placeholder (Aunt Cass). We do not redistribute `.mdl` files; outbound links go to SmutBase.
+**Rights:** Card images are official solo-character marketing art (Steam screenshots, Blizzard hero key art, Square Enix wallpapers, Capcom portrait on Wikimedia CC BY 2.5) or a generated placeholder (Aunt Cass). We do not redistribute `.mdl` files; outbound links go to SmutBase.
 
 After updates, hard-refresh `/creators/models` and run:
 
