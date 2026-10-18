@@ -15,7 +15,7 @@ const MODELS = [
   { id: "mercy", projectId: "291bef9d-aeb2-441f-8726-703f079e7985" },
   { id: "lady-dimitrescu", projectId: "51462581-a31d-4d2a-b2ae-b3e1acf0c446" },
   { id: "jill-valentine", projectId: "cd428014-7528-406a-86b4-f3c6d5d3785b" },
-  { id: "lara-croft", projectId: "ff1cccb2-8a6a-457d-b523-572497f82d6d" },
+  { id: "lara-croft", projectId: "2f2f576b-185e-4521-aa1a-9ffc285015ea" },
   { id: "aunt-cass", projectId: "f04ddfbb-bc77-4c56-acc5-d0a97ff88b6e" },
 ];
 

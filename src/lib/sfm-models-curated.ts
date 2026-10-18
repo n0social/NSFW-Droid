@@ -99,11 +99,11 @@ export const TOP_SFM_MODELS: CuratedSfmModel[] = [
   {
     id: "lara-croft",
     characterName: "Lara Croft",
-    sourceGame: "Tomb Raider (classic)",
-    projectId: "ff1cccb2-8a6a-457d-b523-572497f82d6d",
+    sourceGame: "Tomb Raider (reboot trilogy)",
+    projectId: "2f2f576b-185e-4521-aa1a-9ffc285015ea",
     previewImageSrc: "/creator-models/lara-croft.webp",
-    pickNote: "Nude classic Lara — decades of SFM reuse.",
-    approxViews: 47000,
+    pickNote: "Survivor-era Lara (SOTR/ROTR) — outfit bodygroups and NSFW flexes.",
+    approxViews: 35000,
   },
   {
     id: "aunt-cass",
