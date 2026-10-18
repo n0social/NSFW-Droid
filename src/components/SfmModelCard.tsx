@@ -27,7 +27,7 @@ export function SfmModelCard({ model, blur }: Props) {
         {showImage ? (
           <img
             src={src}
-            alt=""
+            alt={`${model.characterName} — ${model.sourceGame} (SFW preview)`}
             className={`absolute inset-0 h-full w-full object-cover object-top transition-[filter] duration-300 ${blur ? "blur-xl scale-105" : ""}`}
             onError={() => setImageFailed(true)}
           />

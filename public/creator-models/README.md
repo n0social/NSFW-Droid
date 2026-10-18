@@ -1,6 +1,6 @@
 # SFM model card previews (`/creators/models`)
 
-Place **WebP or JPEG** preview images here — one per model id in `src/lib/sfm-models-curated.ts`:
+**SFW** marketing-style previews for the SmutBase link-out catalog (not SmutBase gallery thumbs).
 
 | File | Model id |
 | --- | --- |
@@ -8,8 +8,31 @@ Place **WebP or JPEG** preview images here — one per model id in `src/lib/sfm-
 | `widowmaker.webp` | `widowmaker` |
 | … | … |
 
-**Source:** Use the model’s **official preview** from its SmutBase/SFMLab project page (screenshot or uploader-provided preview). Do not hotlink third-party CDNs in production if they block embeds.
+## Regenerate
 
-**Rights:** Link-out catalog only; we are not redistributing the `.mdl` files.
+```bash
+node scripts/fetch-sfm-model-sfw-mvp.mjs
+```
 
-After adding images, hard-refresh `/creators/models` and run `npx tsx scripts/verify-sfm-models.ts`.
+Sources and license notes: `scripts/sfm-model-sfw-sources.json`. Downloaded originals + manifest:
+
+`/opt/cursor/artifacts/sfm-model-mvp-sfw/{id}/`
+
+Optional local review page:
+
+```bash
+node scripts/build-sfm-model-sfw-pick-review.mjs
+# open /opt/cursor/artifacts/sfm-model-sfw-mvp-review.html
+```
+
+**Rights:** Card images are official Steam / Blizzard marketing art or a generated placeholder (Aunt Cass). We do not redistribute `.mdl` files; outbound links go to SmutBase.
+
+After updates, hard-refresh `/creators/models` and run:
+
+```bash
+npx tsx scripts/verify-sfm-models.ts
+```
+
+## Legacy NSFW pick workflow
+
+Older SmutBase thumb scraping (`scripts/scrape-sfm-model-previews.mjs`) is deprecated for MVP cards. See `docs/creator-sfm-models.md`.
