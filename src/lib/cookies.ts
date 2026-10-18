@@ -10,6 +10,7 @@ export function ageVerifiedCookieOptions() {
     sameSite: "lax" as const,
     path: "/",
     maxAge: AGE_VERIFIED_MAX_AGE_SEC,
+    secure: process.env.NODE_ENV === "production",
   };
 }
 
