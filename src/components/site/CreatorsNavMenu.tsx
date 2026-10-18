@@ -12,6 +12,7 @@ type Props = {
 
 const ITEMS = [
   { href: "/creators", label: "Studios & games", hint: "Publishers and spotlight titles" },
+  { href: "/creators/tutorials", label: "SFM tutorials", hint: "NSFW Source Filmmaker learning links" },
   { href: "/links", label: "Community links", hint: "Catalogs, forums, hentai & SFM hubs" },
 ] as const;
 
