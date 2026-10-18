@@ -53,9 +53,9 @@ async function makeAuntCassPlaceholder() {
   return sharp(Buffer.from(svg)).png().toBuffer();
 }
 
-async function toCardWebp(input) {
+async function toCardWebp(input, position = "top") {
   return sharp(input)
-    .resize(CARD_W, CARD_H, { fit: "cover", position: "top" })
+    .resize(CARD_W, CARD_H, { fit: "cover", position })
     .webp({ quality: 82, effort: 4 })
     .toBuffer();
 }
@@ -83,7 +83,7 @@ async function main() {
       await writeFile(path.join(dir, `source.${ext}`), raw);
     }
 
-    const webp = await toCardWebp(raw);
+    const webp = await toCardWebp(raw, entry.cropPosition ?? "top");
     const webpName = `${entry.id}.webp`;
     await writeFile(path.join(dir, webpName), webp);
     await writeFile(path.join(OUT_WEBP, webpName), webp);

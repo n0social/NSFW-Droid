@@ -14,7 +14,7 @@ Help creators jump straight to **high-traffic NSFW SFM models** on **SmutBase** 
 
 ## Previews (SFW MVP)
 
-Card images are **SFW** official marketing art (Steam library verticals, Blizzard hero key art) or a generated silhouette placeholder (Aunt Cass). They live in `public/creator-models/{id}.webp`.
+Card images are **SFW** **solo-character** marketing art (per-character Steam screenshots, Square Enix / Blizzard hero key art, Capcom portrait via Wikimedia, or a generated silhouette for Aunt Cass). They live in `public/creator-models/{id}.webp`.
 
 ```bash
 node scripts/fetch-sfm-model-sfw-mvp.mjs
