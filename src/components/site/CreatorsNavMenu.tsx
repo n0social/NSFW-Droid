@@ -12,6 +12,8 @@ type Props = {
 
 const ITEMS = [
   { href: "/creators", label: "Studios & games", hint: "Publishers and spotlight titles" },
+  { href: "/creators/assets", label: "Creator assets", hint: "Sounds, SFM tutorials & tools" },
+  { href: "/creators/tutorials", label: "SFM tutorials", hint: "NSFW Source Filmmaker learning links" },
   { href: "/creators/models", label: "SFM models", hint: "Top NSFW models → SmutBase" },
   { href: "/links", label: "Community links", hint: "Catalogs, forums, hentai & SFM hubs" },
 ] as const;
