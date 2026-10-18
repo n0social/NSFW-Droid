@@ -10,6 +10,7 @@ Public route: **https://www.nsfwdroid.com/links** — curated outbound URLs for 
 
 - **Studios & games** → `/creators`
 - **Creator assets** → `/creators/assets` (sounds & VO — see [creator-assets-sounds.md](creator-assets-sounds.md))
+- **SFM tutorials** → `/creators/tutorials` ([creator-assets-sfm-tutorials.md](creator-assets-sfm-tutorials.md))
 - **Community links** → `/links`
 
 ## Editing the list
