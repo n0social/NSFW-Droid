@@ -74,22 +74,22 @@
   {
     "id": "lady-dimitrescu",
     "characterName": "Lady Dimitrescu",
-    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3b/Alcina_Dimitrescu_portrait_cropped.jpg",
-    "sourcePage": "https://commons.wikimedia.org/wiki/File:Alcina_Dimitrescu_portrait_cropped.jpg",
-    "licenseNote": "Capcom promotional portrait (CC BY 2.5 via Wikimedia Commons); solo character art.",
+    "sourceUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1196590/ss_d6c5bfb48d7fda343ed583750372b0d3e513ae17.1920x1080.jpg?t=1776927117",
+    "sourcePage": "https://store.steampowered.com/app/1196590/Resident_Evil_Village/",
+    "licenseNote": "Capcom official RE Village Steam store screenshot — Alcina Dimitrescu in RE8 castle attire (SFW marketing capture).",
     "cropPosition": "top",
     "alternates": [
       {
         "key": "candidate-3",
-        "label": "Steam screenshot (castle)",
-        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1196590/ss_363d9c05ee0a974b766938610a3352e7a89b9c92.1920x1080.jpg?t=1776927117",
-        "note": "Lady Dimitrescu centered; daughters at edges"
+        "label": "Wikimedia portrait (older promo)",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/3/3b/Alcina_Dimitrescu_portrait_cropped.jpg",
+        "note": "Pre–RE8 Village stylized portrait; replaced for in-game RE8 look"
       },
       {
         "key": "candidate-4",
         "label": "Steam library (group)",
         "url": "https://cdn.akamai.steamstatic.com/steam/apps/1196590/library_600x900_2x.jpg",
-        "note": "Previous multi-character vertical art"
+        "note": "Ethan / werewolf split-face vertical key art"
       }
     ]
   },
@@ -142,6 +142,6 @@
     "characterName": "Aunt Cass",
     "sourceUrl": null,
     "sourcePage": "https://www.disney.com/movies/big-hero-6",
-    "licenseNote": "No clear Commons/press single-character asset; generated SFW gradient card (no Disney artwork)."
+    "licenseNote": "No licensed single-character press asset; generated SFW stylized silhouette card (no Disney artwork)."
   }
 ]
