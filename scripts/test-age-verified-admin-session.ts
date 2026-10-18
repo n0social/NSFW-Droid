@@ -23,7 +23,6 @@ function ageVerifiedForCookies(input: {
   const dot = input.adminSession.indexOf(".");
   if (dot <= 0) return false;
   const id = input.adminSession.slice(0, dot);
-  const { createHmac, timingSafeEqual } = require("node:crypto") as typeof import("node:crypto");
   const sig = input.adminSession.slice(dot + 1);
   const expected = createHmac("sha256", secret).update(id).digest("base64url");
   if (sig.length !== expected.length) return false;
