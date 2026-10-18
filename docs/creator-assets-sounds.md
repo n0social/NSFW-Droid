@@ -1,6 +1,6 @@
 # Creator assets — sounds & VO
 
-**Last updated:** 17 October 2026
+**Last updated:** 18 October 2026
 
 Curated outbound links for **NSFW sound effects**, **moan/voice libraries**, and **SFMLab audio** used by adult game devs and SFM editors. NSFW Droid does not host audio files.
 

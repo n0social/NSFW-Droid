@@ -23,7 +23,7 @@ const CURATED_ORDER = [
   "lady-dimitrescu",
   "jill-valentine",
   "lara-croft",
-  "aunt-cass",
+  "juno",
 ];
 
 /** @typedef {{ key: string, label: string, imgSrc: string, note?: string }} PickCandidate */
@@ -38,7 +38,7 @@ function buildCandidates(entry) {
   const id = entry.id;
   const rel = `sfm-model-mvp-sfw/${id}`;
   const webp = `${rel}/${id}.webp`;
-  const sourceExt = entry.id === "aunt-cass" || !entry.sourceUrl ? "png" : "jpg";
+  const sourceExt = !entry.sourceUrl ? "png" : "jpg";
   const source = `${rel}/source.${sourceExt}`;
 
   /** @type {PickCandidate[]} */

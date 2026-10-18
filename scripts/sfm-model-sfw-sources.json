@@ -138,10 +138,10 @@
     ]
   },
   {
-    "id": "aunt-cass",
-    "characterName": "Aunt Cass",
-    "sourceUrl": null,
-    "sourcePage": "https://www.disney.com/movies/big-hero-6",
-    "licenseNote": "No licensed single-character press asset; repo-generated SFW stylized café-aunt card art (warm palette, auburn curls, apron; not Disney artwork)."
+    "id": "juno",
+    "characterName": "Juno",
+    "sourceUrl": "https://blz-contentstack-images.akamaized.net/v3/assets/blt2477dcaf4ebd440c/blte81ec81f23dbb109/668daea468915426bc7774a7/1600_Juno.jpg",
+    "sourcePage": "https://overwatch.blizzard.com/en-us/heroes/juno",
+    "licenseNote": "Blizzard official Overwatch 2 hero key art (marketing)."
   }
 ]

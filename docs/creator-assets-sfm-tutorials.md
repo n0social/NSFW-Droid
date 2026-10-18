@@ -1,12 +1,13 @@
 # Creator assets — NSFW SFM tutorials
 
-**Last updated:** 17 October 2026
+**Last updated:** 18 October 2026
 
 Curated outbound links for adult Source Filmmaker work. No hosted media.
 
-## Route
+## Routes
 
-`/creators/tutorials`
+- `/creators/tutorials` — full topic layout
+- `/creators/assets#tutorials` — same curated list on the assets hub
 
 ## Data
 

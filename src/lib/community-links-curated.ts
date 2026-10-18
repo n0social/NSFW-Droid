@@ -136,6 +136,13 @@ export const CURATED_COMMUNITY_LINKS: CuratedCommunityLink[] = [
     category: "sfm-3d",
   },
   {
+    id: "lordaardvark",
+    name: "LordAardvark.com",
+    blurb: "Canonical home for foundational SFM assets and tools referenced across SFMLab audio and model lineage.",
+    href: "https://lordaardvark.com/",
+    category: "sfm-3d",
+  },
+  {
     id: "sfmlab-nsfw",
     name: "SFMLab — NSFW hub",
     blurb: "Popular public NSFW Blender/SFM model collection on SFMLab (explicit content).",

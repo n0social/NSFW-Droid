@@ -133,6 +133,27 @@ export const CURATED_CREATOR_ASSETS_BLENDER: CuratedCreatorAssetsBlenderLink[] =
     href: "https://sfmlab.com/list/1eed4e69-a689-4c37-8537-a6605b90f4e4/",
     category: "scene-collections",
   },
+  {
+    id: "open3dlab-blender-favored",
+    name: "Open3DLab — Blender Favored",
+    blurb: "~330-item community list biased toward Blender-usable ports (characters and scenes, not just maps).",
+    href: "https://open3dlab.com/list/3e36efee-8586-495d-ba6b-d283bb0b39d8/",
+    category: "environment-hubs",
+  },
+  {
+    id: "open3dlab-recommendations-smutbase",
+    name: "Open3DLab — My Recommendations (Smutbase Edition)",
+    blurb: "Editor-curated “best and wacky” Blender NSFW models when environment lists feel too samey.",
+    href: "https://open3dlab.com/list/4884c443-4af3-403d-a34d-0c55ef14251f/",
+    category: "scene-collections",
+  },
+  {
+    id: "itch-nsfw-rigged",
+    name: "itch.io — NSFW rigged assets",
+    blurb: "Official mature + rigged tag browse — surfaces characters and props outside Open3DLab mega-lists.",
+    href: "https://itch.io/game-assets/tag-nsfw/tag-rigged",
+    category: "itch-assets",
+  },
 ];
 
 export function creatorAssetsBlenderByCategory(

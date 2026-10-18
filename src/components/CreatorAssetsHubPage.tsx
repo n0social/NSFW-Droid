@@ -12,6 +12,13 @@ import {
   CURATED_CREATOR_SOUNDS,
   creatorSoundsByCategory,
 } from "@/lib/creator-assets-sounds-curated";
+import {
+  CURATED_SFM_TUTORIALS,
+  SFM_TUTORIAL_TOPICS,
+  sfmTutorialsByTopic,
+  type CuratedSfmTutorial,
+  type SfmTutorialMediaType,
+} from "@/lib/creator-assets-sfm-tutorials-curated";
 import { CREATOR_ASSETS_SECTIONS } from "@/lib/creator-assets-hub";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
@@ -25,6 +32,43 @@ type Props = {
   themeAssets?: ThemeDecorFiles | null;
   layoutDecor?: ResolvedLayoutDecorItem[];
 };
+
+const TUTORIAL_TYPE_BADGE: Record<SfmTutorialMediaType, string> = {
+  video: "Video",
+  written: "Guide",
+  "forum thread": "Forum",
+};
+
+function TutorialOutboundCard({ item, index }: { item: CuratedSfmTutorial; index: number }) {
+  const gradient = CARD_GRADIENTS[index % CARD_GRADIENTS.length];
+  return (
+    <article
+      className="flex h-full flex-col rounded-2xl border border-[var(--theme-primary)]/25 bg-[var(--theme-surface)]/70 shadow-[0_8px_24px_rgba(0,0,0,0.35)]"
+    >
+      <a
+        href={item.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="group flex flex-1 flex-col p-4 sm:p-5"
+        aria-label={`Open ${item.name} (opens in new tab)`}
+      >
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="text-sm font-black text-[#FFF1F7] group-hover:text-[#FF4D8D]">{item.name}</h3>
+          <span
+            className="shrink-0 rounded-full border border-[#FF4D8D]/40 px-2 py-0.5 text-[9px] font-bold uppercase text-[#F9A8D4]"
+            style={{ background: gradient }}
+          >
+            {TUTORIAL_TYPE_BADGE[item.type]}
+          </span>
+        </div>
+        <p className="mt-2 flex-1 text-[11px] leading-relaxed text-[#E9D5FF]/80">{item.blurb}</p>
+        <p className="mt-4 text-[10px] font-bold uppercase tracking-wide text-[#FF4D8D]">
+          External tutorial →
+        </p>
+      </a>
+    </article>
+  );
+}
 
 const CARD_GRADIENTS = [
   "linear-gradient(145deg, #4a1d6a 0%, #C026D3 45%, #14061C 100%)",
@@ -89,6 +133,7 @@ export function CreatorAssetsHubPage({
   layoutDecor = [],
 }: Props) {
   const soundCount = CURATED_CREATOR_SOUNDS.length;
+  const tutorialCount = CURATED_SFM_TUTORIALS.length;
   const blenderCount = CURATED_CREATOR_ASSETS_BLENDER.length;
 
   return (
@@ -173,11 +218,45 @@ export function CreatorAssetsHubPage({
             })}
           </section>
 
-          <section id="tutorials" className="mt-14 scroll-mt-6 border-t border-[var(--theme-primary)]/15 pt-8">
-            <h2 className="text-xs font-black uppercase tracking-wide text-[#E9D5FF]/40">Tutorials</h2>
-            <p className="mt-2 text-[11px] text-[#E9D5FF]/50">
-              SFM and Blender pipeline guides will land here when the tutorials curation ships.
-            </p>
+          <section
+            id="tutorials"
+            className="mt-14 scroll-mt-6 space-y-10 border-t border-[var(--theme-primary)]/15 pt-8"
+            aria-labelledby="tutorials-heading"
+          >
+            <div>
+              <h2 id="tutorials-heading" className="text-xs font-black uppercase tracking-wide text-[#F9A8D4]">
+                SFM tutorials
+              </h2>
+              <p className="mt-1 text-[11px] text-[#E9D5FF]/65">
+                {tutorialCount} curated links · full topic layout on{" "}
+                <Link href="/creators/tutorials" className="font-bold text-[#FF4D8D] underline">
+                  /creators/tutorials
+                </Link>
+                {" · "}
+                edit in{" "}
+                <code className="text-[9px]">src/lib/creator-assets-sfm-tutorials-curated.ts</code>
+              </p>
+            </div>
+
+            {SFM_TUTORIAL_TOPICS.map((group) => {
+              const items = sfmTutorialsByTopic(group.key);
+              if (items.length === 0) return null;
+              return (
+                <div key={group.key}>
+                  <h3 className="text-xs font-black uppercase tracking-wide text-[#F9A8D4]">
+                    {group.label}
+                  </h3>
+                  <p className="mt-1 text-[11px] text-[#E9D5FF]/65">{group.hint}</p>
+                  <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {items.map((item, index) => (
+                      <li key={item.id}>
+                        <TutorialOutboundCard item={item} index={index} />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
           </section>
 
           <section id="blender" className="mt-14 scroll-mt-6 space-y-10 border-t border-[var(--theme-primary)]/15 pt-8" aria-labelledby="blender-heading">

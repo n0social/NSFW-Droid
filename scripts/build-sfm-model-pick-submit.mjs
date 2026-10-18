@@ -19,7 +19,7 @@ const CURATED_ORDER = [
   "lady-dimitrescu",
   "jill-valentine",
   "lara-croft",
-  "aunt-cass",
+  "juno",
 ];
 
 const manifest = JSON.parse(await readFile(path.join(ROOT, "manifest.json"), "utf8"));

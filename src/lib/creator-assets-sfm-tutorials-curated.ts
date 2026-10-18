@@ -75,6 +75,31 @@ export const CURATED_SFM_TUTORIALS: CuratedSfmTutorial[] = [
     topic: "install-workflow",
   },
   {
+    id: "open3dlab-making-sfm-models-p2",
+    name: "Open3DLab — Making SFM models (Part 2)",
+    blurb:
+      "Toolchain setup: Blender Source Tools, VTFEdit, and QC paths — direct follow-up to Part 1.",
+    href: "https://www.youtube.com/watch?v=zTS0PTUHgsg",
+    type: "video",
+    topic: "install-workflow",
+  },
+  {
+    id: "open3dlab-making-sfm-models-p4",
+    name: "Open3DLab — Making SFM models (Part 4)",
+    blurb: "Compilation and MDL pipeline closure for shipping custom Source playermodels.",
+    href: "https://www.youtube.com/watch?v=D3a_SUTD53c",
+    type: "video",
+    topic: "install-workflow",
+  },
+  {
+    id: "open3dlab-import-sfm-to-blender",
+    name: "Open3DLab — Import SFM models into Blender",
+    blurb: "SourceIO walkthrough bridging SmutBase downloads into Blender editing (inverse of porting guides).",
+    href: "https://www.youtube.com/watch?v=XX5mzUeZJDo",
+    type: "video",
+    topic: "install-workflow",
+  },
+  {
     id: "smutbase-tutorials-index",
     name: "SmutBase — Tutorials hub",
     blurb:
@@ -156,6 +181,30 @@ export const CURATED_SFM_TUTORIALS: CuratedSfmTutorial[] = [
     href: "https://www.youtube.com/watch?v=pjaDkjSPYzQ",
     type: "video",
     topic: "lighting",
+  },
+  {
+    id: "valve-sfm-particles",
+    name: "Valve — 12 particle tutorial",
+    blurb: "Official cum, spark, and FX particle workflows missing from our shorter lighting-only picks.",
+    href: "https://www.youtube.com/watch?v=zLry-0Oddmo",
+    type: "video",
+    topic: "animation",
+  },
+  {
+    id: "cinema-sfm-playlist",
+    name: "Cinema Films SFM — full tutorial playlist",
+    blurb: "Camera, particles, and scene building beyond the single lighting episode we already list.",
+    href: "https://www.youtube.com/playlist?list=PLMFQZYYHa96iBJY83SQsXGxwNHfCbCk4G",
+    type: "video",
+    topic: "resources",
+  },
+  {
+    id: "valve-wiki-sfm",
+    name: "Valve Developer Wiki — Source Filmmaker",
+    blurb: "Stable written reference for install paths, console commands, and troubleshooting.",
+    href: "https://developer.valvesoftware.com/wiki/Source_Filmmaker",
+    type: "written",
+    topic: "resources",
   },
   {
     id: "smutbase-fluid-cum-doc",

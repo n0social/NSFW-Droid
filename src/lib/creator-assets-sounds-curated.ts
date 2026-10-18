@@ -131,6 +131,45 @@ export const CURATED_CREATOR_SOUNDS: CuratedCreatorSound[] = [
     href: "https://sfmlab.com/project/d75d9d3b-b5af-4800-a2a4-4c9be3ba40f4/",
     category: "sfm-sounds",
   },
+  {
+    id: "itch-adult-voice-acting",
+    name: "itch.io — adult voice acting",
+    blurb: "Storefront filter for Adult + voice acting tags — surfaces new male/female VO without chasing single pages.",
+    href: "https://itch.io/game-assets/tag-adult/tag-voice-acting",
+    category: "voice-moans",
+  },
+  {
+    id: "extrafantasy-male-moans-150",
+    name: "ExtraFantasyGames — 150+ male moaning pack",
+    blurb: "Commissioned male VA WAV strips — fills the biggest gap in our female-heavy VO picks.",
+    href: "https://extrafantasygames.itch.io/150-nsfw-hentai-moaning-sounds-pack-male",
+    category: "voice-moans",
+    licenseNote: "Commercial OK per listing.",
+  },
+  {
+    id: "audioelk-male-starter-vocals",
+    name: "Audio Elk — starter male vocals",
+    blurb: "300+ stereo 24/48 WAV grunts, moans, and panting aimed at games and animation.",
+    href: "https://audioelk.itch.io/lewd-sound-pack-starter-vocals-collection-male",
+    category: "voice-moans",
+    licenseNote: "CC BY-SA 4.0 per product page.",
+  },
+  {
+    id: "wethotsfx-vox-after-hours",
+    name: "Wet Hot SFX — Vox After Hours voice pack",
+    blurb: "Large curated moan, BJ, and kiss library — pairs with non-vocal SASP already listed.",
+    href: "https://wethotsfx.itch.io/vox-after-hours-voice-pack",
+    category: "voice-moans",
+    licenseNote: "Credit Vox After Hours; no resale or AI training per listing.",
+  },
+  {
+    id: "opennsfw-sfx-index",
+    name: "OpenNSFW — free SFX & VO index",
+    blurb: "Community carrd hub for wet sounds and voice ports; vendors often point here for complementary free SFX.",
+    href: "https://opennsfw.carrd.co/",
+    category: "sfx-packs",
+    licenseNote: "Per linked pack; read each sub-link before commercial use.",
+  },
 ];
 
 export function creatorSoundsByCategory(
