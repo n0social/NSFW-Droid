@@ -2,7 +2,13 @@ import { desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { adminAuditLog, analyticsEvents, listings } from "@/db/schema";
 import { logAdminAction } from "@/lib/admin-audit";
-import { visitorClickConditions, visitorOutboundClickSql } from "@/lib/analytics-quality";
+import {
+  type AnalyticsAudience,
+  allOutboundClickSql,
+  visitorClickConditions,
+  visitorListingViewSql,
+  visitorOutboundClickSql,
+} from "@/lib/analytics-quality";
 import type { TopListingRow } from "@/lib/admin-dashboard";
 
 export type DailyTrafficRow = {
@@ -18,6 +24,7 @@ export type DailyTrafficSummary = {
 
 export type AdminTrafficSnapshot = {
   generatedAt: string;
+  audience: AnalyticsAudience;
   windowDays: number;
   totals: {
     outboundClicks: number;
@@ -39,18 +46,26 @@ export type AdminTrafficSnapshot = {
 
 const TRAFFIC_MARKER_ACTION = "traffic_marker_baseline";
 
-export async function getAdminTrafficSnapshot(windowDays = 30): Promise<AdminTrafficSnapshot> {
+export async function getAdminTrafficSnapshot(
+  windowDays = 30,
+  audience: AnalyticsAudience = "visitors",
+): Promise<AdminTrafficSnapshot> {
   const db = await getDb();
   const now = Date.now();
   const sinceWindow = new Date(now - windowDays * 24 * 60 * 60 * 1000);
   const since7d = new Date(now - 7 * 24 * 60 * 60 * 1000);
 
   const play = visitorOutboundClickSql();
+  const rollupClicks = audience === "all" ? allOutboundClickSql() : play;
+  const cardRollup =
+    audience === "all"
+      ? sql`event_type = 'listing_view' AND path = '/'`
+      : visitorListingViewSql(sql`path = '/'`);
   const totalsResult = await db.execute(sql`
     SELECT
-      (SELECT count(*)::int FROM analytics_event WHERE ${play}) AS outbound_clicks,
+      (SELECT count(*)::int FROM analytics_event WHERE ${rollupClicks}) AS outbound_clicks,
       (SELECT count(*)::int FROM analytics_event WHERE event_type = 'outbound_click' AND NOT (${play})) AS unverified_go_hits,
-      (SELECT count(*)::int FROM analytics_event WHERE event_type = 'listing_view' AND path = '/') AS listing_views,
+      (SELECT count(*)::int FROM analytics_event WHERE ${cardRollup}) AS listing_views,
       (SELECT count(*)::int FROM analytics_event WHERE event_type = 'page_view') AS page_views,
       (SELECT count(*)::int FROM analytics_event) AS all_events
   `);
@@ -70,19 +85,19 @@ export async function getAdminTrafficSnapshot(windowDays = 30): Promise<AdminTra
     LEFT JOIN (
       SELECT (created_at AT TIME ZONE 'UTC')::date AS day, count(*)::int AS clicks
       FROM analytics_event
-      WHERE ${play} AND created_at >= ${sinceWindow}
+      WHERE ${rollupClicks} AND created_at >= ${sinceWindow}
       GROUP BY 1
     ) c ON c.day = d.day
     LEFT JOIN (
       SELECT (created_at AT TIME ZONE 'UTC')::date AS day, count(*)::int AS views
       FROM analytics_event
-      WHERE event_type = 'listing_view' AND path = '/' AND created_at >= ${sinceWindow}
+      WHERE ${cardRollup} AND created_at >= ${sinceWindow}
       GROUP BY 1
     ) v ON v.day = d.day
     ORDER BY d.day
   `);
 
-  const topClicks7d = await topPlayClicks(since7d, 15);
+  const topClicks7d = await topPlayClicks(since7d, 15, audience);
 
   const markerRows = await db
     .select({ createdAt: adminAuditLog.createdAt })
@@ -105,6 +120,7 @@ export async function getAdminTrafficSnapshot(windowDays = 30): Promise<AdminTra
 
   return {
     generatedAt: new Date().toISOString(),
+    audience,
     windowDays,
     totals: {
       outboundClicks: Number(totals.outbound_clicks ?? 0),
@@ -182,8 +198,16 @@ export async function ensureTrafficMarkerBaseline(): Promise<string | null> {
   return new Date().toISOString();
 }
 
-async function topPlayClicks(since: Date, limit: number): Promise<TopListingRow[]> {
+async function topPlayClicks(
+  since: Date,
+  limit: number,
+  audience: AnalyticsAudience,
+): Promise<TopListingRow[]> {
   const db = await getDb();
+  const where =
+    audience === "all"
+      ? sql`${analyticsEvents.eventType} = 'outbound_click' AND ${analyticsEvents.createdAt} >= ${since}`
+      : visitorClickConditions(since);
   const rows = await db
     .select({
       listingId: analyticsEvents.listingId,
@@ -193,7 +217,7 @@ async function topPlayClicks(since: Date, limit: number): Promise<TopListingRow[
     })
     .from(analyticsEvents)
     .innerJoin(listings, eq(listings.id, analyticsEvents.listingId))
-    .where(visitorClickConditions(since))
+    .where(where)
     .groupBy(analyticsEvents.listingId, listings.title, listings.slug)
     .orderBy(desc(sql`count(*)`))
     .limit(limit);

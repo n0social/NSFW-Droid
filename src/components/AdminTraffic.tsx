@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AdminShell } from "@/components/AdminShell";
+import { AdminAudienceToggle } from "@/components/AdminAudienceToggle";
 import type { AdminTrafficSnapshot } from "@/lib/admin-traffic";
+import type { AnalyticsAudience } from "@/lib/analytics-quality";
 
 const POLL_MS = 60_000;
 
@@ -93,9 +95,10 @@ export function AdminTraffic() {
   const [data, setData] = useState<AdminTrafficSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [audience, setAudience] = useState<AnalyticsAudience>("visitors");
 
   const load = useCallback(async () => {
-    const res = await fetch("/api/admin/traffic");
+    const res = await fetch(`/api/admin/traffic?audience=${audience}`);
     if (res.status === 401) {
       window.location.href = "/admin/login";
       return;
@@ -109,7 +112,7 @@ export function AdminTraffic() {
     setData(json);
     setError(null);
     setLoading(false);
-  }, []);
+  }, [audience]);
 
   useEffect(() => {
     void load();
@@ -128,6 +131,7 @@ export function AdminTraffic() {
         — one per card painted, not a game-page open. Ingest does not write these rows.{" "}
         <Link href="/admin" className="text-[#FF4D8D] underline">Dashboard</Link>.
       </p>
+      <AdminAudienceToggle value={audience} onChange={setAudience} />
 
       {loading && !data && <p className="mt-6 text-sm text-[#E9D5FF]">Loading…</p>}
       {error && <p className="mt-6 text-sm text-red-400">{error}</p>}
@@ -147,7 +151,7 @@ export function AdminTraffic() {
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-xl border border-[#C026D3]/30 bg-[#241033] p-4">
               <p className="text-[10px] font-bold uppercase tracking-wide text-[#E9D5FF]/70">
-                Play clicks (all time)
+                {audience === "all" ? "Outbound clicks (all time, raw)" : "Play clicks (all time)"}
               </p>
               <p className="mt-1 text-2xl font-black tabular-nums text-[#FFF1F7]">
                 {data.totals.outboundClicks}

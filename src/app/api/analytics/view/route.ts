@@ -6,6 +6,8 @@ import {
   createAnalyticsSessionId,
   ANALYTICS_SESSION_COOKIE,
 } from "@/lib/analytics-session";
+import { isInternalAnalyticsRequest, shouldSkipAnalyticsRecording } from "@/lib/analytics-quality";
+import { isAdminSession } from "@/lib/admin-auth";
 import { AGE_VERIFIED_COOKIE } from "@/lib/cookies";
 import { cookies } from "next/headers";
 
@@ -13,6 +15,15 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const jar = await cookies();
   if (jar.get(AGE_VERIFIED_COOKIE)?.value !== "1") {
+    return NextResponse.json({ ok: true, recorded: false });
+  }
+  if (
+    shouldSkipAnalyticsRecording({
+      userAgent: request.headers.get("user-agent"),
+      internalRequest: isInternalAnalyticsRequest(request.headers),
+      adminSession: await isAdminSession(),
+    })
+  ) {
     return NextResponse.json({ ok: true, recorded: false });
   }
 

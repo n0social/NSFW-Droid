@@ -25,6 +25,48 @@ export const VISITOR_REFERRER_RE =
 /** Admin pages link titles straight at /api/go; those are not storefront plays. */
 export const ADMIN_REFERRER_RE = "^https?://[^/]+/admin($|/|\\?)";
 
+/** Ops scripts and cloud agents send this so verify traffic does not hit play stats. */
+export const INTERNAL_ANALYTICS_HEADER = "x-nsfwdroid-internal";
+
+const BOT_USER_AGENT_RE =
+  /curl\/|wget\/|HeadlessChrome|Googlebot|bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|facebookexternalhit|NSFW-Droid-Catalog|puppeteer|Playwright\/|python-requests|Go-http-client|axios\/|node-fetch|scrapy|httpie|GPTBot|Claude-Web|Bytespider/i;
+
+export type AnalyticsAudience = "visitors" | "all";
+
+export function parseAnalyticsAudience(raw: string | null | undefined): AnalyticsAudience {
+  return raw === "all" ? "all" : "visitors";
+}
+
+export function isInternalAnalyticsRequest(
+  headers: { get(name: string): string | null },
+): boolean {
+  const v = headers.get(INTERNAL_ANALYTICS_HEADER)?.trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes";
+}
+
+export function isLikelyBotUserAgent(userAgent: string | null | undefined): boolean {
+  if (!userAgent?.trim()) return false;
+  return BOT_USER_AGENT_RE.test(userAgent);
+}
+
+/** Skip recording when probes, bots, or signed-in admin QA would pollute visitor metrics. */
+export function shouldSkipAnalyticsRecording(input: {
+  userAgent: string | null | undefined;
+  internalRequest: boolean;
+  adminSession: boolean;
+}): boolean {
+  if (input.internalRequest) return true;
+  if (input.adminSession) return true;
+  if (isLikelyBotUserAgent(input.userAgent)) return true;
+  return false;
+}
+
+/** Rows tagged at ingest time (legacy) or excluded from visitor rollups. */
+export function excludeTaggedNonVisitorSql(): SQL {
+  return sql`coalesce(metadata->>'internal', '') NOT IN ('true', '1')
+    AND coalesce(metadata->>'adminSession', '') NOT IN ('true', '1')`;
+}
+
 /**
  * Count a redirect as a play click only when a browser that passed the age
  * gate followed a same-host link from a public page. Crawlers GET /api/go
@@ -36,7 +78,19 @@ export function shouldRecordOutboundClick(input: {
   siteHost?: string | null;
   referrer: string | null | undefined;
   ageVerified: boolean;
+  userAgent?: string | null;
+  internalRequest?: boolean;
+  adminSession?: boolean;
 }): boolean {
+  if (
+    shouldSkipAnalyticsRecording({
+      userAgent: input.userAgent,
+      internalRequest: Boolean(input.internalRequest),
+      adminSession: Boolean(input.adminSession),
+    })
+  ) {
+    return false;
+  }
   if (!input.ageVerified) return false;
   if (!input.referrer) return false;
   let ref: URL;
@@ -64,7 +118,16 @@ export function visitorOutboundClickSql(): SQL {
   return sql`event_type = 'outbound_click'
     AND referrer IS NOT NULL
     AND referrer ~ ${VISITOR_REFERRER_RE}
-    AND referrer !~ ${ADMIN_REFERRER_RE}`;
+    AND referrer !~ ${ADMIN_REFERRER_RE}
+    AND ${excludeTaggedNonVisitorSql()}`;
+}
+
+/** listing_view rows suitable for visitor impression charts (excludes tagged internal/admin). */
+export function visitorListingViewSql(extraPath?: SQL): SQL {
+  const pathClause = extraPath ?? sql`true`;
+  return sql`event_type = 'listing_view'
+    AND ${pathClause}
+    AND ${excludeTaggedNonVisitorSql()}`;
 }
 
 /** Browsers with their own analytics_sid. Excludes the old shared age-gate hash. */
@@ -74,13 +137,24 @@ export function uniqueBrowserSessionSql(): SQL {
     AND session_hash <> ${ANON_SESSION_HASH}`;
 }
 
+function drizzleExcludeTaggedNonVisitorSql(): SQL {
+  return sql`coalesce(${analyticsEvents.metadata}->>'internal', '') NOT IN ('true', '1')
+    AND coalesce(${analyticsEvents.metadata}->>'adminSession', '') NOT IN ('true', '1')`;
+}
+
 export function visitorClickConditions(since?: Date): SQL {
   const parts: SQL[] = [
     eq(analyticsEvents.eventType, "outbound_click"),
     sql`${analyticsEvents.referrer} IS NOT NULL`,
     sql`${analyticsEvents.referrer} ~ ${VISITOR_REFERRER_RE}`,
     sql`${analyticsEvents.referrer} !~ ${ADMIN_REFERRER_RE}`,
+    drizzleExcludeTaggedNonVisitorSql(),
   ];
   if (since) parts.push(gte(analyticsEvents.createdAt, since));
   return and(...parts) as SQL;
+}
+
+/** Raw /api/go rows (includes crawler and admin-link noise). */
+export function allOutboundClickSql(): SQL {
+  return sql`event_type = 'outbound_click'`;
 }

@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { AdminShell } from "@/components/AdminShell";
+import { AdminAudienceToggle } from "@/components/AdminAudienceToggle";
 import type { AdminDashboardSnapshot } from "@/lib/admin-dashboard";
+import type { AnalyticsAudience } from "@/lib/analytics-quality";
 import {
   formatDuration,
   formatIngestRunSummary,
@@ -60,9 +62,10 @@ export function AdminDashboard() {
   const [data, setData] = useState<AdminDashboardSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [audience, setAudience] = useState<AnalyticsAudience>("visitors");
 
   const load = useCallback(async () => {
-    const res = await fetch("/api/admin/dashboard");
+    const res = await fetch(`/api/admin/dashboard?audience=${audience}`);
     if (res.status === 401) {
       window.location.href = "/admin/login";
       return;
@@ -76,7 +79,7 @@ export function AdminDashboard() {
     setData(json);
     setError(null);
     setLoading(false);
-  }, []);
+  }, [audience]);
 
   useEffect(() => {
     void load();
@@ -94,6 +97,7 @@ export function AdminDashboard() {
         (weights in <code className="text-[#F9A8D4]">listings-ranking.ts</code>). Daily chart:{" "}
         <Link href="/admin/traffic" className="text-[#FF4D8D] underline">Traffic marker</Link>.
       </p>
+      <AdminAudienceToggle value={audience} onChange={setAudience} />
 
       {loading && !data && <p className="mt-6 text-sm text-[#E9D5FF]">Loading…</p>}
       {error && <p className="mt-6 text-sm text-red-400">{error}</p>}
@@ -124,9 +128,17 @@ export function AdminDashboard() {
             />
             <StatCard label="Accounts" value={data.users.total} hint={`+${data.users.signups24h} / 24h`} />
             <StatCard
-              label="Play clicks"
-              value={data.analytics.playClicks24h}
-              hint={`${data.analytics.playClicks7d} / 7d · ${data.analytics.uniquePlayBrowsers24h} unique browsers / 24h · ${data.analytics.unverifiedGoHits24h} unverified /api/go hits excluded · affiliate ${data.analytics.affiliateClicks24h} / official ${data.analytics.officialClicks24h}`}
+              label={audience === "all" ? "Outbound clicks (raw)" : "Play clicks"}
+              value={
+                audience === "all"
+                  ? data.analytics.outboundClicks24h
+                  : data.analytics.playClicks24h
+              }
+              hint={
+                audience === "all"
+                  ? `${data.analytics.outboundClicks7d} / 7d raw · ${data.analytics.playClicks24h} verified plays / 24h · ${data.analytics.unverifiedGoHits24h} unverified /api/go / 24h`
+                  : `${data.analytics.playClicks7d} / 7d · ${data.analytics.uniquePlayBrowsers24h} unique browsers / 24h · ${data.analytics.unverifiedGoHits24h} unverified /api/go hits excluded · affiliate ${data.analytics.affiliateClicks24h} / official ${data.analytics.officialClicks24h}`
+              }
             />
             <StatCard
               label="Card impressions"
@@ -167,7 +179,11 @@ export function AdminDashboard() {
           )}
 
           <div className="mt-6 grid gap-4 lg:grid-cols-3">
-            <TopList title="Top play clicks (7d)" rows={data.top.clicks7d} emptyLabel="No play clicks yet." />
+            <TopList
+              title={audience === "all" ? "Top outbound clicks (7d, raw)" : "Top play clicks (7d)"}
+              rows={data.top.clicks7d}
+              emptyLabel="No clicks yet."
+            />
             <TopList title="Top card impressions (48h)" rows={data.top.views48h} emptyLabel="No card impressions yet." />
             <TopList title="Most favorited" rows={data.top.favorites} emptyLabel="No favorites yet." />
           </div>

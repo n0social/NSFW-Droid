@@ -1,4 +1,7 @@
-import { shouldRecordOutboundClick } from "../src/lib/analytics-quality";
+import {
+  isLikelyBotUserAgent,
+  shouldRecordOutboundClick,
+} from "../src/lib/analytics-quality";
 
 const page = "https://www.nsfwdroid.com/api/go/abc";
 const problems: string[] = [];
@@ -98,6 +101,48 @@ expect(
   }),
   true,
 );
+
+expect(
+  "catalog bot user-agent",
+  shouldRecordOutboundClick({
+    requestUrl: page,
+    referrer: "https://www.nsfwdroid.com/",
+    ageVerified: true,
+    userAgent: "NSFW-Droid-Catalog/0.1",
+  }),
+  false,
+);
+
+expect(
+  "internal probe header",
+  shouldRecordOutboundClick({
+    requestUrl: page,
+    referrer: "https://www.nsfwdroid.com/",
+    ageVerified: true,
+    userAgent: "Mozilla/5.0",
+    internalRequest: true,
+  }),
+  false,
+);
+
+expect(
+  "admin session QA",
+  shouldRecordOutboundClick({
+    requestUrl: page,
+    referrer: "https://www.nsfwdroid.com/browse",
+    ageVerified: true,
+    userAgent: "Mozilla/5.0",
+    adminSession: true,
+  }),
+  false,
+);
+
+if (isLikelyBotUserAgent("curl/8.5.0") !== true) {
+  problems.push("curl should be bot");
+}
+if (isLikelyBotUserAgent("Mozilla/5.0 (Windows NT 10.0)") !== false) {
+  problems.push("chrome should not be bot");
+}
 
 if (problems.length) {
   console.error(problems.join("\n"));

@@ -1,7 +1,10 @@
 import { and, desc, eq, gte, sql, type SQL } from "drizzle-orm";
 import {
+  type AnalyticsAudience,
+  allOutboundClickSql,
   uniqueBrowserSessionSql,
   visitorClickConditions,
+  visitorListingViewSql,
   visitorOutboundClickSql,
 } from "@/lib/analytics-quality";
 import { getDb } from "@/db";
@@ -23,6 +26,8 @@ import {
 
 export type AdminDashboardSnapshot = {
   generatedAt: string;
+  /** Visitor play metrics (default) vs raw /api/go rows including crawler noise. */
+  audience: AnalyticsAudience;
   revenue: {
     adsEnabled: boolean;
   };
@@ -111,7 +116,9 @@ export type TopListingRow = {
   count: number;
 };
 
-export async function getAdminDashboardSnapshot(): Promise<AdminDashboardSnapshot> {
+export async function getAdminDashboardSnapshot(
+  audience: AnalyticsAudience = "visitors",
+): Promise<AdminDashboardSnapshot> {
   const db = await getDb();
   const now = Date.now();
   const since24h = new Date(now - 24 * 60 * 60 * 1000);
@@ -141,30 +148,41 @@ export async function getAdminDashboardSnapshot(): Promise<AdminDashboardSnapsho
   `);
 
   const play = visitorOutboundClickSql();
+  const rollupClicks = audience === "all" ? allOutboundClickSql() : play;
+  const cardRollup =
+    audience === "all"
+      ? sql`event_type = 'listing_view' AND path = '/'`
+      : visitorListingViewSql(sql`path = '/'`);
   const browsers = uniqueBrowserSessionSql();
   const analyticsResult = await db.execute(sql`
     SELECT
       (SELECT count(*)::int FROM analytics_event WHERE ${play} AND created_at >= ${since24h}) AS play_clicks_24h,
       (SELECT count(*)::int FROM analytics_event WHERE ${play} AND created_at >= ${since7d}) AS play_clicks_7d,
       (SELECT count(distinct session_hash)::int FROM analytics_event WHERE ${play} AND ${browsers} AND created_at >= ${since24h}) AS unique_play_browsers_24h,
-      (SELECT count(distinct session_hash)::int FROM analytics_event WHERE event_type = 'listing_view' AND path = '/' AND ${browsers} AND created_at >= ${since24h}) AS unique_impression_browsers_24h,
+      (SELECT count(distinct session_hash)::int FROM analytics_event WHERE ${cardRollup} AND ${browsers} AND created_at >= ${since24h}) AS unique_impression_browsers_24h,
       (SELECT count(*)::int FROM analytics_event WHERE event_type = 'outbound_click' AND created_at >= ${since24h} AND NOT (${play})) AS unverified_go_24h,
-      (SELECT count(*)::int FROM analytics_event WHERE event_type = 'outbound_click' AND created_at >= ${since24h}) AS clicks_24h,
-      (SELECT count(*)::int FROM analytics_event WHERE event_type = 'outbound_click' AND created_at >= ${since7d}) AS clicks_7d,
-      (SELECT count(*)::int FROM analytics_event WHERE ${play} AND created_at >= ${since24h} AND metadata->>'linkKind' = 'affiliate') AS affiliate_clicks_24h,
-      (SELECT count(*)::int FROM analytics_event WHERE ${play} AND created_at >= ${since7d} AND metadata->>'linkKind' = 'affiliate') AS affiliate_clicks_7d,
-      (SELECT count(*)::int FROM analytics_event WHERE ${play} AND created_at >= ${since24h} AND (metadata->>'linkKind' = 'official' OR metadata->>'linkKind' IS NULL)) AS official_clicks_24h,
-      (SELECT count(*)::int FROM analytics_event WHERE ${play} AND created_at >= ${since7d} AND (metadata->>'linkKind' = 'official' OR metadata->>'linkKind' IS NULL)) AS official_clicks_7d,
-      (SELECT count(*)::int FROM analytics_event WHERE event_type = 'listing_view' AND path = '/' AND created_at >= ${since24h}) AS card_impressions_24h,
-      (SELECT count(*)::int FROM analytics_event WHERE event_type = 'listing_view' AND path = '/' AND created_at >= ${since7d}) AS card_impressions_7d,
+      (SELECT count(*)::int FROM analytics_event WHERE ${rollupClicks} AND created_at >= ${since24h}) AS clicks_24h,
+      (SELECT count(*)::int FROM analytics_event WHERE ${rollupClicks} AND created_at >= ${since7d}) AS clicks_7d,
+      (SELECT count(*)::int FROM analytics_event WHERE ${rollupClicks} AND created_at >= ${since24h} AND metadata->>'linkKind' = 'affiliate') AS affiliate_clicks_24h,
+      (SELECT count(*)::int FROM analytics_event WHERE ${rollupClicks} AND created_at >= ${since7d} AND metadata->>'linkKind' = 'affiliate') AS affiliate_clicks_7d,
+      (SELECT count(*)::int FROM analytics_event WHERE ${rollupClicks} AND created_at >= ${since24h} AND (metadata->>'linkKind' = 'official' OR metadata->>'linkKind' IS NULL)) AS official_clicks_24h,
+      (SELECT count(*)::int FROM analytics_event WHERE ${rollupClicks} AND created_at >= ${since7d} AND (metadata->>'linkKind' = 'official' OR metadata->>'linkKind' IS NULL)) AS official_clicks_7d,
+      (SELECT count(*)::int FROM analytics_event WHERE ${cardRollup} AND created_at >= ${since24h}) AS card_impressions_24h,
+      (SELECT count(*)::int FROM analytics_event WHERE ${cardRollup} AND created_at >= ${since7d}) AS card_impressions_7d,
       (SELECT count(*)::int FROM analytics_event WHERE event_type = 'listing_view' AND path LIKE '/game/%' AND created_at >= ${since24h}) AS detail_views_24h,
       (SELECT count(*)::int FROM analytics_event WHERE event_type = 'listing_view' AND created_at >= ${since24h}) AS views_24h,
       (SELECT count(*)::int FROM analytics_event WHERE event_type = 'listing_view' AND created_at >= ${since7d}) AS views_7d,
       (SELECT count(*)::int FROM analytics_event WHERE event_type = 'page_view' AND created_at >= ${since24h}) AS page_views_24h
   `);
 
-  const clicks7d = await topPlayClicks(since7d, 10);
-  const views48h = await topListingsByEvent("listing_view", since48h, 10, sql`path = '/'`);
+  const clicks7d = await topPlayClicks(since7d, 10, audience);
+  const views48h = await topListingsByEvent(
+    "listing_view",
+    since48h,
+    10,
+    audience === "all" ? sql`path = '/'` : undefined,
+    audience,
+  );
   const favoritesTop = await topListingsByFavorites(10);
 
   const [newArrivalsTotals, newArrivals7d] = await Promise.all([
@@ -205,6 +223,7 @@ export async function getAdminDashboardSnapshot(): Promise<AdminDashboardSnapsho
 
   return {
     generatedAt: new Date().toISOString(),
+    audience,
     revenue: {
       adsEnabled: process.env.NEXT_PUBLIC_ADS_ENABLED === "1",
     },
@@ -287,8 +306,16 @@ export async function getAdminDashboardSnapshot(): Promise<AdminDashboardSnapsho
   };
 }
 
-async function topPlayClicks(since: Date, limit: number): Promise<TopListingRow[]> {
+async function topPlayClicks(
+  since: Date,
+  limit: number,
+  audience: AnalyticsAudience,
+): Promise<TopListingRow[]> {
   const db = await getDb();
+  const where =
+    audience === "all"
+      ? and(eq(analyticsEvents.eventType, "outbound_click"), gte(analyticsEvents.createdAt, since))
+      : visitorClickConditions(since);
   const rows = await db
     .select({
       listingId: analyticsEvents.listingId,
@@ -298,7 +325,7 @@ async function topPlayClicks(since: Date, limit: number): Promise<TopListingRow[
     })
     .from(analyticsEvents)
     .innerJoin(listings, eq(listings.id, analyticsEvents.listingId))
-    .where(visitorClickConditions(since))
+    .where(where)
     .groupBy(analyticsEvents.listingId, listings.title, listings.slug)
     .orderBy(desc(sql`count(*)`))
     .limit(limit);
@@ -318,8 +345,16 @@ async function topListingsByEvent(
   since: Date,
   limit: number,
   extra?: SQL,
+  audience: AnalyticsAudience = "visitors",
 ): Promise<TopListingRow[]> {
   const db = await getDb();
+  const visitorCard =
+    audience === "visitors" && eventType === "listing_view" && extra
+      ? visitorListingViewSql(extra)
+      : null;
+  const where = visitorCard
+    ? and(gte(analyticsEvents.createdAt, since), visitorCard)
+    : and(eq(analyticsEvents.eventType, eventType), gte(analyticsEvents.createdAt, since), extra);
   const rows = await db
     .select({
       listingId: analyticsEvents.listingId,
@@ -329,7 +364,7 @@ async function topListingsByEvent(
     })
     .from(analyticsEvents)
     .innerJoin(listings, eq(listings.id, analyticsEvents.listingId))
-    .where(and(eq(analyticsEvents.eventType, eventType), gte(analyticsEvents.createdAt, since), extra))
+    .where(where)
     .groupBy(analyticsEvents.listingId, listings.title, listings.slug)
     .orderBy(desc(sql`count(*)`))
     .limit(limit);

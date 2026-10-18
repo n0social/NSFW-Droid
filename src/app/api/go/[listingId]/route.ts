@@ -3,7 +3,11 @@ import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { listings } from "@/db/schema";
 import { recordEvent } from "@/lib/analytics";
-import { shouldRecordOutboundClick } from "@/lib/analytics-quality";
+import {
+  isInternalAnalyticsRequest,
+  shouldRecordOutboundClick,
+} from "@/lib/analytics-quality";
+import { isAdminSession } from "@/lib/admin-auth";
 import {
   ANALYTICS_SESSION_COOKIE,
   analyticsSessionIdFromCookie,
@@ -45,6 +49,9 @@ export async function GET(
       siteHost,
       referrer,
       ageVerified,
+      userAgent: request.headers.get("user-agent"),
+      internalRequest: isInternalAnalyticsRequest(request.headers),
+      adminSession: await isAdminSession(),
     });
 
     const redirect = NextResponse.redirect(url, 302);
