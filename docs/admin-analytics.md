@@ -40,8 +40,41 @@ npx tsx scripts/test-visitor-click-sql.ts
 npx tsx scripts/test-analytics-session.ts
 ```
 
+## Purging inflated historical rows
+
+Older traffic used the age-gate cookie as `session_hash`, so one hash represented every browser. Crawler
+`GET /api/go` rows without a referrer may also remain in the table. Home **Hot** / **Trending** and visitor
+dashboard metrics ignore those rows after cleanup.
+
+Dry-run (default):
+
+```bash
+npx tsx scripts/purge-inflated-analytics.ts
+```
+
+Apply deletes (backup `data/catalog` first):
+
+```bash
+npx tsx scripts/purge-inflated-analytics.ts --apply
+```
+
+On the production droplet, stop the app via `scripts/catalog-maintenance.sh` so PGlite is not locked:
+
+```bash
+sudo /var/www/nsfwdroid/scripts/catalog-maintenance.sh -- \
+  npx --yes tsx scripts/purge-inflated-analytics.ts
+sudo /var/www/nsfwdroid/scripts/catalog-maintenance.sh -- \
+  npx --yes tsx scripts/purge-inflated-analytics.ts --apply
+```
+
+Rows removed match the same rules as visitor play clicks / impressions: bad or missing referrer, admin
+referrer, shared legacy `session_hash`, tagged `internal` / `adminSession` metadata, and stored bot
+`metadata.userAgent` when present.
+
+Predicate helpers: `src/lib/analytics-purge.ts`, `scripts/test-analytics-purge.ts`.
+
 ## Limits
 
-- Historical rows before play-click rules still appear under **All events**; visitor filters apply to new traffic and referrer-shaped rows.
-- Bot filtering is UA-based at ingest time — events without a stored UA cannot be retroactively classified.
-- Home rails still use raw `analytics_event` counts; a follow-up could align rails with play-click SQL if rankings look inflated.
+- Bot filtering at ingest is UA-based — events without a stored `metadata.userAgent` cannot be
+  retroactively classified unless they fail referrer/session rules above.
+- **All events** in admin still shows any rows left in the table; run the purge script to shrink noise.

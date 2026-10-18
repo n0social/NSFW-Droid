@@ -1,7 +1,11 @@
-import { and, desc, eq, gte, inArray, isNotNull, sql } from "drizzle-orm";
+import { and, desc, gte, inArray, isNotNull, sql, type SQL } from "drizzle-orm";
 import { getDb } from "@/db";
 import { analyticsEvents, listings, userFavorites } from "@/db/schema";
 import { createHash } from "crypto";
+import {
+  visitorQualityListingViewSql,
+  visitorQualityOutboundClickSql,
+} from "@/lib/analytics-quality";
 import {
   ANALYTICS_RANK_POOL,
   HOT_ENGAGEMENT_DAYS,
@@ -12,6 +16,14 @@ import {
   TRENDING_VIEW_HOURS,
 } from "@/lib/listings-ranking";
 import { publicCatalogLinkStatus } from "@/lib/catalog-visibility";
+
+function visitorQualityOutboundClickWhere(): SQL {
+  return sql`${visitorQualityOutboundClickSql()}`;
+}
+
+function visitorQualityListingViewWhere(): SQL {
+  return sql`${visitorQualityListingViewSql()}`;
+}
 
 export async function recordEvent(input: {
   eventType: "outbound_click" | "listing_view" | "page_view";
@@ -122,7 +134,7 @@ export async function getHotListings(limit = ANALYTICS_RANK_POOL) {
       .from(analyticsEvents)
       .where(
         and(
-          eq(analyticsEvents.eventType, "outbound_click"),
+          visitorQualityOutboundClickWhere(),
           gte(analyticsEvents.createdAt, since),
           isNotNull(analyticsEvents.listingId),
         ),
@@ -164,7 +176,7 @@ export async function getRecentPopular(limit = ANALYTICS_RANK_POOL) {
       .from(analyticsEvents)
       .where(
         and(
-          eq(analyticsEvents.eventType, "listing_view"),
+          visitorQualityListingViewWhere(),
           gte(analyticsEvents.createdAt, since),
           isNotNull(analyticsEvents.listingId),
         ),
