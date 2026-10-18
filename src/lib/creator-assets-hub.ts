@@ -5,13 +5,6 @@ import {
   type CreatorSoundCategory,
   type CuratedCreatorSound,
 } from "@/lib/creator-assets-sounds-curated";
-import {
-  CURATED_SFM_TUTORIALS,
-  SFM_TUTORIAL_TOPICS,
-  sfmTutorialsByTopic,
-  type CuratedSfmTutorial,
-  type SfmTutorialTopic,
-} from "@/lib/creator-assets-sfm-tutorials-curated";
 
 export type CreatorAssetsSectionKey = "sounds" | "tutorials" | "blender";
 
@@ -36,7 +29,7 @@ export const CREATOR_ASSETS_SECTIONS: CreatorAssetsSectionMeta[] = [
     label: "SFM tutorials",
     hint: "NSFW SFM install, rigging, lighting, SmutBase workflow",
     href: "/creators/assets#tutorials",
-    available: true,
+    available: false,
   },
   {
     key: "blender",
@@ -54,11 +47,6 @@ export type CreatorAssetsHubExport = {
     items: CuratedCreatorSound[];
     byCategory: (category: CreatorSoundCategory) => CuratedCreatorSound[];
   };
-  sfmTutorials: {
-    topics: typeof SFM_TUTORIAL_TOPICS;
-    items: CuratedSfmTutorial[];
-    byTopic: (topic: SfmTutorialTopic) => CuratedSfmTutorial[];
-  };
 };
 
 export function exportCreatorAssetsHub(): CreatorAssetsHubExport {
@@ -68,11 +56,6 @@ export function exportCreatorAssetsHub(): CreatorAssetsHubExport {
       groups: CREATOR_SOUND_GROUPS,
       items: CURATED_CREATOR_SOUNDS,
       byCategory: creatorSoundsByCategory,
-    },
-    sfmTutorials: {
-      topics: SFM_TUTORIAL_TOPICS,
-      items: CURATED_SFM_TUTORIALS,
-      byTopic: sfmTutorialsByTopic,
     },
   };
 }
