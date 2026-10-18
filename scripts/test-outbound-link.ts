@@ -1,5 +1,6 @@
 import {
   affiliatePairsWithOfficial,
+  isValidOutboundUrl,
   parseStoreTarget,
   resolveOutboundLink,
 } from "../src/lib/outbound-link";
@@ -7,6 +8,12 @@ import {
 function assert(cond: boolean, msg: string) {
   if (!cond) throw new Error(msg);
 }
+
+assert(isValidOutboundUrl("https://example.com/game"), "https should be valid");
+assert(isValidOutboundUrl("http://example.com/game"), "http should be valid");
+assert(!isValidOutboundUrl("javascript:alert(1)"), "javascript: should be rejected");
+assert(!isValidOutboundUrl("file:///etc/passwd"), "file: should be rejected");
+assert(!isValidOutboundUrl("not-a-url"), "garbage should be rejected");
 
 const steamOfficial = "https://store.steampowered.com/app/123456/Game/";
 const steamAffiliate = "https://store.steampowered.com/app/123456/Game/?utm_source=test";
