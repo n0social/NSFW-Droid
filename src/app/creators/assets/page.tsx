@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { CreatorAssetsHubPage } from "@/components/CreatorAssetsHubPage";
-import { AGE_VERIFIED_COOKIE, parseAgeVerified } from "@/lib/cookies";
+import { isAgeVerifiedRequest } from "@/lib/age-verified-server";
 import { getPublishedListingCount } from "@/lib/listings";
 import { resolveThemeForRequest } from "@/lib/themes/preferences";
 import { themeDecorUrls } from "@/lib/themes/asset-url";
@@ -16,8 +15,7 @@ export const metadata: Metadata = {
 };
 
 export default async function CreatorAssetsRoutePage() {
-  const jar = await cookies();
-  const ageVerified = parseAgeVerified(jar.get(AGE_VERIFIED_COOKIE)?.value);
+  const ageVerified = await isAgeVerifiedRequest();
 
   const { active } = await resolveThemeForRequest();
   const themeAssets = themeDecorUrls(active.id);

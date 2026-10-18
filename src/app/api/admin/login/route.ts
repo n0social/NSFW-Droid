@@ -6,6 +6,7 @@ import {
   verifyAdminPassword,
 } from "@/lib/admin-auth";
 import { logAdminAction } from "@/lib/admin-audit";
+import { AGE_VERIFIED_COOKIE, ageVerifiedCookieOptions } from "@/lib/cookies";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 const LOGIN_LIMIT = 10;
@@ -32,5 +33,6 @@ export async function POST(request: Request) {
 
   const res = NextResponse.json({ ok: true });
   res.cookies.set(ADMIN_COOKIE, token, adminCookieOptions());
+  res.cookies.set(AGE_VERIFIED_COOKIE, "1", ageVerifiedCookieOptions());
   return res;
 }

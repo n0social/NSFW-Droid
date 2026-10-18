@@ -3,12 +3,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { CoverBlurPreference } from "@/components/settings/CoverBlurPreference";
 import { SiteFooter } from "@/components/site/SiteFooter";
-import {
-  AGE_VERIFIED_COOKIE,
-  BLUR_COVERS_COOKIE,
-  parseAgeVerified,
-  parseBlurCovers,
-} from "@/lib/cookies";
+import { isAgeVerifiedRequest } from "@/lib/age-verified-server";
+import { BLUR_COVERS_COOKIE, parseBlurCovers } from "@/lib/cookies";
 import { isSignedIn } from "@/lib/user-session";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +15,7 @@ export default async function SettingsPage() {
   }
 
   const jar = await cookies();
-  const ageVerified = parseAgeVerified(jar.get(AGE_VERIFIED_COOKIE)?.value);
+  const ageVerified = await isAgeVerifiedRequest();
   const blurCovers = parseBlurCovers(jar.get(BLUR_COVERS_COOKIE)?.value);
 
   return (
