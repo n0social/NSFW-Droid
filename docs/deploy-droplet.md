@@ -224,6 +224,7 @@ All scheduled times below are **UTC** (droplet default). This is **separate** fr
 | **Tue 02:00** | `nsfwdroid-maintenance-notice` | Writes `data/maintenance-notice.json` → **amber site banner** until 04:00; optional **ops email** (1h warning) |
 | **Tue 03:00** | `nsfwdroid-weekly-maintenance` | Stops `nsfwdroid` → visitors see Caddy **`maintenance.html`** (502/503/504 path); runs `weekly-maintenance-inner.sh` via `catalog-maintenance.sh`; **hard `/api/health` checks** after start; service back when checks pass, **no later than 04:00 UTC** |
 | **Daily 06:00, 14:00, 22:00** | `nsfwdroid-ingest` | Unchanged — migrate → recycle → `ingest-all` |
+| **Fri 21:00 US Eastern** | `nsfwdroid-weekly-newsletter` | Weekly member newsletter (`send-weekly-newsletter.ts`) when `NEWSLETTER_ENABLED=1` |
 
 **Design:** Site is intentionally **down** (service stopped) for the weekly job. Work may finish in under an hour; the script still runs the full checklist and polls health before declaring success. If work runs long, the parent script sends **SIGTERM** at **04:00 UTC** so `catalog-maintenance.sh`’s exit trap can start `nsfwdroid` again.
 
@@ -262,14 +263,17 @@ Weekly maintenance sets `data/.weekly-maintenance.lock` so the watchdog does **n
 
 ### Weekly newsletter (member list)
 
-Footer signup + double opt-in are live in the app (`POST /api/newsletter/subscribe`). **Mass send** requires `NEWSLETTER_ENABLED=1` in `/etc/nsfwdroid.env` (production: on) plus a Brevo-authenticated domain and `BREVO_API_KEY`.
+Footer signup + double opt-in are live in the app (`POST /api/newsletter/subscribe`). **Mass send** requires `NEWSLETTER_ENABLED=1` in `/etc/nsfwdroid.env`.
+
+**Production (droplet):** set `NEWSLETTER_TRANSPORT=sendmail` and use Exim on the box (see PR branch `cursor/droplet-mail-25f1` for mail ops). **Alternative:** leave transport unset and use Brevo (`BREVO_API_KEY` + authenticated domain).
 
 | Variable | Purpose |
 | --- | --- |
 | `NEWSLETTER_ENABLED` | `1` allows `scripts/send-weekly-newsletter.ts` to mail active subscribers |
+| `NEWSLETTER_TRANSPORT` | `sendmail` on the droplet (Exim); omit for Brevo API |
 | `NEWSLETTER_PUBLIC_BASE_URL` | Confirm/unsubscribe links (default `NEXT_PUBLIC_SITE_URL`) |
-| `BREVO_API_KEY` | [Brevo](https://app.brevo.com) Transactional Email API key (SMTP & API → API keys) |
-| `ALERT_EMAIL_FROM` or `NEWSLETTER_FROM` | From address for Brevo. **Production:** authenticate `nsfwdroid.com` in Brevo — use e.g. `ALERT_EMAIL_FROM="NSFW Droid <alerts@nsfwdroid.com>"` and `NEWSLETTER_FROM="NSFW Droid <newsletter@nsfwdroid.com>"` (quoted in `/etc/nsfwdroid.env`). Optional `NEWSLETTER_FROM_NAME` if the address is bare (app default: **NSFW Droid**) |
+| `BREVO_API_KEY` | Brevo API key when not using sendmail |
+| `ALERT_EMAIL_FROM` or `NEWSLETTER_FROM` | From address (quoted in `/etc/nsfwdroid.env`). Optional `NEWSLETTER_FROM_NAME` (default **NSFW Droid**) |
 
 **Brevo DNS (NameSilo):** In Brevo → **Senders, Domains & Dedicated IPs** → **Domains** → add `nsfwdroid.com`. Brevo shows records to publish:
 
@@ -307,11 +311,9 @@ NEWSLETTER_ENABLED=1 tsx scripts/send-weekly-newsletter.ts --dry-run   # JSON su
 cd /var/www/nsfwdroid && ./scripts/install-droplet-cron.sh
 ```
 
-That installs every file under `deploy/cron.d/` (ingest 3×/day, watchdog, Tue maintenance notice + weekly window, Sun newsletter). Individual copies are still fine; see `deploy/cron.d/` for schedules.
+That installs every file under `deploy/cron.d/` (ingest 3×/day UTC, watchdog every 5 min, Tue maintenance notice + weekly window, **Fri 21:00 America/New_York** newsletter). See `deploy/cron.d/` for each schedule.
 
-**Newsletter cron** (`nsfwdroid-weekly-newsletter`, **Sunday 12:00 UTC**) no-ops unless `NEWSLETTER_ENABLED=1` and `BREVO_API_KEY` are set in `/etc/nsfwdroid.env`. Log: `/var/log/nsfwdroid-newsletter.log`.
-
-Runs as **root** via `catalog-maintenance.sh` (brief stop/start of `nsfwdroid` for PGlite). Prefer **Sunday 12:00 UTC** after the Tue weekly maintenance window. The job no-ops unless `NEWSLETTER_ENABLED=1` and `BREVO_API_KEY` are set in `/etc/nsfwdroid.env`.
+**Newsletter cron** (`nsfwdroid-weekly-newsletter`) no-ops unless `NEWSLETTER_ENABLED=1` and sendmail/Brevo is configured (`NEWSLETTER_TRANSPORT=sendmail` on the droplet, or `BREVO_API_KEY`). Log: `/var/log/nsfwdroid-newsletter.log`. Runs via `catalog-maintenance.sh` (brief stop/start of `nsfwdroid` for PGlite).
 
 **Homepage featured rail:** set comma-separated slugs in env (order preserved), or set `chart_bucket = featured` + `chart_rank` on listings in admin/DB:
 
