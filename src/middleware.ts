@@ -9,5 +9,5 @@ export function middleware() {
 }
 
 export const config = {
-  matcher: ["/admin", "/admin/:path*"],
+  matcher: ["/admin", "/admin/:path*", "/api/go", "/api/go/:path*"],
 };
