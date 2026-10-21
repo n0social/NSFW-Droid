@@ -14,7 +14,9 @@ Idempotency: `/var/lib/nsfwdroid/newsletter-weekly-send.json` (skip duplicate we
 
 ## Alerts
 
-`alert-email.sh` keys: `newsletter-preflight-YYYY-MM-DD`, `newsletter-send-failed-YYYY-MM-DD`.
+Ops and newsletter failure mail use the same **Exim sendmail** path as weekly sends (`scripts/alert-email.sh`, default `ALERT_EMAIL_TRANSPORT=sendmail`). Keys: `newsletter-preflight-YYYY-MM-DD`, `newsletter-send-failed-YYYY-MM-DD`. Test: `./scripts/ops-alert-email-test.sh` on the droplet.
+
+Remove unused `RESEND_API_KEY` from `/etc/nsfwdroid.env` — ops alerts no longer call Resend.
 
 ## Tests
 

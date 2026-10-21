@@ -9,7 +9,7 @@
 - Production is a **DigitalOcean droplet**; releases use [docs/deploy-droplet.md](docs/deploy-droplet.md) §4b — `./scripts/cloud-agent-deploy-droplet.sh` (not CI auto-deploy).
 - Droplet **cron** (`deploy/cron.d/`) runs ingest 3×/day UTC, watchdog every 5 min, Tuesday maintenance, optional Friday newsletter — details in autonomous-ops.
 - After merging changes under `deploy/cron.d/`, run `./scripts/cloud-agent-droplet-install-cron.sh` or have the owner run `install-droplet-cron.sh` on the box.
-- Ops alerts require `ALERT_EMAIL_TO` (+ Resend/SMTP/sendmail) in `/etc/nsfwdroid.env`; there is no SMS integration.
+- Ops alerts require `ALERT_EMAIL_TO` and local Exim `sendmail` (or optional `SMTP_*`) in `/etc/nsfwdroid.env`; there is no SMS integration.
 
 ## Mobile / phone workflow
 

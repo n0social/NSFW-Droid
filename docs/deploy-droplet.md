@@ -368,9 +368,9 @@ Configure in `/etc/nsfwdroid.env` (never commit). If `ALERT_EMAIL_TO` is unset, 
 | Variable | Purpose |
 | --- | --- |
 | `ALERT_EMAIL_TO` | Recipient (required to send). `ALERT_EMAIL` is accepted as an alias |
-| `ALERT_EMAIL_FROM` | From address (default `alerts@nsfwdroid.com`). Resend accepts `Name <email>` — production droplet uses `NSFW Droid <alerts@nsfwdroid.com>` (domain verified in Resend) |
-| `RESEND_API_KEY` | Preferred: [Resend](https://resend.com) HTTP API |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | Optional SMTP via `curl` |
+| `ALERT_EMAIL_FROM` | From address (default `alerts@nsfwdroid.com`). Production uses `NSFW Droid <alerts@nsfwdroid.com>` |
+| `ALERT_EMAIL_TRANSPORT` | `sendmail` (default, Exim on droplet) or `smtp` |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | Optional SMTP via `curl` when `ALERT_EMAIL_TRANSPORT=smtp` or as fallback after sendmail failure |
 | `ALERT_DEDUPE_MINUTES` | Same `--key` max once per N minutes (default `30`) |
 | `ALERT_DEDUPE_DIR` | Dedupe stamps (default `/var/lib/nsfwdroid/alert-dedupe`) |
 
@@ -381,11 +381,12 @@ Example:
 ```bash
 ALERT_EMAIL_TO=you@example.com
 ALERT_EMAIL_FROM="NSFW Droid <alerts@nsfwdroid.com>"
+ALERT_EMAIL_TRANSPORT=sendmail
 NEWSLETTER_FROM="NSFW Droid <newsletter@nsfwdroid.com>"
-RESEND_API_KEY=re_xxxxxxxx
+NEWSLETTER_TRANSPORT=sendmail
 ```
 
-`scripts/alert-email.sh` uses Resend when `RESEND_API_KEY` is set and **exits on API errors** (e.g. HTTP 403) instead of falling back to `sendmail`.
+`scripts/alert-email.sh` injects mail through local **Exim** (`sendmail`) by default — same loopback path as the member newsletter when `NEWSLETTER_TRANSPORT=sendmail`. Remove legacy `RESEND_API_KEY` from `/etc/nsfwdroid.env` if present; it is no longer read by ops alerts.
 
 **Test routing (droplet):**
 
@@ -399,10 +400,10 @@ Or manually: `./scripts/alert-email.sh --key "manual-test-$(date -u +%s)" --subj
 
 | Topic | Guidance |
 | --- | --- |
-| Transport | With `RESEND_API_KEY` set, **ops alerts never use Exim** — Resend sends with SPF/DKIM for the verified domain. Newsletter bulk mail may still use Exim (`NEWSLETTER_TRANSPORT=sendmail`); that path is separate from `alert-email.sh`. |
-| From alignment | Keep `ALERT_EMAIL_FROM` on an address at **nsfwdroid.com** (e.g. `NSFW Droid <alerts@nsfwdroid.com>`) and verify the domain in [Resend](https://resend.com). Mismatched or unverified From domains return Resend HTTP 403. |
-| Exim → Gmail | Raw droplet IP mail often fails Gmail SPF/DMARC. Do **not** rely on sendmail fallback for ops alerts to personal Gmail; use Resend (or authenticated SMTP). |
-| Reply-To / List-Unsubscribe | Transactional ops alerts do not need `List-Unsubscribe`. Optional: set `Reply-To` to the same `alerts@…` address in Resend dashboard or future env if bounces confuse filters. |
+| Transport | Ops alerts and newsletter both use **Exim sendmail** on the droplet by default. Align DNS (SPF/DKIM/DMARC) for **nsfwdroid.com** so Gmail accepts mail from the droplet IP or relay. |
+| From alignment | Keep `ALERT_EMAIL_FROM` on **nsfwdroid.com** (e.g. `NSFW Droid <alerts@nsfwdroid.com>`). |
+| Exim → Gmail | Mail from a VPS IP without aligned DNS often lands in **Spam** or is deferred. After the first delivery, open Gmail **Spam** once and “Report not spam” for `ALERT_EMAIL_FROM`. For stubborn deliverability, set `ALERT_EMAIL_TRANSPORT=smtp` with authenticated SMTP instead of raw sendmail. |
+| Reply-To / List-Unsubscribe | Transactional ops alerts do not need `List-Unsubscribe`. Optional `Reply-To` to the same `alerts@…` address if bounces confuse filters. |
 | Recipient | Set `ALERT_EMAIL_TO` to the mailbox you read on your phone. `ALERT_EMAIL` is an alias for the same variable. |
 
 All callers (`ensure-nsfwdroid.sh`, ingest checks, `weekly-maintenance.sh`, `weekly-newsletter-cron.sh` failure paths, etc.) invoke `scripts/alert-email.sh`, which reads **only** `ALERT_EMAIL_TO` / `ALERT_EMAIL` for the recipient.
