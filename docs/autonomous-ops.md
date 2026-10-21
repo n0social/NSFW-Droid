@@ -115,10 +115,11 @@ NSFW Droid does **not** send SMS or push notifications directly. All **automated
 
 ### If you are not getting mail
 
-1. Confirm `ALERT_EMAIL_TO` is set in `/etc/nsfwdroid.env`.
-2. Test from the droplet: run a dry alert (see [deploy-droplet.md](deploy-droplet.md)) or trigger `ensure-nsfwdroid.sh` in a safe window.
+1. Confirm `ALERT_EMAIL_TO` is set in `/etc/nsfwdroid.env` (this is the **only** recipient for ops and newsletter-failure alerts).
+2. Test from the droplet: `cd /var/www/nsfwdroid && ./scripts/ops-alert-email-test.sh` — see [deploy-droplet.md § Ops email alerts](deploy-droplet.md#ops-email-alerts) for Gmail/Resend notes.
 3. Check Resend/SMTP logs; `alert-email.sh` **fails loudly** on Resend HTTP errors (no silent fallback).
-4. Inspect `/var/log/nsfwdroid-*.log` and `journalctl -u nsfwdroid`.
+4. On Gmail, check **Spam** once and “Report not spam” for `ALERT_EMAIL_FROM` so watchdog mail stays in Primary.
+5. Inspect `/var/log/nsfwdroid-*.log` and `journalctl -u nsfwdroid`.
 
 ---
 
