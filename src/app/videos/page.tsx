@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import { hubPageMetadata } from "@/lib/hub-page-metadata";
 import { VideosPage } from "@/components/VideosPage";
 import { isAgeVerifiedRequest } from "@/lib/age-verified-server";
 import { BLUR_COVERS_COOKIE, parseBlurCovers } from "@/lib/cookies";
@@ -11,11 +11,11 @@ import { resolveLayoutDecorForTheme } from "@/lib/themes/layout-decor";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Top videos",
-  description:
-    "Outbound links to popular SFM and animation clips from SFM Compile. NSFW Droid does not host video files.",
-};
+export const metadata = hubPageMetadata(
+  "/videos",
+  "Top videos",
+  "Outbound links to popular SFM and animation clips from SFM Compile. NSFW Droid does not host video files.",
+);
 
 export default async function VideosRoutePage() {
   const jar = await cookies();
