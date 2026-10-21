@@ -6,12 +6,16 @@ import {
   createAnalyticsSessionId,
   ANALYTICS_SESSION_COOKIE,
 } from "@/lib/analytics-session";
+import { rejectCrossSitePublicPost } from "@/lib/public-post-csrf";
 import { isInternalAnalyticsRequest, shouldSkipAnalyticsRecording } from "@/lib/analytics-quality";
 import { isAdminSession } from "@/lib/admin-auth";
 import { AGE_VERIFIED_COOKIE } from "@/lib/cookies";
 import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
+  const csrf = rejectCrossSitePublicPost(request);
+  if (csrf) return csrf;
+
   const body = await request.json().catch(() => ({}));
   const jar = await cookies();
   if (jar.get(AGE_VERIFIED_COOKIE)?.value !== "1") {

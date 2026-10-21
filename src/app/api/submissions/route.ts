@@ -4,6 +4,7 @@ import { getDb } from "@/db";
 import { developerSubmissions } from "@/db/schema";
 import { isIngestAutoPublishEnabled } from "@/lib/auto-publish";
 import { isValidOutboundUrl } from "@/lib/outbound-link";
+import { rejectCrossSitePublicPost } from "@/lib/public-post-csrf";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { upsertCandidate } from "@/lib/submit-helper";
 
@@ -11,6 +12,9 @@ const RATE_LIMIT = 6;
 const RATE_WINDOW_MS = 15 * 60 * 1000;
 
 export async function POST(request: Request) {
+  const csrf = rejectCrossSitePublicPost(request);
+  if (csrf) return csrf;
+
   const ip = clientIp(request);
   if (!rateLimit(`developer-submission:${ip}`, RATE_LIMIT, RATE_WINDOW_MS)) {
     return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
