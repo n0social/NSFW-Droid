@@ -301,14 +301,15 @@ NEWSLETTER_ENABLED=0 tsx scripts/send-weekly-newsletter.ts --dry-run   # must ab
 NEWSLETTER_ENABLED=1 tsx scripts/send-weekly-newsletter.ts --dry-run   # JSON summary only
 ```
 
-**Cron install:** Copy `deploy/cron.d/nsfwdroid-weekly-newsletter` (schedule **Sunday 12:00 UTC**). The job no-ops unless `NEWSLETTER_ENABLED=1`.
+**Cron install (all jobs):** After syncing `/var/www/nsfwdroid` from git, run as **root**:
 
 ```bash
-cp deploy/cron.d/nsfwdroid-weekly-newsletter /etc/cron.d/nsfwdroid-weekly-newsletter
-chmod 644 /etc/cron.d/nsfwdroid-weekly-newsletter
-touch /var/log/nsfwdroid-newsletter.log
-chown root:root /var/log/nsfwdroid-newsletter.log
+cd /var/www/nsfwdroid && ./scripts/install-droplet-cron.sh
 ```
+
+That installs every file under `deploy/cron.d/` (ingest 3×/day, watchdog, Tue maintenance notice + weekly window, Sun newsletter). Individual copies are still fine; see `deploy/cron.d/` for schedules.
+
+**Newsletter cron** (`nsfwdroid-weekly-newsletter`, **Sunday 12:00 UTC**) no-ops unless `NEWSLETTER_ENABLED=1` and `BREVO_API_KEY` are set in `/etc/nsfwdroid.env`. Log: `/var/log/nsfwdroid-newsletter.log`.
 
 Runs as **root** via `catalog-maintenance.sh` (brief stop/start of `nsfwdroid` for PGlite). Prefer **Sunday 12:00 UTC** after the Tue weekly maintenance window. The job no-ops unless `NEWSLETTER_ENABLED=1` and `BREVO_API_KEY` are set in `/etc/nsfwdroid.env`.
 
