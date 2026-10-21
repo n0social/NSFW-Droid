@@ -13,12 +13,13 @@ import {
 import { buildGamePageJsonLd } from "@/lib/listing-json-ld";
 import { gameListingPath } from "@/lib/listing-routes";
 import { getPublishedListingCount } from "@/lib/listings";
-import { displayListingTitle } from "@/lib/listing-display";
+import { displayListingTitle, listingCoverImageAlt } from "@/lib/listing-display";
 import { siteName } from "@/lib/site";
 import { resolveThemeForRequest } from "@/lib/themes/preferences";
 import { themeDecorUrls } from "@/lib/themes/asset-url";
+import { CATALOG_PAGE_REVALIDATE_SECONDS } from "@/lib/catalog-revalidate";
 
-export const dynamic = "force-dynamic";
+export const revalidate = CATALOG_PAGE_REVALIDATE_SECONDS;
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -36,7 +37,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const description = listingMetaDescription(listing, tags.map((t) => t.label));
   const path = gameListingPath(listing.slug);
   const cover = listing.coverImageUrl?.trim();
-  const images = cover ? [{ url: cover, alt: title }] : undefined;
+  const images = cover ? [{ url: cover, alt: listingCoverImageAlt(title) }] : undefined;
 
   return {
     title,

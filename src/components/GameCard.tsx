@@ -8,7 +8,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useFavoritesContext } from "@/components/favorites/FavoritesProvider";
 import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
 import { ThemeAssetImage } from "@/components/theme/ThemeAssetImage";
-import { displayListingTitle } from "@/lib/listing-display";
+import { displayListingTitle, listingCoverImageAlt } from "@/lib/listing-display";
 import { listingHasAffiliateLink } from "@/lib/outbound-link";
 
 const gradients = [
@@ -162,7 +162,7 @@ export function GameCard({
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={coverUrl!}
-              alt=""
+              alt={listingCoverImageAlt(displayTitle)}
               className={`absolute inset-0 h-full w-full object-cover transition-[filter] duration-300 ${blur ? "blur-xl scale-105" : ""}`}
               loading="lazy"
               decoding="async"

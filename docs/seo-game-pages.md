@@ -32,6 +32,10 @@ Each game page embeds a single `<script type="application/ld+json">` built in `s
 | `audience` | `PeopleAudience` with `requiredMinAge: 18` |
 | `BreadcrumbList` (2nd graph node) | Home → Browse catalog → game title |
 
+## Cover image alt text
+
+`GameCard` and the game detail hero use `listingCoverImageAlt()` (`listing-display.ts`) — the display title (brackets stripped), with fallback `Game cover`. Open Graph image `alt` uses the same helper.
+
 ## Age gate & blur
 
 Same pattern as home/browse: `AgeGate` until `age_verified` cookie; covers blurred when unverified or when `blur_covers=1` (opt-in in Settings).
@@ -44,5 +48,14 @@ Same pattern as home/browse: `AgeGate` until `age_verified` cookie; covers blurr
 
 ## Sitemap & robots
 
-- `app/sitemap.ts` — static site URLs plus all published `/game/...` entries (`lastModified` from `listing.updated_at`).
+- `app/sitemap.ts` — static site URLs, browse-safe **`/browse?tag={slug}`** tag hubs (at least one published title; `lastModified` from latest tagged listing), plus all published `/game/...` entries (`lastModified` from `listing.updated_at`).
 - `app/robots.ts` — allows `/` and `/game/`; disallows `/admin/`, `/api/`, `/account/`, auth/settings/newsletter/underage utility paths.
+
+## Tag browse hubs
+
+- **`/browse?tag={slug}`** — filter catalog by a browse-safe tag (same filter as the browse dropdown).
+- Page 1 renders SSR intro copy from `browseTagHubIntro()` (`src/lib/browse-tag-intro.ts`) and sets `title` / `description` / canonical in `generateMetadata`.
+
+## Caching (ISR)
+
+Public catalog routes (`/`, `/browse`, `/game/[slug]`, `sitemap.xml`) export a shared `revalidate` interval from `src/lib/catalog-revalidate.ts` (default **3600s**). Cookie reads for the age gate and blur preference keep HTML dynamic per visitor; ISR mainly benefits the sitemap and cached catalog fetches without weakening the gate.

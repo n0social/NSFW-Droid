@@ -6,7 +6,7 @@ import type { Listing, Tag } from "@/db/schema";
 import { AgeGate } from "@/components/AgeGate";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
-import { displayListingTitle } from "@/lib/listing-display";
+import { displayListingTitle, listingCoverImageAlt } from "@/lib/listing-display";
 import { listingHasAffiliateLink } from "@/lib/outbound-link";
 import { GameCard } from "@/components/GameCard";
 import { ListingReportPanel } from "@/components/ListingReportPanel";
@@ -106,7 +106,7 @@ export function GameDetailPage({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={coverUrl!}
-                  alt=""
+                  alt={listingCoverImageAlt(displayTitle)}
                   className={`absolute inset-0 h-full w-full object-cover transition-[filter] duration-300 ${effectiveBlur ? "scale-105 blur-xl" : ""}`}
                   onError={() => setCoverFailed(true)}
                 />
