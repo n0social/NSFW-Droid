@@ -46,3 +46,4 @@ Same pattern as home/browse: `AgeGate` until `age_verified` cookie; covers blurr
 
 - `app/sitemap.ts` — static site URLs plus all published `/game/...` entries (`lastModified` from `listing.updated_at`).
 - `app/robots.ts` — allows `/` and `/game/`; disallows `/admin/`, `/api/`, `/account/`, auth/settings/newsletter/underage utility paths.
+

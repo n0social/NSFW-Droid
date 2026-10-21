@@ -7,8 +7,9 @@ import { resolveThemeForRequest } from "@/lib/themes/preferences";
 import { themeDecorUrls } from "@/lib/themes/asset-url";
 import { resolveLayoutDecorForTheme } from "@/lib/themes/layout-decor";
 import { getRecentVideos, hasEnabledVideoFeeds } from "@/lib/video-feeds";
+import { CATALOG_PAGE_REVALIDATE_SECONDS } from "@/lib/catalog-revalidate";
 
-export const dynamic = "force-dynamic";
+export const revalidate = CATALOG_PAGE_REVALIDATE_SECONDS;
 
 export default async function HomePage() {
   const jar = await cookies();

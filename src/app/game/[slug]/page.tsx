@@ -17,8 +17,9 @@ import { displayListingTitle } from "@/lib/listing-display";
 import { siteName } from "@/lib/site";
 import { resolveThemeForRequest } from "@/lib/themes/preferences";
 import { themeDecorUrls } from "@/lib/themes/asset-url";
+import { CATALOG_PAGE_REVALIDATE_SECONDS } from "@/lib/catalog-revalidate";
 
-export const dynamic = "force-dynamic";
+export const revalidate = CATALOG_PAGE_REVALIDATE_SECONDS;
 
 type PageProps = {
   params: Promise<{ slug: string }>;
