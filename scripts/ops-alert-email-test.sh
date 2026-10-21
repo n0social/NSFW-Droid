@@ -6,4 +6,4 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 exec "$SCRIPT_DIR/alert-email.sh" \
   --key "ops-selftest-$(date -u +%Y%m%d-%H%M%S)" \
   --subject "[NSFW Droid TEST] Ops alert routing self-test" \
-  --body "If you received this message, scripts/alert-email.sh delivered mail to ALERT_EMAIL_TO using Resend (when RESEND_API_KEY is set) or SMTP/sendmail fallback."
+  --body "If you received this message, scripts/alert-email.sh delivered mail to ALERT_EMAIL_TO via local sendmail (Exim on the droplet) or SMTP when ALERT_EMAIL_TRANSPORT=smtp."

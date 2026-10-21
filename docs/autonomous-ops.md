@@ -65,7 +65,7 @@ Without these, scripts **log and skip email**; outages may go unnoticed until yo
 | --- | --- |
 | `ALERT_EMAIL_TO` | **Owner inbox** for all ops alerts |
 | `ALERT_EMAIL_FROM` | From line (e.g. `NSFW Droid <alerts@nsfwdroid.com>`) |
-| `RESEND_API_KEY` **or** SMTP **or** local `sendmail` | Delivery; Resend is preferred in docs — see [deploy-droplet.md § Ops email alerts](deploy-droplet.md#ops-email-alerts) |
+| Local Exim `sendmail` (default) **or** `SMTP_*` with `ALERT_EMAIL_TRANSPORT=smtp` | Delivery — see [deploy-droplet.md § Ops email alerts](deploy-droplet.md#ops-email-alerts) |
 
 Optional tuning: `ALERT_DEDUPE_MINUTES` (default 30), `INGEST_ALERT_ZERO_NEW_RUNS=3` for stale-ingest warnings.
 
@@ -116,8 +116,8 @@ NSFW Droid does **not** send SMS or push notifications directly. All **automated
 ### If you are not getting mail
 
 1. Confirm `ALERT_EMAIL_TO` is set in `/etc/nsfwdroid.env` (this is the **only** recipient for ops and newsletter-failure alerts).
-2. Test from the droplet: `cd /var/www/nsfwdroid && ./scripts/ops-alert-email-test.sh` — see [deploy-droplet.md § Ops email alerts](deploy-droplet.md#ops-email-alerts) for Gmail/Resend notes.
-3. Check Resend/SMTP logs; `alert-email.sh` **fails loudly** on Resend HTTP errors (no silent fallback).
+2. Test from the droplet: `cd /var/www/nsfwdroid && ./scripts/ops-alert-email-test.sh` — see [deploy-droplet.md § Ops email alerts](deploy-droplet.md#ops-email-alerts) for Gmail deliverability notes.
+3. Check Exim (`/var/log/exim4/mainlog`) or SMTP logs; `alert-email.sh` **exits non-zero** when sendmail/SMTP cannot deliver.
 4. On Gmail, check **Spam** once and “Report not spam” for `ALERT_EMAIL_FROM` so watchdog mail stays in Primary.
 5. Inspect `/var/log/nsfwdroid-*.log` and `journalctl -u nsfwdroid`.
 

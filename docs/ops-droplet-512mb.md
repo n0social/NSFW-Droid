@@ -55,7 +55,7 @@ INGEST_ALERT_ZERO_NEW_RUNS=3
 INGEST_ALERT_MAX_AGE_HOURS=18
 ```
 
-After each cron ingest, `scripts/post-ingest-hooks.sh` runs (`check-ingest-stale.sh`, `check-ingest-overdue.sh`; social when enabled). Emails use [`scripts/alert-email.sh`](../scripts/alert-email.sh) with keys `ingest-zero-new-<N>` and `ingest-overdue-<N>h`. Requires `ALERT_EMAIL_TO` or `ALERT_EMAIL` (and `RESEND_API_KEY` or SMTP). Unset or `0` disables each check.
+After each cron ingest, `scripts/post-ingest-hooks.sh` runs (`check-ingest-stale.sh`, `check-ingest-overdue.sh`; social when enabled). Emails use [`scripts/alert-email.sh`](../scripts/alert-email.sh) with keys `ingest-zero-new-<N>` and `ingest-overdue-<N>h`. Requires `ALERT_EMAIL_TO` or `ALERT_EMAIL` and local `sendmail` (Exim) or SMTP. Unset or `0` disables each check.
 
 The 5‑minute [`ensure-nsfwdroid.sh`](../scripts/ensure-nsfwdroid.sh) watchdog parses degraded `/api/health` JSON for alert text and runs `check-ingest-overdue.sh` when health is OK. Set `WATCHDOG_RESTART=0` for alert-only mode. Tuesday weekly maintenance runs Exim relay smoke with email on failure (`ops-exim-relay-smoke-alert.sh`).
 
