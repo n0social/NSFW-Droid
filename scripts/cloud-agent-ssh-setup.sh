@@ -5,9 +5,13 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+# shellcheck source=cloud-agent-droplet-ssh-vars.sh
+source "${SCRIPT_DIR}/cloud-agent-droplet-ssh-vars.sh"
+
 SSH_DIR="${HOME}/.ssh"
 KEY="${SSH_DIR}/cursor-cloud-agent-nsfwdroid"
-HOST_ALIAS="nsfwdroid-droplet"
+HOST_ALIAS="${NSFWDROID_SSH_HOST_ALIAS}"
+DEPLOY_USER="${NSFWDROID_DEPLOY_SSH_USER}"
 PIN_FILE="${REPO_ROOT}/deploy/nsfwdroid-droplet.ssh_known_hosts"
 
 mkdir -p "$SSH_DIR"
@@ -47,8 +51,8 @@ fi
 CONFIG_BLOCK=$(cat <<EOF
 
 Host ${HOST_ALIAS}
-  HostName 159.203.136.220
-  User root
+  HostName ${NSFWDROID_DROPLET_HOST}
+  User ${DEPLOY_USER}
   IdentityFile ${KEY}
   IdentitiesOnly yes
   StrictHostKeyChecking yes
@@ -56,12 +60,12 @@ Host ${HOST_ALIAS}
 EOF
 )
 
-if grep -q 'Host nsfwdroid-droplet' "$SSH_DIR/config" 2>/dev/null; then
-  # Replace accept-new deployments with pinned host key policy.
+if grep -q "Host ${HOST_ALIAS}" "$SSH_DIR/config" 2>/dev/null; then
   sed -i 's/StrictHostKeyChecking accept-new/StrictHostKeyChecking yes/' "$SSH_DIR/config" 2>/dev/null || true
+  sed -i "/^Host ${HOST_ALIAS}\$/,/^Host /{s/^  User .*/  User ${DEPLOY_USER}/}" "$SSH_DIR/config" 2>/dev/null || true
 else
   printf '%s\n' "$CONFIG_BLOCK" >> "$SSH_DIR/config"
   chmod 600 "$SSH_DIR/config"
 fi
 
-ssh -o BatchMode=yes "${HOST_ALIAS}" "echo 'ssh ok' && hostname && test -d /var/www/nsfwdroid"
+ssh -o BatchMode=yes "${HOST_ALIAS}" "echo 'ssh ok (${DEPLOY_USER})' && hostname && test -d ${NSFWDROID_APP_DIR}"

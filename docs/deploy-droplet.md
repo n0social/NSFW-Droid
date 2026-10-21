@@ -4,22 +4,42 @@
 **Droplet public IP:** `159.203.136.220`  
 **Your key on droplet:** `icollar-droplet` (for you from your laptop).
 
-**Cloud agent deploy key (add to droplet once):** current key is `deploy/cursor-cloud-agent-nsfwdroid.pub` (`cursor-cloud-agent-nsfwdroid`). Legacy key: `deploy/nsfwdroid-deploy.pub`.
+**Cloud agent deploy key:** current public key is `deploy/cursor-cloud-agent-nsfwdroid.pub` (`cursor-cloud-agent-nsfwdroid`). Legacy key: `deploy/nsfwdroid-deploy.pub`.
 
-While logged in as **root** with your existing key, append the agent public key:
+**Preferred:** dedicated Linux user `nsfwdroid-deploy` (not root). Cloud Agents SSH as that user, extract tarballs under `/var/www/nsfwdroid`, and use **passwordless sudo only** for `systemctl restart nsfwdroid` and cron install — via `/usr/local/sbin/nsfwdroid-deploy-release.sh` and `nsfwdroid-install-droplet-cron.sh`.
+
+On the droplet as **root** (laptop SSH), after the app tree is at `/var/www/nsfwdroid`:
 
 ```bash
-mkdir -p ~/.ssh && chmod 700 ~/.ssh
-grep -q 'cursor-cloud-agent-nsfwdroid' ~/.ssh/authorized_keys 2>/dev/null || \
-  echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEss7C+90lWa6IjJLq+gBRSSzUZrT5Kx/6ZU9WDAkcIK cursor-cloud-agent-nsfwdroid' >> ~/.ssh/authorized_keys
-chmod 600 ~/.ssh/authorized_keys
+cd /var/www/nsfwdroid
+chmod +x deploy/setup-droplet-deploy-user.sh
+./deploy/setup-droplet-deploy-user.sh
 ```
 
-Rotate or create keys on a Cloud Agent: `./scripts/cloud-agent-ssh-keygen.sh` (updates `deploy/cursor-cloud-agent-nsfwdroid.pub` and prints the droplet `authorized_keys` block). Store the matching **private** key as runtime secret `CURSOR_CLOUD_AGENT_NSFWDROID_PRIVATE_KEY` so new agents can SSH without re-keying. Verify with `./scripts/cloud-agent-ssh-setup.sh`; releases use `./scripts/cloud-agent-deploy-droplet.sh` (§4b).
+That creates `nsfwdroid-deploy`, fixes app-dir ownership (`nsfwdroid-deploy:www-data`, `data/` stays `www-data`), installs sudoers + `/usr/local/sbin` helpers, and appends a **restricted** `authorized_keys` line (`restrict,port-forwarding`, no forwarding) for the agent key.
 
-Or: DigitalOcean → **Settings → Security → SSH keys** → Add, then **Droplet → Access → Add SSH key** (or recreate with both keys).
+Rotate or create keys on a Cloud Agent: `./scripts/cloud-agent-ssh-keygen.sh` (updates `deploy/cursor-cloud-agent-nsfwdroid.pub` and prints the constrained `authorized_keys` line). Store the matching **private** key as runtime secret `CURSOR_CLOUD_AGENT_NSFWDROID_PRIVATE_KEY`. Verify with `./scripts/cloud-agent-ssh-setup.sh`; releases use `./scripts/cloud-agent-deploy-droplet.sh` (§4b).
 
-After that, the Cursor cloud agent can `ssh root@159.203.136.220` and run bootstrap. The **private** key never leaves the agent VM and is **not** in git.
+The **private** key never leaves the agent VM and is **not** in git.
+
+### Migrating from root-based Cloud Agent SSH
+
+If the agent key is still only in **`/root/.ssh/authorized_keys`** (older setup), root deploy keeps working until you migrate:
+
+1. Pull this repo on the droplet and run `./deploy/setup-droplet-deploy-user.sh` as above.
+2. From a Cloud Agent (default `NSFWDROID_DEPLOY_SSH_USER=nsfwdroid-deploy`), run `./scripts/cloud-agent-ssh-setup.sh` and a test deploy.
+3. When satisfied, **remove** the `cursor-cloud-agent-nsfwdroid` line from `/root/.ssh/authorized_keys` (human SSH via `icollar-droplet` stays on root).
+
+**During migration only**, set `NSFWDROID_DEPLOY_SSH_USER=root` in the Cursor Cloud Agent environment so scripts keep using root SSH until step 2 passes. Do not commit that override.
+
+Manual `authorized_keys` line (same as `scripts/cloud-agent-authorized-keys-line.sh`):
+
+```bash
+./scripts/cloud-agent-authorized-keys-line.sh deploy/cursor-cloud-agent-nsfwdroid.pub
+# Append output to /home/nsfwdroid-deploy/.ssh/authorized_keys (mode 600, owner nsfwdroid-deploy).
+```
+
+Or: DigitalOcean → **Settings → Security → SSH keys** → Add, then **Droplet → Access → Add SSH key** (human access only; Cloud Agent still uses the deploy user + repo key).
 
 ---
 
