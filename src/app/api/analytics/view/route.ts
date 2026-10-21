@@ -13,6 +13,9 @@ import { AGE_VERIFIED_COOKIE } from "@/lib/cookies";
 import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
+  const csrf = rejectCrossSitePublicPost(request);
+  if (csrf) return csrf;
+
   const body = await request.json().catch(() => ({}));
   const jar = await cookies();
   if (jar.get(AGE_VERIFIED_COOKIE)?.value !== "1") {

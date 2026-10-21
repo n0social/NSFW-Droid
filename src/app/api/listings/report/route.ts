@@ -10,6 +10,9 @@ import { rejectCrossSitePublicPost } from "@/lib/public-post-csrf";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
+  const csrf = rejectCrossSitePublicPost(request);
+  if (csrf) return csrf;
+
   const body = await request.json().catch(() => null);
   const listingId = body?.listing_id ? String(body.listing_id).trim() : "";
   const reasonRaw = body?.reason ? String(body.reason).trim() : "";

@@ -11,6 +11,9 @@ const RATE_LIMIT = 8;
 const RATE_WINDOW_MS = 15 * 60 * 1000;
 
 export async function POST(request: Request) {
+  const csrf = rejectCrossSitePublicPost(request);
+  if (csrf) return csrf;
+
   const ip = clientIp(request);
   if (!rateLimit(`newsletter-subscribe:${ip}`, RATE_LIMIT, RATE_WINDOW_MS)) {
     return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });

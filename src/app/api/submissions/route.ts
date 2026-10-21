@@ -7,6 +7,9 @@ import { rejectCrossSitePublicPost } from "@/lib/public-post-csrf";
 import { upsertCandidate } from "@/lib/submit-helper";
 
 export async function POST(request: Request) {
+  const csrf = rejectCrossSitePublicPost(request);
+  if (csrf) return csrf;
+
   const body = await request.json().catch(() => null);
   if (!body?.title || !body?.official_url || !body?.contact_email) {
     return NextResponse.json({ ok: false, error: "missing_fields" }, { status: 400 });
