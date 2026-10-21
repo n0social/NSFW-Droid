@@ -37,6 +37,11 @@ export function socialMaxPerDay(): number {
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : 15;
 }
 
+export function socialDrainLimitPerRun(): number {
+  const n = Number(process.env.SOCIAL_DRAIN_LIMIT ?? "10");
+  return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 10;
+}
+
 /** Only consider listings first seen within this window (hours). */
 export function socialEnqueueWindowHours(): number {
   const n = Number(process.env.SOCIAL_ENQUEUE_WINDOW_HOURS ?? "72");

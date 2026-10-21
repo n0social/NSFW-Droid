@@ -9,6 +9,7 @@ fi
 ingest_rc=0
 npx --yes tsx scripts/ingest-all.ts || ingest_rc=$?
 
+<<<<<<< HEAD
 # Social queue is independent of ingest-all success (e.g. duplicate slug during
 # auto-publish should not skip Mastodon enqueue/drain for listings already live).
 if [[ "${SOCIAL_MASTODON_ENABLED:-0}" == "1" ]] || [[ "${SOCIAL_ENQUEUE_ENABLED:-0}" == "1" ]] || [[ "${PILLOWFORT_ENABLED:-0}" == "1" ]]; then
@@ -16,6 +17,9 @@ if [[ "${SOCIAL_MASTODON_ENABLED:-0}" == "1" ]] || [[ "${SOCIAL_ENQUEUE_ENABLED:
   npx --yes tsx scripts/social-enqueue.ts >>"$SOCIAL_LOG" 2>&1 || true
   npx --yes tsx scripts/social-drain.ts >>"$SOCIAL_LOG" 2>&1 || true
 fi
+=======
+# Mastodon enqueue/drain run inside ingest-all.ts after a successful ingest_all.
+>>>>>>> 041b144 (Mastodon social autonomy after successful ingest)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 "$SCRIPT_DIR/check-ingest-stale.sh"
 if (( ingest_rc != 0 )); then

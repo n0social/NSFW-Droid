@@ -123,10 +123,8 @@ Do **not** rely on scraping gallery-dl-style login for production until Pillowfo
 Same pattern as newsletter + ingest:
 
 ```
-ingest-all (new published listings)
-    → social_enqueue.ts     # rows in social_outbox (pending)
-cron / end of catalog-ingest-cron.sh
-    → social_drain.ts       # Mastodon (+ Pillowfort when ready)
+ingest-all (successful ingest_all)
+    → enqueue → social_outbox (pending) → drain (limits) → nsfwdroid-social.log
 ```
 
 **Table `social_outbox` (migration `drizzle/0013_social_outbox.sql`):**
@@ -167,14 +165,7 @@ PILLOWFORT_ENABLED=0
 
 ## Ops (droplet)
 
-After ingest (`scripts/catalog-ingest-cron.sh`), when `SOCIAL_MASTODON_ENABLED=1` (or `SOCIAL_ENQUEUE_ENABLED=1` / `PILLOWFORT_ENABLED=1`):
-
-```bash
-npx tsx scripts/social-enqueue.ts   # new listings → pending rows
-npx tsx scripts/social-drain.ts     # Mastodon API (respects SOCIAL_MAX_PER_DAY)
-```
-
-Logs append to `/var/log/nsfwdroid-social.log` (override with `NSFWDROID_SOCIAL_LOG`).
+Each **successful** `ingest-all` enqueues and drains when social env is on. Logs: `/var/log/nsfwdroid-social.log` (`NSFWDROID_SOCIAL_LOG`). Optional `GET /api/health` → `social.outbox` when enabled or `HEALTH_SOCIAL_OUTBOX=1`.
 
 Local compose check: `npx tsx scripts/test-social-compose.ts`.
 
