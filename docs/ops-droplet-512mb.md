@@ -37,7 +37,10 @@ Cron on the droplet already uses this pattern (`deploy/cron.d/nsfwdroid-ingest`)
 `GET /api/health` includes:
 
 - `catalogLastIngestAt` — ISO timestamp of the last **successful** `ingest_all` (`ingest_run.finished_at`), or `null` if none yet.
-- `catalog.listingCount` — live listing count when the DB is healthy.
+- `catalog.listingCount` / `catalog.displayedCount` — titles shown on home, browse, and sitemap (`link_status = ok` and `catalog_stale = false`). Same filter as `getPublishedListingCount()` and browse pagination `total`.
+- `catalog.listingsTotal` — all `listing` rows (matches ingest summary JSON `catalog.listings` and admin dashboard total when no stale rows).
+- `catalog.candidatesTotal` — ingest pipeline rows, not storefront titles.
+- `catalog.browsePageCount` — `ceil(displayedCount / browsePageSize)`; do not multiply by page size to estimate inventory (last page is partial).
 
 Use this for uptime monitors or a “last updated” display without hitting admin APIs.
 

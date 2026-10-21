@@ -201,7 +201,7 @@ Verify after maintenance:
 
 ```bash
 curl -sf http://localhost:3000/api/health | jq .
-# expect status 200 and listingCount > 0
+# expect status 200; catalog.listingCount (alias displayedCount) matches browse total
 curl -sI https://www.nsfwdroid.com/api/health
 ```
 
