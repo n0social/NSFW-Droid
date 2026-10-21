@@ -1,5 +1,6 @@
-# Weekly member newsletter — Sunday 12:00 UTC (after weekly ingest window).
-# Requires NEWSLETTER_ENABLED=1 and BREVO_API_KEY in /etc/nsfwdroid.env.
+# Weekly member newsletter — Friday 9:00 PM US Eastern (America/New_York; EST/EDT).
+# Requires NEWSLETTER_ENABLED=1 and NEWSLETTER_TRANSPORT=sendmail in /etc/nsfwdroid.env.
 # Log: /var/log/nsfwdroid-newsletter.log
 #
-0 12 * * 0 root flock -n /var/lock/nsfwdroid-newsletter.lock /var/www/nsfwdroid/scripts/catalog-maintenance.sh -- npx --yes tsx scripts/send-weekly-newsletter.ts >> /var/log/nsfwdroid-newsletter.log 2>&1
+CRON_TZ=America/New_York
+0 21 * * 5 root flock -n /var/lock/nsfwdroid-newsletter.lock /var/www/nsfwdroid/scripts/catalog-maintenance.sh -- npx --yes tsx scripts/send-weekly-newsletter.ts >> /var/log/nsfwdroid-newsletter.log 2>&1

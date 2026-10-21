@@ -4,6 +4,9 @@
 #        catalog-maintenance.sh -- bash -c 'npx tsx scripts/db-migrate.ts && npx tsx scripts/ingest-all.ts'
 set -euo pipefail
 
+# Cron’s default PATH is /usr/bin:/bin, which hides /usr/sbin/runuser.
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin${PATH:+:$PATH}"
+
 APP_DIR="${NSFWDROID_APP_DIR:-/var/www/nsfwdroid}"
 ENV_FILE="${NSFWDROID_ENV_FILE:-/etc/nsfwdroid.env}"
 SERVICE="${NSFWDROID_SERVICE:-nsfwdroid}"

@@ -1,6 +1,6 @@
 import { newsletterPublicBaseUrl, WEEKLY_NEWSLETTER_SUBJECT } from "@/lib/newsletter/config";
 import type { WeeklyPick } from "@/lib/newsletter/picks";
-import { sendBrevoEmail } from "@/lib/newsletter/brevo";
+import { sendNewsletterEmail } from "@/lib/newsletter/send-email";
 import {
   renderWeeklyNewsletterHtml,
   renderWeeklyNewsletterText,
@@ -15,7 +15,7 @@ export async function sendWeeklyNewsletterToSubscriber(
   const unsubToken = createUnsubscribeToken(subscriber.id);
   const unsubscribeUrl = `${base}/api/newsletter/unsubscribe?token=${encodeURIComponent(unsubToken)}`;
 
-  return sendBrevoEmail({
+  return sendNewsletterEmail({
     to: subscriber.email,
     subject: WEEKLY_NEWSLETTER_SUBJECT,
     html: renderWeeklyNewsletterHtml({ picks, unsubscribeUrl }),

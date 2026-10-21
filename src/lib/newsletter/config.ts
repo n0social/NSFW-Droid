@@ -61,5 +61,12 @@ export function isNewsletterMassSendEnabled(): boolean {
   return process.env.NEWSLETTER_ENABLED === "1";
 }
 
+/** Droplet Exim uses sendmail. Anything else stays on Brevo. */
+export function newsletterTransport(): "sendmail" | "brevo" {
+  const transport = process.env.NEWSLETTER_TRANSPORT?.trim().toLowerCase();
+  if (transport === "sendmail") return "sendmail";
+  return "brevo";
+}
+
 export const WEEKLY_NEWSLETTER_SUBJECT =
   "Thanks for being a member: Here's our favorite NSFW games of the week";

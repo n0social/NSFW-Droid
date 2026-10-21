@@ -1,7 +1,8 @@
 /**
- * Send the weekly member newsletter via Brevo.
+ * Send the weekly member newsletter.
  *
- * Prerequisites: NEWSLETTER_ENABLED=1, BREVO_API_KEY, NEWSLETTER_FROM or ALERT_EMAIL_FROM
+ * Prerequisites: NEWSLETTER_ENABLED=1 and NEWSLETTER_FROM (or ALERT_EMAIL_FROM).
+ * NEWSLETTER_TRANSPORT=sendmail uses local Exim. Otherwise Brevo (BREVO_API_KEY).
  *
  * Usage:
  *   tsx scripts/send-weekly-newsletter.ts --dry-run
@@ -12,6 +13,7 @@ import { closeCatalogDb, getDb } from "../src/db";
 import {
   isNewsletterMassSendEnabled,
   newsletterFromAddress,
+  newsletterTransport,
   WEEKLY_NEWSLETTER_SUBJECT,
 } from "../src/lib/newsletter/config";
 import { fetchWeeklyNewsletterPicks } from "../src/lib/newsletter/picks";
@@ -36,6 +38,7 @@ async function main() {
 
   const summary = {
     dryRun,
+    transport: newsletterTransport(),
     subject: WEEKLY_NEWSLETTER_SUBJECT,
     from: newsletterFromAddress(),
     pickCount: pickResult.picks.length,
@@ -56,25 +59,27 @@ async function main() {
     process.exit(1);
   }
 
-  if (!process.env.BREVO_API_KEY?.trim()) {
-    console.error("[send-weekly-newsletter] Missing BREVO_API_KEY");
-    await closeCatalogDb();
-    process.exit(1);
-  }
-
   if (!subscribers.length) {
     console.error("[send-weekly-newsletter] No active subscribers");
     await closeCatalogDb();
     process.exit(1);
   }
 
-  if (!skipDns) {
+  const transport = newsletterTransport();
+  if (transport === "brevo" && !process.env.BREVO_API_KEY?.trim()) {
+    console.error("[send-weekly-newsletter] Missing BREVO_API_KEY");
+    await closeCatalogDb();
+    process.exit(1);
+  }
+
+  if (transport === "brevo" && !skipDns) {
     const dns = await checkBrevoDomainDns(summary.from);
     if (dns.issues.length) {
       console.error(
         "[send-weekly-newsletter] Brevo DNS issues (fix before live send):",
         dns.issues.join(" | "),
       );
+      await closeCatalogDb();
       process.exit(1);
     }
     if (dns.warnings.length) {
