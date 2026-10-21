@@ -4,16 +4,25 @@ import { getDb, isCatalogDbHealthy } from "@/db";
 import { getCatalogLastIngestAt } from "@/lib/catalog-ingest-status";
 import { getMaintenanceNotice } from "@/lib/maintenance-notice";
 import { getCatalogCountSnapshot } from "@/lib/catalog-counts";
-import { newsletterSigningSecretProductionIssue } from "@/lib/newsletter/config";
+import {
+  isNewsletterEmailDeliveryConfigured,
+  isNewsletterMassSendEnabled,
+  newsletterSigningSecretProductionIssue,
+  newsletterTransport,
+} from "@/lib/newsletter/config";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const maintenanceNotice = await getMaintenanceNotice();
   const newsletterSigningWarning = newsletterSigningSecretProductionIssue();
-  const newsletterHealth = newsletterSigningWarning
-    ? { signingSecretConfigured: false, warning: newsletterSigningWarning }
-    : { signingSecretConfigured: true };
+  const newsletterHealth = {
+    signingSecretConfigured: !newsletterSigningWarning,
+    ...(newsletterSigningWarning ? { warning: newsletterSigningWarning } : {}),
+    transport: newsletterTransport(),
+    massSendEnabled: isNewsletterMassSendEnabled(),
+    deliveryConfigured: isNewsletterEmailDeliveryConfigured(),
+  };
   try {
     const db = await getDb();
     await db.execute(sql`select 1`);

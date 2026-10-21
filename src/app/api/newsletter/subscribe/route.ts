@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { rejectCrossSitePublicPost } from "@/lib/public-post-csrf";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
-import { newsletterPublicBaseUrl } from "@/lib/newsletter/config";
+import { newsletterPublicBaseUrl, newsletterTransport } from "@/lib/newsletter/config";
 import { sendNewsletterEmail } from "@/lib/newsletter/send-email";
+import {
+  diagnoseEmailSendFailure,
+  formatEmailFailureForLog,
+} from "@/lib/newsletter/email-diagnostics";
 import { renderConfirmSubscriptionHtml } from "@/lib/newsletter/weekly-email";
 import { upsertPendingSubscriber } from "@/lib/newsletter/subscriber";
 import { isValidSubscriberEmail, normalizeSubscriberEmail } from "@/lib/newsletter/tokens";
@@ -56,7 +60,8 @@ export async function POST(request: Request) {
   });
 
   if (!send.ok) {
-    console.error("[newsletter/subscribe] send failed:", send.error);
+    const diagnostic = send.diagnostic ?? diagnoseEmailSendFailure(send.error, newsletterTransport());
+    console.error(formatEmailFailureForLog("newsletter/subscribe", send.error, diagnostic));
     return NextResponse.json({ ok: false, error: "email_send_failed" }, { status: 503 });
   }
 
