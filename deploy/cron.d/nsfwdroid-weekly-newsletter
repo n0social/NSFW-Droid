@@ -3,4 +3,4 @@
 # Log: /var/log/nsfwdroid-newsletter.log
 #
 CRON_TZ=America/New_York
-0 21 * * 5 root flock -n /var/lock/nsfwdroid-newsletter.lock /var/www/nsfwdroid/scripts/catalog-maintenance.sh -- npx --yes tsx scripts/send-weekly-newsletter.ts >> /var/log/nsfwdroid-newsletter.log 2>&1
+0 21 * * 5 root flock -n /var/lock/nsfwdroid-newsletter.lock /var/www/nsfwdroid/scripts/weekly-newsletter-cron.sh >> /var/log/nsfwdroid-newsletter.log 2>&1

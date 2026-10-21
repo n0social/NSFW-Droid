@@ -2,6 +2,11 @@ import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { sendBrevoEmail, type SendBrevoEmailResult } from "@/lib/newsletter/brevo";
 import { newsletterFromAddress, newsletterTransport } from "@/lib/newsletter/config";
+import {
+  diagnoseEmailSendFailure,
+  formatEmailFailureForLog,
+  isTransientEmailError,
+} from "@/lib/newsletter/email-diagnostics";
 
 export type NewsletterEmailInput = {
   to: string;
@@ -11,7 +16,21 @@ export type NewsletterEmailInput = {
   listUnsubscribeUrl?: string;
 };
 
-export type SendNewsletterEmailResult = SendBrevoEmailResult;
+export type SendNewsletterEmailResult =
+  | { ok: true; messageId: string; attempts?: number }
+  | {
+      ok: false;
+      error: string;
+      attempts?: number;
+      diagnostic?: ReturnType<typeof diagnoseEmailSendFailure>;
+    };
+
+const SENDMAIL_RETRY_ATTEMPTS = 3;
+const RETRY_BASE_MS = 800;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
 
 function assertHeaderValue(value: string, label: string): string {
   const trimmed = value.trim();
@@ -102,9 +121,34 @@ export async function sendViaSendmail(
 
 export async function sendNewsletterEmail(
   input: NewsletterEmailInput,
+  context = "newsletter",
 ): Promise<SendNewsletterEmailResult> {
-  if (newsletterTransport() === "sendmail") {
-    return sendViaSendmail(input);
+  const transport = newsletterTransport();
+  const maxAttempts = transport === "sendmail" ? SENDMAIL_RETRY_ATTEMPTS : 2;
+  let lastError = "unknown";
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const result =
+      transport === "sendmail" ? await sendViaSendmail(input) : await sendBrevoEmail(input);
+    if (result.ok) return { ...result, attempts: attempt };
+
+    lastError = result.error;
+    const diagnostic = diagnoseEmailSendFailure(lastError, transport);
+    const transient = isTransientEmailError(lastError, transport);
+    if (transient && attempt < maxAttempts) {
+      diagnostic.autoActionTaken = `retry ${attempt + 1}/${maxAttempts}`;
+    }
+    console.error(formatEmailFailureForLog(context, lastError, diagnostic));
+    if (!transient || attempt >= maxAttempts) {
+      return { ok: false, error: lastError, attempts: attempt, diagnostic };
+    }
+    await sleep(RETRY_BASE_MS * attempt);
   }
-  return sendBrevoEmail(input);
+
+  return {
+    ok: false,
+    error: lastError,
+    attempts: maxAttempts,
+    diagnostic: diagnoseEmailSendFailure(lastError, transport),
+  };
 }

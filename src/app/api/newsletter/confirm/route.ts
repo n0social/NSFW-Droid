@@ -4,7 +4,12 @@ import { confirmSubscriberByToken } from "@/lib/newsletter/subscriber";
 import {
   isNewsletterEmailDeliveryConfigured,
   newsletterPublicBaseUrl,
+  newsletterTransport,
 } from "@/lib/newsletter/config";
+import {
+  diagnoseEmailSendFailure,
+  formatEmailFailureForLog,
+} from "@/lib/newsletter/email-diagnostics";
 import { fetchWeeklyNewsletterPicks } from "@/lib/newsletter/picks";
 import { sendWeeklyNewsletterToSubscriber } from "@/lib/newsletter/send-weekly-to-subscriber";
 import { hashNewsletterToken } from "@/lib/newsletter/tokens";
@@ -41,7 +46,9 @@ export async function GET(request: Request) {
           pickResult.picks,
         );
         if (!send.ok) {
-          console.error("[newsletter/confirm] welcome weekly send failed:", send.error);
+          const diagnostic =
+            send.diagnostic ?? diagnoseEmailSendFailure(send.error, newsletterTransport());
+          console.error(formatEmailFailureForLog("newsletter/confirm", send.error, diagnostic));
         } else {
           console.log(
             `[newsletter/confirm] sent welcome weekly to ${row.email} messageId=${send.messageId}`,

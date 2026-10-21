@@ -353,7 +353,7 @@ cd /var/www/nsfwdroid && ./scripts/install-droplet-cron.sh
 
 That installs every file under `deploy/cron.d/` (ingest 3×/day UTC, watchdog every 5 min, Tue maintenance notice + weekly window, **Fri 21:00 America/New_York** newsletter). See `deploy/cron.d/` for each schedule.
 
-**Newsletter cron** (`nsfwdroid-weekly-newsletter`) no-ops unless `NEWSLETTER_ENABLED=1` and sendmail/Brevo is configured (`NEWSLETTER_TRANSPORT=sendmail` on the droplet, or `BREVO_API_KEY`). Log: `/var/log/nsfwdroid-newsletter.log`. Runs via `catalog-maintenance.sh` (brief stop/start of `nsfwdroid` for PGlite).
+**Newsletter cron** (`nsfwdroid-weekly-newsletter`) runs `scripts/weekly-newsletter-cron.sh` (preflight + ops alert on failure). No-ops unless `NEWSLETTER_ENABLED=1` and sendmail/Brevo is configured. Log: `/var/log/nsfwdroid-newsletter.log`. Runbook: [newsletter-exim-runbook.md](newsletter-exim-runbook.md).
 
 **Homepage featured rail:** set comma-separated slugs in env (order preserved), or set `chart_bucket = featured` + `chart_rank` on listings in admin/DB:
 
