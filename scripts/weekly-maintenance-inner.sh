@@ -41,7 +41,6 @@ if [[ -x "$SCRIPT_DIR/post-ingest-hooks.sh" ]]; then
   "$SCRIPT_DIR/post-ingest-hooks.sh" || true
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 log "exim relay smoke (ops alert on failure)"
 "$SCRIPT_DIR/ops-exim-relay-smoke-alert.sh" || log "exim relay smoke failed — see /var/log/nsfwdroid-exim-smoke.log"
 

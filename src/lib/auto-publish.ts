@@ -17,7 +17,14 @@ export type CandidateIngestOutcome =
   | "held"
   | "pending"
   | "skipped"
-  | "rejected_non_mature";
+  | "rejected_non_mature"
+  | "publish_failed";
+
+export type AutoPublishError = {
+  candidateId: string;
+  title: string;
+  error: string;
+};
 
 function parseEnvBool(value: string | undefined): boolean | undefined {
   if (value === undefined || value === "") return undefined;
@@ -131,11 +138,29 @@ export async function processCandidateAfterIngest(
   if (!isIngestAutoPublishEnabled()) return "pending";
 
   const raw = c.rawPayload as { platforms?: string[] } | null;
-  const listing = await approveCandidate(candidateId, "auto_publish", {
-    platforms: raw?.platforms,
-    affiliateUrl: affiliateFromRaw(c.rawPayload),
-  });
-  return listing ? "published" : "skipped";
+  try {
+    const listing = await approveCandidate(candidateId, "auto_publish", {
+      platforms: raw?.platforms,
+      affiliateUrl: affiliateFromRaw(c.rawPayload),
+    });
+    return listing ? "published" : "skipped";
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    const payload =
+      c.rawPayload && typeof c.rawPayload === "object"
+        ? { ...(c.rawPayload as Record<string, unknown>) }
+        : {};
+    payload.publishError = {
+      phase: "auto_publish",
+      message,
+      at: new Date().toISOString(),
+    };
+    await db
+      .update(candidates)
+      .set({ rawPayload: payload })
+      .where(eq(candidates.id, candidateId));
+    return "publish_failed";
+  }
 }
 
 /** End-of-ingest sweep for pending rows (env toggled on, or missed per-row). */
@@ -145,6 +170,8 @@ export async function autoPublishPendingCandidates(limit = 100): Promise<{
   pending: number;
   skipped: number;
   rejectedNonMature: number;
+  publishFailed: number;
+  publishErrors: AutoPublishError[];
 }> {
   const db = await getDb();
   const pending = await db
@@ -158,6 +185,8 @@ export async function autoPublishPendingCandidates(limit = 100): Promise<{
   let stillPending = 0;
   let skipped = 0;
   let rejectedNonMature = 0;
+  let publishFailed = 0;
+  const publishErrors: AutoPublishError[] = [];
 
   for (const c of pending) {
     const outcome = await processCandidateAfterIngest(c.id);
@@ -165,8 +194,31 @@ export async function autoPublishPendingCandidates(limit = 100): Promise<{
     else if (outcome === "held") held += 1;
     else if (outcome === "pending") stillPending += 1;
     else if (outcome === "rejected_non_mature") rejectedNonMature += 1;
-    else skipped += 1;
+    else if (outcome === "publish_failed") {
+      publishFailed += 1;
+      if (publishErrors.length < 8) {
+        const [row] = await db
+          .select({ rawPayload: candidates.rawPayload })
+          .from(candidates)
+          .where(eq(candidates.id, c.id))
+          .limit(1);
+        const pl = row?.rawPayload as { publishError?: { message?: string } } | null;
+        publishErrors.push({
+          candidateId: c.id,
+          title: c.title,
+          error: pl?.publishError?.message ?? "publish_failed",
+        });
+      }
+    } else skipped += 1;
   }
 
-  return { published, held, pending: stillPending, skipped, rejectedNonMature };
+  return {
+    published,
+    held,
+    pending: stillPending,
+    skipped,
+    rejectedNonMature,
+    publishFailed,
+    publishErrors,
+  };
 }

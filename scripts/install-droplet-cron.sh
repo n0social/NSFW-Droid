@@ -19,6 +19,10 @@ chmod +x \
   "$APP_DIR/scripts/weekly-maintenance-inner.sh" \
   "$APP_DIR/scripts/alert-email.sh" \
   "$APP_DIR/scripts/check-ingest-stale.sh" \
+  "$APP_DIR/scripts/check-ingest-overdue.sh" \
+  "$APP_DIR/scripts/post-ingest-hooks.sh" \
+  "$APP_DIR/scripts/newsletter-preflight.sh" \
+  "$APP_DIR/scripts/weekly-newsletter-cron.sh" \
   "$APP_DIR/scripts/exim-relay-smoke.sh" \
   "$APP_DIR/scripts/ops-exim-relay-smoke-alert.sh" \
   "$APP_DIR/scripts/health-probe-selftest.sh" 2>/dev/null || true
@@ -43,7 +47,7 @@ touch \
   /var/log/nsfwdroid-social.log \
   /var/log/nsfwdroid-exim-smoke.log 2>/dev/null || true
 
-mkdir -p /var/lib/nsfwdroid/alert-dedupe /var/lock
+mkdir -p /var/lib/nsfwdroid/alert-dedupe /var/lib/nsfwdroid /var/lock
 chown root:root /var/log/nsfwdroid-*.log 2>/dev/null || true
 
 echo "Cron jobs:"

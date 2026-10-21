@@ -12,6 +12,10 @@ import {
   backfillListingTagsFromCandidates,
 } from "../src/lib/catalog-tags";
 import { extractItchItemTags, extractSteamTags } from "./lib/tag-extract";
+import {
+  logSocialAfterIngest,
+  runSocialPipelineAfterIngest,
+} from "../src/lib/social/after-ingest";
 
 function deriveTags(c: typeof candidates.$inferSelect) {
   const raw = c.rawPayload as Record<string, unknown> | null;
@@ -76,6 +80,16 @@ async function main() {
       startedAt,
       summary: summary as Record<string, unknown>,
     });
+
+    try {
+      const social = await runSocialPipelineAfterIngest(db);
+      logSocialAfterIngest(social);
+      console.log(JSON.stringify({ socialAfterIngest: social }));
+    } catch (socialErr) {
+      const message = socialErr instanceof Error ? socialErr.message : String(socialErr);
+      logSocialAfterIngest({ skipped: `error:${message}` });
+      console.error("[ingest-all] social pipeline failed:", socialErr);
+    }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     await recordIngestRun({

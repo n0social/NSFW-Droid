@@ -49,6 +49,8 @@ chown -R www-data:www-data "$APP_DIR/data" 2>/dev/null || mkdir -p "$APP_DIR/dat
 chmod +x "$APP_DIR/scripts/catalog-maintenance.sh" \
   "$APP_DIR/scripts/catalog-ingest-cron.sh" \
   "$APP_DIR/scripts/check-ingest-stale.sh" \
+  "$APP_DIR/scripts/check-ingest-overdue.sh" \
+  "$APP_DIR/scripts/post-ingest-hooks.sh" \
   "$APP_DIR/scripts/ensure-nsfwdroid.sh" \
   "$APP_DIR/scripts/alert-email.sh" \
   "$APP_DIR/scripts/maintenance-notice.sh" \

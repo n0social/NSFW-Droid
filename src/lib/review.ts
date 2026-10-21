@@ -6,7 +6,8 @@ import {
   artworkSourceForCover,
   extractCoverImageUrl,
 } from "@/lib/listing-cover";
-import { externalIdSlugSuffix, slugify } from "@/lib/slug";
+import { slugify } from "@/lib/slug";
+import { allocateUniqueListingSlug } from "@/lib/listing-slug";
 import { resolveListingAffiliateUrl } from "@/lib/listing-affiliate";
 
 export async function approveCandidate(
@@ -69,18 +70,28 @@ export async function approveCandidate(
     return existingListing;
   }
 
-  let slug = slugify(c.title, c.externalId);
-  const [slugCollision] = await db
-    .select()
-    .from(listings)
-    .where(eq(listings.slug, slug))
-    .limit(1);
-  if (
-    slugCollision &&
-    (slugCollision.source !== c.source || slugCollision.externalId !== c.externalId)
-  ) {
-    const disambiguated = `${slug}-${externalIdSlugSuffix(c.externalId)}`.slice(0, 120);
-    slug = disambiguated;
+  const { slug, initialSlug, disambiguated, steps } = await allocateUniqueListingSlug(
+    db,
+    c.title,
+    c.externalId,
+    c.source,
+  );
+
+  if (disambiguated) {
+    const payload =
+      c.rawPayload && typeof c.rawPayload === "object"
+        ? { ...(c.rawPayload as Record<string, unknown>) }
+        : {};
+    payload.slugPublish = {
+      initialSlug,
+      slug,
+      steps,
+      at: new Date().toISOString(),
+    };
+    await db
+      .update(candidates)
+      .set({ rawPayload: payload })
+      .where(eq(candidates.id, candidateId));
   }
 
   const coverImageUrl = extractCoverImageUrl(c.source, c.rawPayload);
