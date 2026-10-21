@@ -40,5 +40,10 @@ Same pattern as home/browse: `AgeGate` until `age_verified` cookie; covers blurr
 
 ## Sitemap & robots
 
-- `app/sitemap.ts` — static site URLs plus all published `/game/...` entries (`lastModified` from `listing.updated_at`).
+- `app/sitemap.ts` — static site URLs, browse-safe **`/browse?tag={slug}`** tag hubs (at least one published title; `lastModified` from latest tagged listing), plus all published `/game/...` entries (`lastModified` from `listing.updated_at`).
 - `app/robots.ts` — allows `/` and `/game/`; disallows `/admin/`, `/api/`, `/account/`.
+
+## Tag browse hubs
+
+- **`/browse?tag={slug}`** — filter catalog by a browse-safe tag (same filter as the browse dropdown).
+- Page 1 renders SSR intro copy from `browseTagHubIntro()` (`src/lib/browse-tag-intro.ts`) and sets `title` / `description` / canonical in `generateMetadata` when the URL is tag-only.

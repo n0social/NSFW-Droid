@@ -35,6 +35,7 @@ type Props = {
   totalListings?: number;
   page?: number;
   pageSize?: number;
+  tagHubIntro?: string | null;
 };
 
 export function BrowseCatalog({
@@ -54,6 +55,7 @@ export function BrowseCatalog({
   totalListings = 0,
   page = 1,
   pageSize = BROWSE_PAGE_SIZE,
+  tagHubIntro = null,
 }: Props) {
   const router = useRouter();
   const { user } = useAuth();
@@ -178,6 +180,11 @@ export function BrowseCatalog({
                 ← Home
               </Link>
               <h1 className="mt-1 text-xl font-black text-[#FFF1F7] sm:text-2xl">{title}</h1>
+              {tagHubIntro ? (
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#E9D5FF]/90">
+                  {tagHubIntro}
+                </p>
+              ) : null}
               <p className="mt-1 text-xs text-[#E9D5FF]/80">
                 {totalListings > 0
                   ? `${rangeStart.toLocaleString()}–${rangeEnd.toLocaleString()} of ${totalListings.toLocaleString()} titles`
