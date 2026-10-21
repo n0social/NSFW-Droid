@@ -41,6 +41,21 @@ function browseFiltersFromSearchParams(sp: Record<string, string | string[] | un
   return { rail, tag, q, vanilla, sort, page };
 }
 
+<<<<<<< HEAD
+=======
+function browseListingsRail(rail: string | null) {
+  return rail === "new" || rail === "hot" || rail === "trending"
+    ? rail === "hot"
+      ? "new"
+      : rail
+    : null;
+}
+
+function browseCatalogSort(sort: string | null) {
+  return sort === "new" ? "new" : null;
+}
+
+>>>>>>> origin/cursor/seo-browse-pagination-rel-4fae
 export async function generateMetadata({
   searchParams,
 }: {
@@ -48,17 +63,26 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const sp = await searchParams;
   const { rail, tag, q, vanilla, sort, page } = browseFiltersFromSearchParams(sp);
+<<<<<<< HEAD
+=======
+  const catalogSort = browseCatalogSort(sort);
+>>>>>>> origin/cursor/seo-browse-pagination-rel-4fae
 
   const path = browseCatalogPath({
     rail,
     tag,
     q,
     vanilla,
+<<<<<<< HEAD
     sort: sort === "new" ? "new" : null,
+=======
+    sort: catalogSort,
+>>>>>>> origin/cursor/seo-browse-pagination-rel-4fae
     page,
   });
 
   const browse = await getBrowseListings({
+<<<<<<< HEAD
     rail:
       rail === "new" || rail === "hot" || rail === "trending"
         ? rail === "hot"
@@ -69,6 +93,13 @@ export async function generateMetadata({
     q,
     vanilla,
     sort: sort === "new" ? "new" : null,
+=======
+    rail: browseListingsRail(rail),
+    tag,
+    q,
+    vanilla,
+    sort: catalogSort,
+>>>>>>> origin/cursor/seo-browse-pagination-rel-4fae
     page,
   });
 
@@ -83,6 +114,7 @@ export async function generateMetadata({
   if (!railBlocksPagination && browse.total > 0) {
     const totalPages = Math.max(1, Math.ceil(browse.total / BROWSE_PAGE_SIZE));
     const paginationLinks: { rel: string; url: string }[] = [];
+<<<<<<< HEAD
     if (page > 1) {
       paginationLinks.push({
         rel: "prev",
@@ -94,11 +126,19 @@ export async function generateMetadata({
           sort: sort === "new" ? "new" : null,
           page: page - 1,
         }),
+=======
+    const linkBase = { rail, tag, q, vanilla, sort: catalogSort };
+    if (page > 1) {
+      paginationLinks.push({
+        rel: "prev",
+        url: browseCatalogPath({ ...linkBase, page: page - 1 }),
+>>>>>>> origin/cursor/seo-browse-pagination-rel-4fae
       });
     }
     if (page < totalPages) {
       paginationLinks.push({
         rel: "next",
+<<<<<<< HEAD
         url: browseCatalogPath({
           rail,
           tag,
@@ -107,6 +147,9 @@ export async function generateMetadata({
           sort: sort === "new" ? "new" : null,
           page: page + 1,
         }),
+=======
+        url: browseCatalogPath({ ...linkBase, page: page + 1 }),
+>>>>>>> origin/cursor/seo-browse-pagination-rel-4fae
       });
     }
     if (paginationLinks.length > 0) {
@@ -120,6 +163,10 @@ export async function generateMetadata({
 export default async function BrowsePage({ searchParams }: { searchParams: SearchParams }) {
   const sp = await searchParams;
   const { rail, tag, q, vanilla, sort, page } = browseFiltersFromSearchParams(sp);
+<<<<<<< HEAD
+=======
+  const catalogSort = browseCatalogSort(sort);
+>>>>>>> origin/cursor/seo-browse-pagination-rel-4fae
 
   const hasUrlFilters = Boolean(
     (rail === "new" || rail === "hot" || rail === "trending") ||
@@ -149,16 +196,11 @@ export default async function BrowsePage({ searchParams }: { searchParams: Searc
   const layoutDecor = resolveLayoutDecorForTheme(active);
 
   const browse = await getBrowseListings({
-    rail:
-      rail === "new" || rail === "hot" || rail === "trending"
-        ? rail === "hot"
-          ? "new"
-          : rail
-        : null,
+    rail: browseListingsRail(rail),
     tag,
     q,
     vanilla,
-    sort: sort === "new" ? "new" : null,
+    sort: catalogSort,
     page,
   });
 
@@ -187,7 +229,7 @@ export default async function BrowsePage({ searchParams }: { searchParams: Searc
         initialTag={tag}
         initialVanilla={vanilla}
         initialQ={q}
-        initialSort={sort === "new" ? "new" : null}
+        initialSort={catalogSort}
         totalListings={browse.total}
         page={page}
         pageSize={BROWSE_PAGE_SIZE}
