@@ -1,4 +1,9 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "crypto";
+import {
+  assertNewsletterSigningSecretProduction,
+  newsletterSigningSecret,
+} from "@/lib/newsletter/config";
+
 
 export function generateNewsletterToken(): string {
   return randomBytes(32).toString("base64url");
@@ -8,16 +13,9 @@ export function hashNewsletterToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
-function newsletterSigningSecret(): string {
-  return (
-    process.env.NEWSLETTER_TOKEN_SECRET?.trim() ||
-    process.env.SESSION_SECRET?.trim() ||
-    "dev-newsletter-signing-secret"
-  );
-}
-
 /** Signed token for one-click unsubscribe in weekly mail (no plaintext stored). */
 export function createUnsubscribeToken(subscriberId: string): string {
+  assertNewsletterSigningSecretProduction("createUnsubscribeToken");
   const sig = createHmac("sha256", newsletterSigningSecret())
     .update(`unsub:${subscriberId}`)
     .digest("base64url");

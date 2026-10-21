@@ -11,6 +11,7 @@
 import "dotenv/config";
 import { closeCatalogDb, getDb } from "../src/db";
 import {
+  assertNewsletterSigningSecretProduction,
   isNewsletterMassSendEnabled,
   newsletterFromAddress,
   newsletterTransport,
@@ -30,6 +31,16 @@ async function main() {
       "[send-weekly-newsletter] NEWSLETTER_ENABLED is not 1 — aborting (no mass send).",
     );
     process.exit(0);
+  }
+
+  try {
+    assertNewsletterSigningSecretProduction("send-weekly-newsletter");
+  } catch (err) {
+    console.error(
+      "[send-weekly-newsletter]",
+      err instanceof Error ? err.message : String(err),
+    );
+    process.exit(1);
   }
 
   const db = await getDb();

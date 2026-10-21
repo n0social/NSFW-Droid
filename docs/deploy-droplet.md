@@ -273,8 +273,9 @@ Footer signup + double opt-in are live in the app (`POST /api/newsletter/subscri
 | `NEWSLETTER_ENABLED` | `1` allows `scripts/send-weekly-newsletter.ts` to mail active subscribers |
 | `NEWSLETTER_TRANSPORT` | `sendmail` on the droplet (Exim); omit for Brevo API |
 | `NEWSLETTER_PUBLIC_BASE_URL` | Confirm/unsubscribe links (default `NEXT_PUBLIC_SITE_URL`) |
-| `BREVO_API_KEY` | Brevo API key when not using sendmail |
+| `BREVO_API_KEY` | Brevo API key when not using sendmail; or [Brevo](https://app.brevo.com) Transactional Email API key |
 | `ALERT_EMAIL_FROM` or `NEWSLETTER_FROM` | From address (quoted in `/etc/nsfwdroid.env`). Optional `NEWSLETTER_FROM_NAME` (default **NSFW Droid**) |
+| `SESSION_SECRET` or `NEWSLETTER_TOKEN_SECRET` | HMAC key for one-click unsubscribe links in weekly mail (defaults to `SESSION_SECRET`). **Production:** one of these must be set — `/api/health` warns and mass send aborts if the dev fallback would be used |
 
 **Brevo DNS (NameSilo):** In Brevo → **Senders, Domains & Dedicated IPs** → **Domains** → add `nsfwdroid.com`. Brevo shows records to publish:
 
