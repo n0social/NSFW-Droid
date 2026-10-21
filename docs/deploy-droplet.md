@@ -4,20 +4,18 @@
 **Droplet public IP:** `159.203.136.220`  
 **Your key on droplet:** `icollar-droplet` (for you from your laptop).
 
-**Cloud agent deploy key (add to droplet once):** public key in `deploy/nsfwdroid-deploy.pub`:
+**Cloud agent deploy key (add to droplet once):** current key is `deploy/cursor-cloud-agent-nsfwdroid.pub` (`cursor-cloud-agent-nsfwdroid`). Legacy key: `deploy/nsfwdroid-deploy.pub`.
 
-```text
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMdIdQkh4DkAO9/giumJnatx9T2k0zkEmF/NuxKEPVmS nsfwdroid-cloud-agent-deploy
-```
-
-While logged in as **root** with your existing key, append it:
+While logged in as **root** with your existing key, append the agent public key:
 
 ```bash
 mkdir -p ~/.ssh && chmod 700 ~/.ssh
-grep -q 'nsfwdroid-cloud-agent-deploy' ~/.ssh/authorized_keys 2>/dev/null || \
-  echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMdIdQkh4DkAO9/giumJnatx9T2k0zkEmF/NuxKEPVmS nsfwdroid-cloud-agent-deploy' >> ~/.ssh/authorized_keys
+grep -q 'cursor-cloud-agent-nsfwdroid' ~/.ssh/authorized_keys 2>/dev/null || \
+  echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEss7C+90lWa6IjJLq+gBRSSzUZrT5Kx/6ZU9WDAkcIK cursor-cloud-agent-nsfwdroid' >> ~/.ssh/authorized_keys
 chmod 600 ~/.ssh/authorized_keys
 ```
+
+Rotate or create keys on a Cloud Agent: `./scripts/cloud-agent-ssh-keygen.sh` (updates `deploy/cursor-cloud-agent-nsfwdroid.pub` and prints the droplet `authorized_keys` block). Store the matching **private** key as runtime secret `CURSOR_CLOUD_AGENT_NSFWDROID_PRIVATE_KEY` so new agents can SSH without re-keying. Verify with `./scripts/cloud-agent-ssh-setup.sh`; releases use `./scripts/cloud-agent-deploy-droplet.sh` (§4b).
 
 Or: DigitalOcean → **Settings → Security → SSH keys** → Add, then **Droplet → Access → Add SSH key** (or recreate with both keys).
 
