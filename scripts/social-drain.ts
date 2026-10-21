@@ -1,16 +1,17 @@
 import "dotenv/config";
 import { closeCatalogDb, getDb } from "../src/db";
+import { socialDrainLimitPerRun } from "../src/lib/social/config";
 import { drainSocialOutbox } from "../src/lib/social/drain";
+import { appendSocialLog } from "../src/lib/social/log";
 
 async function main() {
-  const raw = process.env.SOCIAL_DRAIN_LIMIT ?? "10";
-  const parsed = Number(raw);
-  const limit =
-    Number.isFinite(parsed) && parsed >= 0 ? parsed : 10;
+  const limit = socialDrainLimitPerRun();
   const db = await getDb();
   try {
     const result = await drainSocialOutbox(db, { limit });
-    console.log(JSON.stringify({ ok: true, ...result }));
+    const payload = { ok: true, ...result };
+    appendSocialLog({ event: "drain", ...payload });
+    console.log(JSON.stringify(payload));
   } finally {
     await closeCatalogDb();
   }

@@ -11,7 +11,7 @@ fi
 ingest_rc=0
 npx --yes tsx scripts/ingest-all.ts || ingest_rc=$?
 
-# Mastodon enqueue/drain: ingest-all.ts after successful ingest_all.
+# Mastodon enqueue/drain runs inside ingest-all.ts after successful ingest_all.
 "$SCRIPT_DIR/post-ingest-hooks.sh"
 
 if (( ingest_rc != 0 )); then
