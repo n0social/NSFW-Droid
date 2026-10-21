@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { browseCatalogPath } from "@/lib/browse-catalog-path";
 import { browsePrefsFromSearchParams } from "@/lib/browse-preferences";
 import type { Listing, Tag } from "@/db/schema";
 import { GameCard } from "@/components/GameCard";
@@ -135,16 +136,14 @@ export function BrowseCatalog({
   const rangeEnd = Math.min(page * pageSize, totalListings);
 
   function browsePageHref(nextPage: number): string {
-    const params = new URLSearchParams();
-    if (initialVanilla) params.set("vanilla", "1");
-    else if (initialTag) params.set("tag", initialTag);
-    else if (initialRail === "new" || initialRail === "hot") params.set("rail", "new");
-    else if (initialRail === "trending") params.set("rail", "trending");
-    if (initialQ) params.set("q", initialQ);
-    if (initialSort === "new" && filterValue === "all" && !initialQ) params.set("sort", "new");
-    if (nextPage > 1) params.set("page", String(nextPage));
-    const qs = params.toString();
-    return qs ? `/browse?${qs}` : "/browse";
+    return browseCatalogPath({
+      vanilla: initialVanilla,
+      tag: initialTag,
+      rail: initialRail,
+      q: initialQ,
+      sort: initialSort === "new" && filterValue === "all" && !initialQ ? "new" : null,
+      page: nextPage,
+    });
   }
 
   return (
