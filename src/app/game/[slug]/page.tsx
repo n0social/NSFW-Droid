@@ -10,7 +10,7 @@ import {
   getTagsForListingDetail,
   listingMetaDescription,
 } from "@/lib/listing-detail";
-import { buildListingJsonLd } from "@/lib/listing-json-ld";
+import { buildGamePageJsonLd } from "@/lib/listing-json-ld";
 import { gameListingPath } from "@/lib/listing-routes";
 import { getPublishedListingCount } from "@/lib/listings";
 import { displayListingTitle } from "@/lib/listing-display";
@@ -70,7 +70,7 @@ export default async function GameListingPage({ params }: PageProps) {
   const tags = await getTagsForListingDetail(listing.id);
   const tagLabels = tags.map((t) => t.label);
   const description = listingMetaDescription(listing, tagLabels);
-  const jsonLd = buildListingJsonLd(listing, description);
+  const jsonLd = buildGamePageJsonLd(listing, description, tags);
   const similarGames = await getSimilarListings(listing.id);
   const listingCount = await getPublishedListingCount();
   const { active } = await resolveThemeForRequest();
