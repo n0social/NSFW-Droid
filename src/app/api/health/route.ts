@@ -4,11 +4,16 @@ import { getDb, isCatalogDbHealthy } from "@/db";
 import { getCatalogLastIngestAt } from "@/lib/catalog-ingest-status";
 import { getMaintenanceNotice } from "@/lib/maintenance-notice";
 import { getPublishedListingCount } from "@/lib/listings";
+import { newsletterSigningSecretProductionIssue } from "@/lib/newsletter/config";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const maintenanceNotice = await getMaintenanceNotice();
+  const newsletterSigningWarning = newsletterSigningSecretProductionIssue();
+  const newsletterHealth = newsletterSigningWarning
+    ? { signingSecretConfigured: false, warning: newsletterSigningWarning }
+    : { signingSecretConfigured: true };
   try {
     const db = await getDb();
     await db.execute(sql`select 1`);
@@ -21,6 +26,7 @@ export async function GET() {
         catalog: { healthy: true, listingCount },
         catalogLastIngestAt: catalogLastIngestAt?.toISOString() ?? null,
         maintenanceNotice,
+        newsletter: newsletterHealth,
       },
       { status: 200 },
     );
@@ -38,6 +44,7 @@ export async function GET() {
         },
         catalogLastIngestAt: null,
         maintenanceNotice,
+        newsletter: newsletterHealth,
       },
       { status: 503 },
     );

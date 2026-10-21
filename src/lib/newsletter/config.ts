@@ -61,5 +61,53 @@ export function isNewsletterMassSendEnabled(): boolean {
   return process.env.NEWSLETTER_ENABLED === "1";
 }
 
+
+/** Local-only fallback; must not be used for HMAC unsubscribe tokens in production. */
+export const NEWSLETTER_DEV_SIGNING_SECRET = "dev-newsletter-signing-secret";
+
+export type NewsletterSigningSecretSource =
+  | "newsletter_token_secret"
+  | "session_secret"
+  | "dev_fallback";
+
+export function newsletterSigningSecretSource(): NewsletterSigningSecretSource {
+  if (process.env.NEWSLETTER_TOKEN_SECRET?.trim()) return "newsletter_token_secret";
+  if (process.env.SESSION_SECRET?.trim()) return "session_secret";
+  return "dev_fallback";
+}
+
+/** HMAC key for one-click unsubscribe tokens (`NEWSLETTER_TOKEN_SECRET` → `SESSION_SECRET` → dev fallback). */
+export function newsletterSigningSecret(): string {
+  const explicit = process.env.NEWSLETTER_TOKEN_SECRET?.trim();
+  if (explicit) return explicit;
+  const session = process.env.SESSION_SECRET?.trim();
+  if (session) return session;
+  return NEWSLETTER_DEV_SIGNING_SECRET;
+}
+
+export function isNewsletterSigningSecretWeak(): boolean {
+  return newsletterSigningSecretSource() === "dev_fallback";
+}
+
+/**
+ * Production must not sign newsletter unsubscribe links with the dev fallback.
+ * Returns an operator-facing message, or null when configuration is acceptable.
+ */
+export function newsletterSigningSecretProductionIssue(): string | null {
+  if (process.env.NODE_ENV !== "production") return null;
+  if (!isNewsletterSigningSecretWeak()) return null;
+  return (
+    "Set NEWSLETTER_TOKEN_SECRET or SESSION_SECRET in production; " +
+    "refusing dev newsletter signing secret"
+  );
+}
+
+export function assertNewsletterSigningSecretProduction(context: string): void {
+  const issue = newsletterSigningSecretProductionIssue();
+  if (issue) {
+    throw new Error(`${issue} (${context})`);
+  }
+}
+
 export const WEEKLY_NEWSLETTER_SUBJECT =
   "Thanks for being a member: Here's our favorite NSFW games of the week";
