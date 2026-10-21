@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rejectCrossSitePublicPost } from "@/lib/public-post-csrf";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { newsletterPublicBaseUrl } from "@/lib/newsletter/config";
 import { sendBrevoEmail } from "@/lib/newsletter/brevo";

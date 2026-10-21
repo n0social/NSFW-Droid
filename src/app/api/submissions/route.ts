@@ -3,6 +3,7 @@ import { createHash } from "crypto";
 import { getDb } from "@/db";
 import { developerSubmissions } from "@/db/schema";
 import { isIngestAutoPublishEnabled } from "@/lib/auto-publish";
+import { rejectCrossSitePublicPost } from "@/lib/public-post-csrf";
 import { upsertCandidate } from "@/lib/submit-helper";
 
 export async function POST(request: Request) {

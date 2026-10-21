@@ -6,6 +6,7 @@ import {
   hashReporterIp,
   isListingReportReason,
 } from "@/lib/listing-report";
+import { rejectCrossSitePublicPost } from "@/lib/public-post-csrf";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
