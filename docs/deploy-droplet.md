@@ -359,3 +359,24 @@ Storefront chrome matches `docs/design-layout.md` (header, 21:9 hero, chip row, 
 - Rotate any API key ever pasted in chat.
 - Restrict SSH to your IP in DigitalOcean Cloud Firewall when possible.
 - Keep `ADMIN_PASSWORD` only in `/etc/nsfwdroid.env`.
+
+### Exim (local `sendmail`, not an open relay)
+
+Newsletter and ops mail on the droplet use **Exim** on **loopback only** (`127.0.0.1:25` / `::1:25`), installed via `deploy/setup-local-mail.sh` (see branch `cursor/droplet-mail-25f1`). The app runs as **`www-data`** and injects mail with `/usr/sbin/sendmail` when `NEWSLETTER_TRANSPORT=sendmail`.
+
+**Relay smoke test (read-only):**
+
+```bash
+# On the droplet (root):
+chmod +x scripts/exim-relay-smoke.sh
+./scripts/exim-relay-smoke.sh
+
+# From a Cloud Agent VM (after ./scripts/cloud-agent-ssh-setup.sh when that script is on your branch):
+./scripts/cloud-agent-exim-relay-smoke.sh
+```
+
+The script checks `exim4` is active, `dc_relay_nets` is empty, SMTP listens on loopback only, a **simulated remote client** (`exim -bh 203.0.113.50`) gets **`550 relay not permitted`**, and **`www-data`** can still **route** outbound mail (`exim -bt` → `dnslookup`). It does **not** send real messages.
+
+**Production verification (2026-10-21, read-only):** Cloud Agent SSH to `159.203.136.220` succeeded. Exim **4.98.2**; `dc_local_interfaces='127.0.0.1 ; ::1'`; `dc_relay_nets=''`; `MAIN_TRUSTED_USERS = www-data` in `/etc/exim4/exim4.conf.localmacros`. Public **TCP/25** on the droplet IP was **not** reachable (listener bound to loopback only). Remote relay probe rejected; `www-data` routing to external domains via `dnslookup` works as intended for newsletter sendmail.
+
+**Note:** Connections from **127.0.0.1** may still relay outbound mail (default Debian `relay_from_hosts` for local submission). That is expected for `sendmail` on the box; it is not exposed to the internet because port 25 is not on the public interface. Re-run the smoke script after any Exim or firewall change.
