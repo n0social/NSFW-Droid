@@ -6,7 +6,7 @@ import {
   artworkSourceForCover,
   extractCoverImageUrl,
 } from "@/lib/listing-cover";
-import { slugify } from "@/lib/slug";
+import { externalIdSlugSuffix, slugify } from "@/lib/slug";
 import { resolveListingAffiliateUrl } from "@/lib/listing-affiliate";
 
 export async function approveCandidate(
@@ -69,7 +69,19 @@ export async function approveCandidate(
     return existingListing;
   }
 
-  const slug = slugify(c.title, c.externalId);
+  let slug = slugify(c.title, c.externalId);
+  const [slugCollision] = await db
+    .select()
+    .from(listings)
+    .where(eq(listings.slug, slug))
+    .limit(1);
+  if (
+    slugCollision &&
+    (slugCollision.source !== c.source || slugCollision.externalId !== c.externalId)
+  ) {
+    const disambiguated = `${slug}-${externalIdSlugSuffix(c.externalId)}`.slice(0, 120);
+    slug = disambiguated;
+  }
 
   const coverImageUrl = extractCoverImageUrl(c.source, c.rawPayload);
 
