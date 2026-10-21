@@ -41,6 +41,7 @@ Cron on the droplet already uses this pattern (`deploy/cron.d/nsfwdroid-ingest`)
 - `catalog.listingsTotal` — all `listing` rows (matches ingest summary JSON `catalog.listings` and admin dashboard total when no stale rows).
 - `catalog.candidatesTotal` — ingest pipeline rows, not storefront titles.
 - `catalog.browsePageCount` — `ceil(displayedCount / browsePageSize)`; do not multiply by page size to estimate inventory (last page is partial).
+- `social` (optional) — outbox `pending` / `posted` / `failed` / `skipped` when social enabled or `HEALTH_SOCIAL_OUTBOX=1`.
 
 Use this for uptime monitors or a “last updated” display without hitting admin APIs.
 
@@ -51,9 +52,12 @@ Optional env in `/etc/nsfwdroid.env`:
 ```bash
 # Alert if the last 3 ingest_all runs all inserted 0 new candidates (itch+steam+affiliate)
 INGEST_ALERT_ZERO_NEW_RUNS=3
+INGEST_ALERT_MAX_AGE_HOURS=18
 ```
 
-After each cron ingest, `scripts/check-ingest-stale.sh` runs (from `catalog-ingest-cron.sh`). It emails via [`scripts/alert-email.sh`](../scripts/alert-email.sh) with dedupe key `ingest-zero-new-<N>`. Requires `ALERT_EMAIL_TO` (and `RESEND_API_KEY` or SMTP). Unset or `0` disables the check.
+After each cron ingest, `scripts/post-ingest-hooks.sh` runs (social optional, `check-ingest-stale.sh`, `check-ingest-overdue.sh`). The watchdog also runs `check-ingest-overdue.sh` when health is OK. Emails use [`scripts/alert-email.sh`](../scripts/alert-email.sh) with keys `ingest-zero-new-<N>` and `ingest-overdue-<N>h`. Requires `ALERT_EMAIL_TO` (and `RESEND_API_KEY` or SMTP). Unset or `0` disables each check.
+
+Slug auto-publish errors no longer abort ingest_all: see `allocateUniqueListingSlug`, `raw_payload.slugPublish` / `publishError`, and `autoPublished.publishErrors` in ingest summaries.
 
 Admin **Ingest runs** table shows per-run summaries (feed errors, tags backfilled, link-health samples) and a dedicated **Error** column for `error_message`.
 

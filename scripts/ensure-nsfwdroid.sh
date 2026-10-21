@@ -71,6 +71,9 @@ elif ! health_ok; then
 fi
 
 if [[ -z "$reason" ]]; then
+  if [[ -x "$SCRIPT_DIR/check-ingest-overdue.sh" ]]; then
+    "$SCRIPT_DIR/check-ingest-overdue.sh" || true
+  fi
   exit 0
 fi
 

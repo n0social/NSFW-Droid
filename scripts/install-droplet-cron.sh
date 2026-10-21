@@ -18,7 +18,9 @@ chmod +x \
   "$APP_DIR/scripts/weekly-maintenance.sh" \
   "$APP_DIR/scripts/weekly-maintenance-inner.sh" \
   "$APP_DIR/scripts/alert-email.sh" \
-  "$APP_DIR/scripts/check-ingest-stale.sh" 2>/dev/null || true
+  "$APP_DIR/scripts/check-ingest-stale.sh" \
+  "$APP_DIR/scripts/check-ingest-overdue.sh" \
+  "$APP_DIR/scripts/post-ingest-hooks.sh" 2>/dev/null || true
 
 for f in nsfwdroid-ingest nsfwdroid-watchdog nsfwdroid-maintenance-notice \
   nsfwdroid-weekly-maintenance nsfwdroid-weekly-newsletter; do
