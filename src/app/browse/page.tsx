@@ -18,10 +18,10 @@ import {
 } from "@/lib/browse-preferences";
 import { getUserProfile, parseUserPreferences } from "@/lib/user-profile";
 import { browseTagHubIntro } from "@/lib/browse-tag-intro";
-import { CATALOG_PAGE_REVALIDATE_SECONDS } from "@/lib/catalog-revalidate";
 import { getSessionUserId } from "@/lib/user-session";
 
-export const revalidate = CATALOG_PAGE_REVALIDATE_SECONDS;
+/** Keep in sync with `CATALOG_PAGE_REVALIDATE_SECONDS` (Next.js requires a literal). */
+export const revalidate = 3600;
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 

@@ -17,9 +17,8 @@ import { displayListingTitle, listingCoverImageAlt } from "@/lib/listing-display
 import { siteName } from "@/lib/site";
 import { resolveThemeForRequest } from "@/lib/themes/preferences";
 import { themeDecorUrls } from "@/lib/themes/asset-url";
-import { CATALOG_PAGE_REVALIDATE_SECONDS } from "@/lib/catalog-revalidate";
-
-export const revalidate = CATALOG_PAGE_REVALIDATE_SECONDS;
+/** Keep in sync with `CATALOG_PAGE_REVALIDATE_SECONDS` in `src/lib/catalog-revalidate.ts` (Next.js requires a literal). */
+export const revalidate = 3600;
 
 type PageProps = {
   params: Promise<{ slug: string }>;

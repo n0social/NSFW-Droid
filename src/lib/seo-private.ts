@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 
+type RobotsDirective = Exclude<NonNullable<Metadata["robots"]>, string>;
+
 /** Pages that should not appear in search indexes (utility, auth, redirects). */
-export const privatePageRobots: NonNullable<Metadata["robots"]> = {
+export const privatePageRobots: RobotsDirective = {
   index: false,
   follow: false,
   nocache: true,

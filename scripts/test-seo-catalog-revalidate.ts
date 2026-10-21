@@ -23,12 +23,12 @@ for (const rel of CATALOG_PAGES) {
     console.error(`${rel} still uses force-dynamic`);
     process.exit(1);
   }
-  if (!src.includes("CATALOG_PAGE_REVALIDATE_SECONDS")) {
-    console.error(`${rel} missing CATALOG_PAGE_REVALIDATE_SECONDS import`);
+  if (!src.includes("export const revalidate = 3600")) {
+    console.error(`${rel} missing export const revalidate = 3600`);
     process.exit(1);
   }
-  if (!src.includes("export const revalidate = CATALOG_PAGE_REVALIDATE_SECONDS")) {
-    console.error(`${rel} missing export const revalidate`);
+  if (!src.includes("CATALOG_PAGE_REVALIDATE_SECONDS")) {
+    console.error(`${rel} missing CATALOG_PAGE_REVALIDATE_SECONDS sync comment`);
     process.exit(1);
   }
 }

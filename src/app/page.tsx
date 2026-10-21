@@ -9,10 +9,10 @@ import { resolveThemeForRequest } from "@/lib/themes/preferences";
 import { themeDecorUrls } from "@/lib/themes/asset-url";
 import { resolveLayoutDecorForTheme } from "@/lib/themes/layout-decor";
 import { getRecentVideos, hasEnabledVideoFeeds } from "@/lib/video-feeds";
-import { CATALOG_PAGE_REVALIDATE_SECONDS } from "@/lib/catalog-revalidate";
 import { siteName } from "@/lib/site";
 
-export const revalidate = CATALOG_PAGE_REVALIDATE_SECONDS;
+/** Keep in sync with `CATALOG_PAGE_REVALIDATE_SECONDS` (Next.js requires a literal). */
+export const revalidate = 3600;
 
 export const metadata: Metadata = hubPageMetadata(
   "/",

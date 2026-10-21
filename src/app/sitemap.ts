@@ -3,9 +3,8 @@ import { getBrowseTagHubsForSitemap } from "@/lib/browse-tag-sitemap";
 import { getPublishedListingsForSitemap } from "@/lib/listing-detail";
 import { gameListingPath } from "@/lib/listing-routes";
 import { siteUrl } from "@/lib/site";
-import { CATALOG_PAGE_REVALIDATE_SECONDS } from "@/lib/catalog-revalidate";
-
-export const revalidate = CATALOG_PAGE_REVALIDATE_SECONDS;
+/** Keep in sync with `CATALOG_PAGE_REVALIDATE_SECONDS` (Next.js requires a literal). */
+export const revalidate = 3600;
 
 const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: siteUrl, changeFrequency: "daily", priority: 1 },
