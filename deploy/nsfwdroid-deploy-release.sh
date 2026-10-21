@@ -14,7 +14,8 @@ if [[ ! -d "${APP_DIR}/node_modules" ]]; then
   exit 1
 fi
 
-chown -R www-data:www-data "${APP_DIR}/node_modules"
-systemctl restart nsfwdroid
-sleep 2
+systemctl stop nsfwdroid || true
+chown -R www-data:www-data "${APP_DIR}"
+systemctl start nsfwdroid
+sleep 3
 curl -sfI http://127.0.0.1:3000/api/health | head -1

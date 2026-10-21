@@ -21,11 +21,13 @@ if ! id "$DEPLOY_USER" &>/dev/null; then
 fi
 
 install -d -m 755 /usr/local/sbin
+install -m 755 "${SCRIPT_DIR}/nsfwdroid-deploy-stop.sh" /usr/local/sbin/nsfwdroid-deploy-stop.sh
 install -m 755 "${SCRIPT_DIR}/nsfwdroid-deploy-release.sh" /usr/local/sbin/nsfwdroid-deploy-release.sh
 install -m 755 "${SCRIPT_DIR}/nsfwdroid-install-droplet-cron.sh" /usr/local/sbin/nsfwdroid-install-droplet-cron.sh
 
 cat > /etc/sudoers.d/nsfwdroid-deploy <<'EOF'
 Defaults:nsfwdroid-deploy !requiretty
+nsfwdroid-deploy ALL=(root) NOPASSWD: /usr/local/sbin/nsfwdroid-deploy-stop.sh
 nsfwdroid-deploy ALL=(root) NOPASSWD: /usr/local/sbin/nsfwdroid-deploy-release.sh
 nsfwdroid-deploy ALL=(root) NOPASSWD: /usr/local/sbin/nsfwdroid-install-droplet-cron.sh
 EOF
