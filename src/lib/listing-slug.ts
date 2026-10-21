@@ -56,7 +56,9 @@ export async function allocateUniqueListingSlug(
       return { slug, initialSlug, disambiguated: slug !== initialSlug, steps };
     }
 
-    steps.push(`slug "${slug}" in use by ${row.source} (${row.externalId.slice(0, 80)})`);
+    steps.push(
+      `slug "${slug}" in use by ${row.source} (${(row.externalId ?? "unknown").slice(0, 80)})`,
+    );
   }
 
   throw new Error(
