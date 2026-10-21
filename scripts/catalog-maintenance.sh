@@ -104,6 +104,13 @@ run_as_app_user() {
   fi
 }
 
+# Social posts append this file as www-data. Cron cannot create /var/log files
+# after privileges drop, so root prepares it first.
+social_log="${NSFWDROID_SOCIAL_LOG:-/var/log/nsfwdroid-social.log}"
+touch "$social_log"
+chown www-data:www-data "$social_log"
+chmod 644 "$social_log"
+
 log "running: $*"
 run_as_app_user "$@"
 
