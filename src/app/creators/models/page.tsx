@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import { hubPageMetadata } from "@/lib/hub-page-metadata";
 import { CreatorModelsPage } from "@/components/CreatorModelsPage";
 import { isAgeVerifiedRequest } from "@/lib/age-verified-server";
 import { BLUR_COVERS_COOKIE, parseBlurCovers } from "@/lib/cookies";
@@ -10,11 +10,11 @@ import { resolveLayoutDecorForTheme } from "@/lib/themes/layout-decor";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Top SFM models",
-  description:
-    "Curated top NSFW Source Filmmaker models with direct SmutBase links. NSFW Droid does not host model files.",
-};
+export const metadata = hubPageMetadata(
+  "/creators/models",
+  "Top SFM models",
+  "Curated top NSFW Source Filmmaker models with direct SmutBase links. NSFW Droid does not host model files.",
+);
 
 export default async function CreatorModelsRoutePage() {
   const jar = await cookies();
