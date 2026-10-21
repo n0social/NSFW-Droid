@@ -41,8 +41,6 @@ function browseFiltersFromSearchParams(sp: Record<string, string | string[] | un
   return { rail, tag, q, vanilla, sort, page };
 }
 
-<<<<<<< HEAD
-=======
 function browseListingsRail(rail: string | null) {
   return rail === "new" || rail === "hot" || rail === "trending"
     ? rail === "hot"
@@ -55,7 +53,49 @@ function browseCatalogSort(sort: string | null) {
   return sort === "new" ? "new" : null;
 }
 
->>>>>>> origin/cursor/seo-browse-pagination-rel-4fae
+function appendBrowsePaginationLinks(
+  metadata: Metadata,
+  input: {
+    rail: string | null;
+    tag: string | null;
+    q: string | null;
+    vanilla: boolean;
+    sort: string | null;
+    page: number;
+    total: number;
+  },
+): void {
+  const catalogSort = browseCatalogSort(input.sort);
+  const railBlocksPagination =
+    input.rail === "new" || input.rail === "hot" || input.rail === "trending";
+  if (railBlocksPagination || input.total <= 0) return;
+
+  const totalPages = Math.max(1, Math.ceil(input.total / BROWSE_PAGE_SIZE));
+  const paginationLinks: { rel: string; url: string }[] = [];
+  const linkBase = {
+    rail: input.rail,
+    tag: input.tag,
+    q: input.q,
+    vanilla: input.vanilla,
+    sort: catalogSort,
+  };
+  if (input.page > 1) {
+    paginationLinks.push({
+      rel: "prev",
+      url: browseCatalogPath({ ...linkBase, page: input.page - 1 }),
+    });
+  }
+  if (input.page < totalPages) {
+    paginationLinks.push({
+      rel: "next",
+      url: browseCatalogPath({ ...linkBase, page: input.page + 1 }),
+    });
+  }
+  if (paginationLinks.length > 0) {
+    metadata.icons = { other: paginationLinks };
+  }
+}
+
 export async function generateMetadata({
   searchParams,
 }: {
@@ -63,99 +103,62 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const sp = await searchParams;
   const { rail, tag, q, vanilla, sort, page } = browseFiltersFromSearchParams(sp);
-<<<<<<< HEAD
-=======
   const catalogSort = browseCatalogSort(sort);
->>>>>>> origin/cursor/seo-browse-pagination-rel-4fae
+  const tagSlug = tag?.trim().toLowerCase() || null;
+  const tagOnlyHub = Boolean(tagSlug && !rail && !q && !vanilla && !catalogSort);
 
   const path = browseCatalogPath({
     rail,
     tag,
     q,
     vanilla,
-<<<<<<< HEAD
-    sort: sort === "new" ? "new" : null,
-=======
     sort: catalogSort,
->>>>>>> origin/cursor/seo-browse-pagination-rel-4fae
     page,
   });
 
   const browse = await getBrowseListings({
-<<<<<<< HEAD
-    rail:
-      rail === "new" || rail === "hot" || rail === "trending"
-        ? rail === "hot"
-          ? "new"
-          : rail
-        : null,
-    tag,
-    q,
-    vanilla,
-    sort: sort === "new" ? "new" : null,
-=======
     rail: browseListingsRail(rail),
     tag,
     q,
     vanilla,
     sort: catalogSort,
->>>>>>> origin/cursor/seo-browse-pagination-rel-4fae
     page,
   });
+
+  if (tagOnlyHub && tagSlug && page === 1) {
+    const label = browse.tags.find((t) => t.slug === tagSlug)?.label ?? tag;
+    const description = browseTagHubIntro(label ?? tagSlug, browse.total);
+    const metadata: Metadata = {
+      title: `${label} · Browse`,
+      description,
+      alternates: { canonical: path },
+    };
+    appendBrowsePaginationLinks(metadata, {
+      rail,
+      tag,
+      q,
+      vanilla,
+      sort,
+      page,
+      total: browse.total,
+    });
+    return metadata;
+  }
 
   const title = page > 1 ? `Browse · Page ${page}` : "Browse";
   const metadata: Metadata = {
     title,
     alternates: { canonical: path },
   };
-
-  const railBlocksPagination =
-    rail === "new" || rail === "hot" || rail === "trending";
-  if (!railBlocksPagination && browse.total > 0) {
-    const totalPages = Math.max(1, Math.ceil(browse.total / BROWSE_PAGE_SIZE));
-    const paginationLinks: { rel: string; url: string }[] = [];
-<<<<<<< HEAD
-    if (page > 1) {
-      paginationLinks.push({
-        rel: "prev",
-        url: browseCatalogPath({
-          rail,
-          tag,
-          q,
-          vanilla,
-          sort: sort === "new" ? "new" : null,
-          page: page - 1,
-        }),
-=======
-    const linkBase = { rail, tag, q, vanilla, sort: catalogSort };
-    if (page > 1) {
-      paginationLinks.push({
-        rel: "prev",
-        url: browseCatalogPath({ ...linkBase, page: page - 1 }),
->>>>>>> origin/cursor/seo-browse-pagination-rel-4fae
-      });
-    }
-    if (page < totalPages) {
-      paginationLinks.push({
-        rel: "next",
-<<<<<<< HEAD
-        url: browseCatalogPath({
-          rail,
-          tag,
-          q,
-          vanilla,
-          sort: sort === "new" ? "new" : null,
-          page: page + 1,
-        }),
-=======
-        url: browseCatalogPath({ ...linkBase, page: page + 1 }),
->>>>>>> origin/cursor/seo-browse-pagination-rel-4fae
-      });
-    }
-    if (paginationLinks.length > 0) {
-      metadata.icons = { other: paginationLinks };
-    }
-  }
+  appendBrowsePaginationLinks(metadata, {
+    rail,
+    tag,
+    q,
+    vanilla,
+    sort,
+    page,
+    total: browse.total,
+  });
 
   return metadata;
 }
@@ -163,10 +166,7 @@ export async function generateMetadata({
 export default async function BrowsePage({ searchParams }: { searchParams: SearchParams }) {
   const sp = await searchParams;
   const { rail, tag, q, vanilla, sort, page } = browseFiltersFromSearchParams(sp);
-<<<<<<< HEAD
-=======
   const catalogSort = browseCatalogSort(sort);
->>>>>>> origin/cursor/seo-browse-pagination-rel-4fae
 
   const hasUrlFilters = Boolean(
     (rail === "new" || rail === "hot" || rail === "trending") ||
@@ -207,7 +207,7 @@ export default async function BrowsePage({ searchParams }: { searchParams: Searc
   const listingCount = browse.catalogUnavailable ? 0 : await getPublishedListingCount();
 
   const tagHubIntro =
-    tag && !browse.catalogUnavailable
+    tag && page === 1 && !browse.catalogUnavailable
       ? browseTagHubIntro(
           browse.tags.find((t) => t.slug === tag.trim().toLowerCase())?.label ?? tag,
           browse.total,
