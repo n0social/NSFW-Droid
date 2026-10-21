@@ -1,6 +1,8 @@
 import {
   affiliatePairsWithOfficial,
+  isSafeOutboundFetchUrl,
   isValidOutboundUrl,
+  outboundFetchBlockReason,
   parseStoreTarget,
   resolveOutboundLink,
 } from "../src/lib/outbound-link";
@@ -14,6 +16,21 @@ assert(isValidOutboundUrl("http://example.com/game"), "http should be valid");
 assert(!isValidOutboundUrl("javascript:alert(1)"), "javascript: should be rejected");
 assert(!isValidOutboundUrl("file:///etc/passwd"), "file: should be rejected");
 assert(!isValidOutboundUrl("not-a-url"), "garbage should be rejected");
+
+assert(isSafeOutboundFetchUrl("https://img.itch.zone/a1234.jpg"), "public https cover should be allowed");
+assert(!isSafeOutboundFetchUrl("http://127.0.0.1/secret"), "loopback IP should be blocked");
+assert(!isSafeOutboundFetchUrl("http://localhost/"), "localhost should be blocked");
+assert(!isSafeOutboundFetchUrl("http://169.254.169.254/latest/meta-data/"), "metadata IP should be blocked");
+assert(
+  outboundFetchBlockReason("http://metadata.google.internal/computeMetadata/v1/") === "blocked_hostname",
+  "GCE metadata host should be blocked",
+);
+assert(!isSafeOutboundFetchUrl("file:///etc/passwd"), "file: should be blocked");
+assert(!isSafeOutboundFetchUrl("ftp://example.com/x"), "ftp: should be blocked");
+assert(
+  outboundFetchBlockReason("http://user:pass@example.com/x") === "credentials",
+  "embedded credentials should be blocked",
+);
 
 const steamOfficial = "https://store.steampowered.com/app/123456/Game/";
 const steamAffiliate = "https://store.steampowered.com/app/123456/Game/?utm_source=test";

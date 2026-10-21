@@ -1,3 +1,4 @@
+import { fetchSafeOutboundUrl } from "@/lib/outbound-fetch";
 import { siteUrl } from "@/lib/site";
 import { formatMastodonStatus, type SocialPostPayload } from "@/lib/social/compose";
 import { resolveListingCoverUrl } from "@/lib/social/cover-url";
@@ -43,10 +44,9 @@ export async function uploadMastodonMedia(
   description?: string,
 ): Promise<string> {
   const resolved = resolveListingCoverUrl(imageUrl) ?? imageUrl;
-  const imageRes = await fetch(resolved, {
+  const imageRes = await fetchSafeOutboundUrl(resolved, {
     headers: { "User-Agent": coverFetchUserAgent(), Accept: "image/*,*/*;q=0.8" },
     signal: AbortSignal.timeout(COVER_FETCH_TIMEOUT_MS),
-    redirect: "follow",
   });
   if (!imageRes.ok) {
     throw new Error(`cover_fetch_failed:${imageRes.status}`);
