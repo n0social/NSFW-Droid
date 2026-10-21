@@ -4,12 +4,25 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-HOST_ALIAS="nsfwdroid-droplet"
-REMOTE_ROOT="/var/www/nsfwdroid"
+# shellcheck source=cloud-agent-droplet-ssh-vars.sh
+source "${SCRIPT_DIR}/cloud-agent-droplet-ssh-vars.sh"
+
+HOST_ALIAS="${NSFWDROID_SSH_HOST_ALIAS}"
+REMOTE_ROOT="${NSFWDROID_APP_DIR}"
+DEPLOY_USER="${NSFWDROID_DEPLOY_SSH_USER}"
 # Droplet /tmp is often a small tmpfs; node_modules.tgz exceeds it — upload on disk.
 REMOTE_UPLOAD_DIR="${REMOTE_UPLOAD_DIR:-${REMOTE_ROOT}/.deploy-upload}"
 
 "${SCRIPT_DIR}/cloud-agent-ssh-setup.sh"
+
+if [[ "$DEPLOY_USER" == "root" ]]; then
+  REMOTE_FINISH="chown -R www-data:www-data node_modules
+systemctl restart nsfwdroid
+sleep 2
+curl -sfI http://127.0.0.1:3000/api/health | head -1"
+else
+  REMOTE_FINISH="sudo /usr/local/sbin/nsfwdroid-deploy-release.sh"
+fi
 
 cd "$ROOT_DIR"
 
@@ -30,7 +43,7 @@ echo "Packaging production node_modules..."
 npm ci --omit=dev
 tar czf "$NM_TAR" -C "$ROOT_DIR" node_modules
 
-echo "Uploading to droplet (${REMOTE_UPLOAD_DIR})..."
+echo "Uploading to droplet (${REMOTE_UPLOAD_DIR}) as ${DEPLOY_USER}..."
 ssh "${HOST_ALIAS}" "mkdir -p '${REMOTE_UPLOAD_DIR}'"
 scp "$SRC_TAR" "$NM_TAR" "${HOST_ALIAS}:${REMOTE_UPLOAD_DIR}/"
 
@@ -41,11 +54,8 @@ SRC="${REMOTE_UPLOAD_DIR}/$(basename "$SRC_TAR")"
 NM="${REMOTE_UPLOAD_DIR}/$(basename "$NM_TAR")"
 tar xzf "\$SRC"
 tar xzf "\$NM"
-chown -R www-data:www-data node_modules
 rm -f "\$SRC" "\$NM"
-systemctl restart nsfwdroid
-sleep 2
-curl -sfI http://127.0.0.1:3000/api/health | head -1
+${REMOTE_FINISH}
 EOF
 
 echo "Deploy finished. Verify: curl -sI https://www.nsfwdroid.com/api/health"
