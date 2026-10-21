@@ -3,6 +3,7 @@ import { createHash } from "crypto";
 import { getDb } from "@/db";
 import { developerSubmissions } from "@/db/schema";
 import { isIngestAutoPublishEnabled } from "@/lib/auto-publish";
+import { isValidOutboundUrl } from "@/lib/outbound-link";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { upsertCandidate } from "@/lib/submit-helper";
 
@@ -28,9 +29,7 @@ export async function POST(request: Request) {
     ? body.platforms.map((p: string) => String(p).trim()).filter(Boolean)
     : ["browser"];
 
-  try {
-    new URL(officialUrl);
-  } catch {
+  if (!isValidOutboundUrl(officialUrl)) {
     return NextResponse.json({ ok: false, error: "invalid_url" }, { status: 400 });
   }
 
