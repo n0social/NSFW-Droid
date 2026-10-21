@@ -6,6 +6,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 HOST_ALIAS="nsfwdroid-droplet"
 REMOTE_ROOT="/var/www/nsfwdroid"
+# Droplet /tmp is often a small tmpfs; node_modules.tgz exceeds it — upload on disk.
+REMOTE_UPLOAD_DIR="${REMOTE_UPLOAD_DIR:-${REMOTE_ROOT}/.deploy-upload}"
 
 "${SCRIPT_DIR}/cloud-agent-ssh-setup.sh"
 
@@ -28,15 +30,19 @@ echo "Packaging production node_modules..."
 npm ci --omit=dev
 tar czf "$NM_TAR" -C "$ROOT_DIR" node_modules
 
-echo "Uploading to droplet..."
-scp "$SRC_TAR" "$NM_TAR" "${HOST_ALIAS}:/tmp/"
+echo "Uploading to droplet (${REMOTE_UPLOAD_DIR})..."
+ssh "${HOST_ALIAS}" "mkdir -p '${REMOTE_UPLOAD_DIR}'"
+scp "$SRC_TAR" "$NM_TAR" "${HOST_ALIAS}:${REMOTE_UPLOAD_DIR}/"
 
 ssh "${HOST_ALIAS}" bash -s <<EOF
 set -euo pipefail
 cd "${REMOTE_ROOT}"
-tar xzf "/tmp/$(basename "$SRC_TAR")"
-tar xzf "/tmp/$(basename "$NM_TAR")"
+SRC="${REMOTE_UPLOAD_DIR}/$(basename "$SRC_TAR")"
+NM="${REMOTE_UPLOAD_DIR}/$(basename "$NM_TAR")"
+tar xzf "\$SRC"
+tar xzf "\$NM"
 chown -R www-data:www-data node_modules
+rm -f "\$SRC" "\$NM"
 systemctl restart nsfwdroid
 sleep 2
 curl -sfI http://127.0.0.1:3000/api/health | head -1
