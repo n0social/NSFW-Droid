@@ -18,7 +18,10 @@ chmod +x \
   "$APP_DIR/scripts/weekly-maintenance.sh" \
   "$APP_DIR/scripts/weekly-maintenance-inner.sh" \
   "$APP_DIR/scripts/alert-email.sh" \
-  "$APP_DIR/scripts/check-ingest-stale.sh" 2>/dev/null || true
+  "$APP_DIR/scripts/check-ingest-stale.sh" \
+  "$APP_DIR/scripts/exim-relay-smoke.sh" \
+  "$APP_DIR/scripts/ops-exim-relay-smoke-alert.sh" \
+  "$APP_DIR/scripts/health-probe-selftest.sh" 2>/dev/null || true
 
 for f in nsfwdroid-ingest nsfwdroid-watchdog nsfwdroid-maintenance-notice \
   nsfwdroid-weekly-maintenance nsfwdroid-weekly-newsletter; do
@@ -37,7 +40,8 @@ touch \
   /var/log/nsfwdroid-maintenance-notice.log \
   /var/log/nsfwdroid-weekly-maintenance.log \
   /var/log/nsfwdroid-newsletter.log \
-  /var/log/nsfwdroid-social.log 2>/dev/null || true
+  /var/log/nsfwdroid-social.log \
+  /var/log/nsfwdroid-exim-smoke.log 2>/dev/null || true
 
 mkdir -p /var/lib/nsfwdroid/alert-dedupe /var/lock
 chown root:root /var/log/nsfwdroid-*.log 2>/dev/null || true

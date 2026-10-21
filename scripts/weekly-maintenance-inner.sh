@@ -35,4 +35,14 @@ if [[ "${NSFWDROID_WEEKLY_NPM_CI:-0}" == "1" ]]; then
   npm ci --omit=dev
 fi
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -x "$SCRIPT_DIR/post-ingest-hooks.sh" ]]; then
+  log "post-ingest hooks (social + ingest alerts)"
+  "$SCRIPT_DIR/post-ingest-hooks.sh" || true
+fi
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+log "exim relay smoke (ops alert on failure)"
+"$SCRIPT_DIR/ops-exim-relay-smoke-alert.sh" || log "exim relay smoke failed — see /var/log/nsfwdroid-exim-smoke.log"
+
 log "inner weekly steps complete"

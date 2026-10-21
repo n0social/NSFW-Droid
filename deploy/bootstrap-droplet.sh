@@ -53,7 +53,9 @@ chmod +x "$APP_DIR/scripts/catalog-maintenance.sh" \
   "$APP_DIR/scripts/alert-email.sh" \
   "$APP_DIR/scripts/maintenance-notice.sh" \
   "$APP_DIR/scripts/weekly-maintenance.sh" \
-  "$APP_DIR/scripts/weekly-maintenance-inner.sh" 2>/dev/null || true
+  "$APP_DIR/scripts/weekly-maintenance-inner.sh" \
+  "$APP_DIR/scripts/exim-relay-smoke.sh" \
+  "$APP_DIR/scripts/ops-exim-relay-smoke-alert.sh" 2>/dev/null || true
 mkdir -p /var/lib/nsfwdroid/alert-dedupe
 
 cp deploy/nsfwdroid.service /etc/systemd/system/nsfwdroid.service

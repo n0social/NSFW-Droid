@@ -9,6 +9,8 @@ LOCK_FILE="$APP_DIR/data/.weekly-maintenance.lock"
 LOG_FILE="${NSFWDROID_WEEKLY_LOG:-/var/log/nsfwdroid-weekly-maintenance.log}"
 HEALTH_URL="${NSFWDROID_HEALTH_URL:-http://127.0.0.1:3000/api/health}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/ops-health-probe.sh"
 
 log() {
   echo "[$(date -Is)] [weekly-maintenance] $*" | tee -a "$LOG_FILE"
@@ -77,23 +79,37 @@ for attempt in $(seq 1 12); do
     break
   fi
   if systemctl is-active --quiet "$SERVICE"; then
-    body=$(curl -sf --max-time 20 "$HEALTH_URL" 2>/dev/null) || body=""
-    if [[ "$body" == *'"status":"ok"'* ]] && [[ "$body" == *'"healthy":true'* ]]; then
+    if health_fetch "$HEALTH_URL" && health_probe_ok; then
       checks_ok=true
       log "health ok (attempt $attempt)"
       break
     fi
+    if health_fetch "$HEALTH_URL" 2>/dev/null; then
+      health_probe_analyze "$HEALTH_FETCH_BODY" "$HEALTH_FETCH_CODE"
+      log "health not ok yet (attempt $attempt): $(health_probe_summary)"
+    else
+      log "health not ok yet (attempt $attempt): unreachable"
+    fi
+  else
+    log "health not ok yet (attempt $attempt): unit $SERVICE inactive"
   fi
-  log "health not ok yet (attempt $attempt)"
   sleep 10
 done
 
 if [[ "$checks_ok" != true ]]; then
   log "hard health checks failed before deadline"
+  health_fetch "$HEALTH_URL" 2>/dev/null || true
+  health_probe_analyze "${HEALTH_FETCH_BODY:-}" "${HEALTH_FETCH_CODE:-0}"
+  detail=$(health_probe_detail_block "$HEALTH_URL")
   "$SCRIPT_DIR/alert-email.sh" \
     --key "weekly-maintenance-failed-$(date -u +%Y-%m-%d)" \
     --subject "NSFW Droid: weekly maintenance finished unhealthy" \
-    --body "Service may still be down or /api/health is not ok. Check journalctl -u $SERVICE and $LOG_FILE"
+    --body "Service may still be down or /api/health is not ok after the Tuesday window.
+
+$detail
+
+Check: journalctl -u $SERVICE -n 80 --no-pager
+Log: $LOG_FILE"
   exit 1
 fi
 

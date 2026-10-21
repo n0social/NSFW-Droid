@@ -289,7 +289,16 @@ curl -s http://localhost:3000/api/health | jq .maintenanceNotice
 
 **Recommendation (implemented):** The 5‑minute watchdog **auto-fixes** common outages (stale PGlite `postmaster.pid`, `systemctl restart`, `reset-failed` + retry) because a short blip should not wait for a human. **Email is rate-limited** (default **30 minutes** per alert key) when restart fails or health is still bad after recovery — that is when you care about sustained **502/503/504** at the edge.
 
+The watchdog uses `scripts/ops-health-probe.sh` so **`status: degraded`** responses (HTTP **503** with `catalog.error`) produce **descriptive** alert bodies, not a generic curl failure.
+
+| Variable | Purpose |
+| --- | --- |
+| `WATCHDOG_RESTART` | `1` (default) restart on failed health; `0` **alert only** (no `systemctl restart`) |
+| `INGEST_ALERT_ZERO_NEW_RUNS` | After each ingest cron, `check-ingest-stale.sh` emails if the last N `ingest_all` runs added zero candidates (`0`/unset = off) |
+
 Weekly maintenance sets `data/.weekly-maintenance.lock` so the watchdog does **not** fight an intentional stop.
+
+**Exim relay smoke (weekly):** `weekly-maintenance-inner.sh` runs `scripts/ops-exim-relay-smoke-alert.sh` (wraps `exim-relay-smoke.sh`). Failures email with key `exim-relay-smoke-failed`. Log: `/var/log/nsfwdroid-exim-smoke.log`. Set `EXIM_RELAY_SMOKE_WEEKLY=0` to skip.
 
 ### Weekly newsletter (member list)
 
@@ -358,7 +367,7 @@ Configure in `/etc/nsfwdroid.env` (never commit). If `ALERT_EMAIL_TO` is unset, 
 
 | Variable | Purpose |
 | --- | --- |
-| `ALERT_EMAIL_TO` | Recipient (required to send) |
+| `ALERT_EMAIL_TO` | Recipient (required to send). `ALERT_EMAIL` is accepted as an alias |
 | `ALERT_EMAIL_FROM` | From address (default `alerts@nsfwdroid.com`). Resend accepts `Name <email>` — production droplet uses `NSFW Droid <alerts@nsfwdroid.com>` (domain verified in Resend) |
 | `RESEND_API_KEY` | Preferred: [Resend](https://resend.com) HTTP API |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | Optional SMTP via `curl` |
