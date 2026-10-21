@@ -68,5 +68,13 @@ export function newsletterTransport(): "sendmail" | "brevo" {
   return "brevo";
 }
 
+/** True when `sendNewsletterEmail` can send (Brevo key or local sendmail transport). */
+export function isNewsletterEmailDeliveryConfigured(): boolean {
+  if (newsletterTransport() === "sendmail") {
+    return true;
+  }
+  return Boolean(process.env.BREVO_API_KEY?.trim());
+}
+
 export const WEEKLY_NEWSLETTER_SUBJECT =
   "Thanks for being a member: Here's our favorite NSFW games of the week";
