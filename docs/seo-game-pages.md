@@ -7,6 +7,10 @@
 - **`/game/[slug]`** — public detail page for each published listing (`link_status = ok`, `catalog_stale = false`).
 - Unknown or unpublished slugs return **404**.
 
+## Site-wide defaults
+
+Root `src/app/layout.tsx` sets a default **Open Graph** and **Twitter** image (`/og-default.png`, 1200×630) for pages that do not define their own preview image. `metadataBase` resolves it to an absolute URL on shares.
+
 ## Metadata
 
 Each game page sets:
