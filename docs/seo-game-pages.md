@@ -7,6 +7,10 @@
 - **`/game/[slug]`** — public detail page for each published listing (`link_status = ok`, `catalog_stale = false`).
 - Unknown or unpublished slugs return **404**.
 
+## Site-wide defaults
+
+Root `src/app/layout.tsx` sets a default **Open Graph** and **Twitter** image (`/og-default.png`, 1200×630) for pages that do not define their own preview image. `metadataBase` resolves it to an absolute URL on shares.
+
 ## Metadata
 
 Each game page sets:
@@ -18,7 +22,7 @@ Each game page sets:
 
 ## JSON-LD
 
-Each game page embeds a single `<script type="application/ld+json">` built in `src/lib/listing-json-ld.ts`:
+Each game page embeds a single `<script type="application/ld+json">` built in `src/lib/listing-json-ld.ts` (`buildGamePageJsonLd` — `@graph` with listing + breadcrumbs):
 
 | Field | Source |
 | --- | --- |
@@ -27,6 +31,10 @@ Each game page embeds a single `<script type="application/ld+json">` built in `s
 | `description` | Same copy as meta description (`listingMetaDescription`) |
 | `image` | `cover_image_url` when set |
 | `url` | Canonical `NEXT_PUBLIC_SITE_URL` + `/game/{slug}` |
+| `gamePlatform` / `operatingSystem` | `listing.platforms` (latter for browser-only `SoftwareApplication`) |
+| `genre`, `keywords` | Browse-safe tag labels for the listing |
+| `audience` | `PeopleAudience` with `requiredMinAge: 18` |
+| `BreadcrumbList` (2nd graph node) | Home → Browse catalog → game title |
 
 ## Age gate & blur
 
@@ -41,4 +49,8 @@ Same pattern as home/browse: `AgeGate` until `age_verified` cookie; covers blurr
 ## Sitemap & robots
 
 - `app/sitemap.ts` — static site URLs plus all published `/game/...` entries (`lastModified` from `listing.updated_at`).
-- `app/robots.ts` — allows `/` and `/game/`; disallows `/admin/`, `/api/`, `/account/`.
+- `app/robots.ts` — allows `/` and `/game/`; disallows `/admin/`, `/api/`, `/account/`, auth/settings/newsletter/underage utility paths.
+
+## Caching (ISR)
+
+Public catalog routes (`/`, `/browse`, `/game/[slug]`, `sitemap.xml`) export a shared `revalidate` interval from `src/lib/catalog-revalidate.ts` (default **3600s**). Cookie reads for the age gate and blur preference keep HTML dynamic per visitor; ISR mainly benefits the sitemap and cached catalog fetches without weakening the gate.
