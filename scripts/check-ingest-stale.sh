@@ -33,7 +33,8 @@ if [[ -z "$body" ]]; then
   body="Last $THRESHOLD ingest_all run(s) had zero new candidates. See admin ingest runs and nsfwdroid-ingest.log."
 fi
 
+host_short=$(hostname -s 2>/dev/null || hostname)
 "$SCRIPT_DIR/alert-email.sh" \
   --key "ingest-zero-new-${THRESHOLD}" \
-  --subject "NSFW Droid: ingest added 0 new candidates for ${THRESHOLD} run(s)" \
+  --subject "NSFW Droid: ingest stale — 0 new candidates for ${THRESHOLD} run(s) on ${host_short}" \
   --body "$body"

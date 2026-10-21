@@ -39,9 +39,9 @@ if [[ -f "$ENV_FILE" ]]; then
   set +a
 fi
 
-TO="${ALERT_EMAIL_TO:-}"
+TO="${ALERT_EMAIL_TO:-${ALERT_EMAIL:-}}"
 if [[ -z "$TO" ]]; then
-  echo "[alert-email] ALERT_EMAIL_TO unset — skipping: $SUBJECT" >&2
+  echo "[alert-email] ALERT_EMAIL_TO (or ALERT_EMAIL) unset — skipping: $SUBJECT" >&2
   exit 0
 fi
 
