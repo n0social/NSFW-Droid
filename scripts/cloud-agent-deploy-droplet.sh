@@ -16,9 +16,9 @@ REMOTE_UPLOAD_DIR="${REMOTE_UPLOAD_DIR:-${REMOTE_ROOT}/.deploy-upload}"
 "${SCRIPT_DIR}/cloud-agent-ssh-setup.sh"
 
 if [[ "$DEPLOY_USER" == "root" ]]; then
-  REMOTE_FINISH="chown -R www-data:www-data node_modules
-systemctl restart nsfwdroid
-sleep 2
+  REMOTE_FINISH="chown -R www-data:www-data .
+systemctl start nsfwdroid
+sleep 3
 curl -sfI http://127.0.0.1:3000/api/health | head -1"
 else
   REMOTE_FINISH="sudo /usr/local/sbin/nsfwdroid-deploy-release.sh"
@@ -47,9 +47,16 @@ echo "Uploading to droplet (${REMOTE_UPLOAD_DIR}) as ${DEPLOY_USER}..."
 ssh "${HOST_ALIAS}" "mkdir -p '${REMOTE_UPLOAD_DIR}'"
 scp "$SRC_TAR" "$NM_TAR" "${HOST_ALIAS}:${REMOTE_UPLOAD_DIR}/"
 
+if [[ "$DEPLOY_USER" == "root" ]]; then
+  REMOTE_STOP="systemctl stop nsfwdroid || true"
+else
+  REMOTE_STOP="sudo /usr/local/sbin/nsfwdroid-deploy-stop.sh"
+fi
+
 ssh "${HOST_ALIAS}" bash -s <<EOF
 set -euo pipefail
 cd "${REMOTE_ROOT}"
+${REMOTE_STOP}
 SRC="${REMOTE_UPLOAD_DIR}/$(basename "$SRC_TAR")"
 NM="${REMOTE_UPLOAD_DIR}/$(basename "$NM_TAR")"
 tar xzf "\$SRC"
