@@ -18,6 +18,7 @@ chmod +x \
   "$APP_DIR/scripts/weekly-maintenance.sh" \
   "$APP_DIR/scripts/weekly-maintenance-inner.sh" \
   "$APP_DIR/scripts/alert-email.sh" \
+  "$APP_DIR/scripts/ops-alert-email-test.sh" \
   "$APP_DIR/scripts/check-ingest-stale.sh" \
   "$APP_DIR/scripts/check-ingest-overdue.sh" \
   "$APP_DIR/scripts/post-ingest-hooks.sh" \
