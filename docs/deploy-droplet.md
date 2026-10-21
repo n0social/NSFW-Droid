@@ -374,7 +374,7 @@ Configure in `/etc/nsfwdroid.env` (never commit). If `ALERT_EMAIL_TO` is unset, 
 | `ALERT_DEDUPE_MINUTES` | Same `--key` max once per N minutes (default `30`) |
 | `ALERT_DEDUPE_DIR` | Dedupe stamps (default `/var/lib/nsfwdroid/alert-dedupe`) |
 
-Fallback: `sendmail` if installed. Script: `scripts/alert-email.sh` (used by watchdog + weekly cron).
+Primary transport: local `sendmail` (Exim on the droplet). Script: `scripts/alert-email.sh` (watchdog, ingest checks, weekly cron failures).
 
 Example:
 
