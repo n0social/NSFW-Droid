@@ -2,8 +2,9 @@ import type { MetadataRoute } from "next";
 import { getPublishedListingsForSitemap } from "@/lib/listing-detail";
 import { gameListingPath } from "@/lib/listing-routes";
 import { siteUrl } from "@/lib/site";
+import { CATALOG_PAGE_REVALIDATE_SECONDS } from "@/lib/catalog-revalidate";
 
-export const dynamic = "force-dynamic";
+export const revalidate = CATALOG_PAGE_REVALIDATE_SECONDS;
 
 const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: siteUrl, changeFrequency: "daily", priority: 1 },

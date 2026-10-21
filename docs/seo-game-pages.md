@@ -63,3 +63,4 @@ Same pattern as home/browse: `AgeGate` until `age_verified` cookie; covers blurr
 ## Caching (ISR)
 
 Public catalog routes (`/`, `/browse`, `/game/[slug]`, `sitemap.xml`) export a shared `revalidate` interval from `src/lib/catalog-revalidate.ts` (default **3600s**). Cookie reads for the age gate and blur preference keep HTML dynamic per visitor; ISR mainly benefits the sitemap and cached catalog fetches without weakening the gate.
+
