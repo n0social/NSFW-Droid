@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { confirmSubscriberByToken } from "@/lib/newsletter/subscriber";
-import { newsletterPublicBaseUrl } from "@/lib/newsletter/config";
+import {
+  isNewsletterEmailDeliveryConfigured,
+  newsletterPublicBaseUrl,
+} from "@/lib/newsletter/config";
 import { fetchWeeklyNewsletterPicks } from "@/lib/newsletter/picks";
 import { sendWeeklyNewsletterToSubscriber } from "@/lib/newsletter/send-weekly-to-subscriber";
 import { hashNewsletterToken } from "@/lib/newsletter/tokens";
@@ -21,7 +24,7 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${base}/newsletter?error=invalid_token`);
   }
 
-  if (result === "confirmed" && process.env.BREVO_API_KEY?.trim()) {
+  if (result === "confirmed" && isNewsletterEmailDeliveryConfigured()) {
     const tokenHash = hashNewsletterToken(token);
     const db = await getDb();
     const [row] = await db

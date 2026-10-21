@@ -1,0 +1,2 @@
+# Pin production droplet host key for Cloud Agent deploy (ed25519).
+159.203.136.220 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA1b3PHgyImnD4V6+ewDYb6JgtvE7XxrVznkZA8rbjGL
