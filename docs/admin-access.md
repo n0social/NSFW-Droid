@@ -23,6 +23,7 @@ See the product discussion in repo history; implementation upgrades are incremen
 
 ## Ops
 
-- Set `ADMIN_PASSWORD` in `/etc/nsfwdroid.env` only.
-- After password change, all old sessions invalidate (HMAC uses the secret).
+- Set `ADMIN_PASSWORD` in `/etc/nsfwdroid.env` only (login credential).
+- Set `ADMIN_SESSION_SECRET` to a separate long random string for signing `admin_session` cookies (`openssl rand -base64 32`). If omitted, cookies are still signed with `ADMIN_PASSWORD` (legacy); add `ADMIN_SESSION_SECRET` so you can rotate the login password without kicking every moderator session.
+- After `ADMIN_SESSION_SECRET` change, all old admin sessions invalidate. Changing `ADMIN_PASSWORD` alone does not, once `ADMIN_SESSION_SECRET` is set.
 - Query audit: `SELECT * FROM admin_audit_log ORDER BY created_at DESC LIMIT 50;` (PGlite/Postgres).

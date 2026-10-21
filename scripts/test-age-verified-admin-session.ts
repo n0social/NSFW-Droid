@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
-import { createHmac, timingSafeEqual } from "node:crypto";
-import { createAdminSessionToken } from "../src/lib/admin-auth";
+import { createAdminSessionToken, verifyAdminSessionToken } from "../src/lib/admin-auth";
 import { verifySignedSessionValue } from "../src/lib/session-cookie";
 import { effectiveCoverBlur } from "../src/lib/cover-blur";
 import { parseAgeVerified } from "../src/lib/cookies";
@@ -18,15 +17,8 @@ function ageVerifiedForCookies(input: {
 }): boolean {
   if (parseAgeVerified(input.ageCookie)) return true;
   if (verifySignedSessionValue(input.userSession)) return true;
-  const secret = process.env.ADMIN_PASSWORD;
-  if (!secret || !input.adminSession) return false;
-  const dot = input.adminSession.indexOf(".");
-  if (dot <= 0) return false;
-  const id = input.adminSession.slice(0, dot);
-  const sig = input.adminSession.slice(dot + 1);
-  const expected = createHmac("sha256", secret).update(id).digest("base64url");
-  if (sig.length !== expected.length) return false;
-  return timingSafeEqual(Buffer.from(sig), Buffer.from(expected));
+  if (!input.adminSession) return false;
+  return verifyAdminSessionToken(input.adminSession);
 }
 
 assert.equal(ageVerifiedForCookies({}), false, "no cookies → not verified");
@@ -44,6 +36,16 @@ assert.equal(
   effectiveCoverBlur(ageVerifiedForCookies({ ageCookie: "1" }), false),
   false,
   "age_verified cookie alone → clear covers",
+);
+
+process.env.ADMIN_SESSION_SECRET = "dedicated-signing-key";
+const dedicatedToken = createAdminSessionToken();
+assert.ok(dedicatedToken, "token mints when only ADMIN_SESSION_SECRET is set");
+delete process.env.ADMIN_PASSWORD;
+assert.equal(
+  verifyAdminSessionToken(dedicatedToken),
+  true,
+  "session verifies with ADMIN_SESSION_SECRET after ADMIN_PASSWORD removed",
 );
 
 console.log("test-age-verified-admin-session: ok");

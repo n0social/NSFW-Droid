@@ -70,6 +70,7 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 # FIREBASE_SERVICE_ACCOUNT_JSON=   # minified service account JSON (one line)
 # SESSION_SECRET=
 ADMIN_PASSWORD=choose-a-long-secret
+# ADMIN_SESSION_SECRET=   # optional; openssl rand -base64 32 — signs admin_session (falls back to ADMIN_PASSWORD if unset)
 # Auto-publish TOS-clear ingest (default on when NODE_ENV=production). Use 0 for all-manual review.
 AUTO_PUBLISH=1
 # Legacy local demo flag (also enables auto-publish in dev)
@@ -359,4 +360,4 @@ Storefront chrome matches `docs/design-layout.md` (header, 21:9 hero, chip row, 
 
 - Rotate any API key ever pasted in chat.
 - Restrict SSH to your IP in DigitalOcean Cloud Firewall when possible.
-- Keep `ADMIN_PASSWORD` only in `/etc/nsfwdroid.env`.
+- Keep `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` only in `/etc/nsfwdroid.env` (never commit). Use a dedicated `ADMIN_SESSION_SECRET` so password rotation does not invalidate moderator sessions.
