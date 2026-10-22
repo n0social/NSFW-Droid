@@ -39,6 +39,12 @@ export function coverOptionalListingSlugs(entries: CoverOptionalEntry[]): string
     .filter((s): s is string => Boolean(s));
 }
 
+export function coverOptionalOfficialUrls(entries: CoverOptionalEntry[]): string[] {
+  return entries
+    .map((e) => e.officialUrl?.trim())
+    .filter((u): u is string => Boolean(u));
+}
+
 function urlKeys(url: string | null | undefined): string[] {
   const raw = url?.trim();
   if (!raw) return [];

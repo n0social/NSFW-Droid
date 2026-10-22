@@ -2,6 +2,7 @@ import { and, eq, inArray, isNotNull, ne, or } from "drizzle-orm";
 import { listings } from "@/db/schema";
 import {
   coverOptionalListingSlugs,
+  coverOptionalOfficialUrls,
   getCoverOptionalListingsSync,
 } from "@/lib/cover-optional-listings";
 
@@ -12,11 +13,16 @@ export const publicCatalogListingRow = () => eq(listings.catalogStale, false);
 export const publicCatalogHasCoverArt = () =>
   and(isNotNull(listings.coverImageUrl), ne(listings.coverImageUrl, ""));
 
-/** Store cover, or a curated slug in `data/cover-optional-listings.json`. */
+/** Store cover, or a curated row in `data/cover-optional-listings.json`. */
 export const publicCatalogCoverOrOverride = () => {
-  const slugs = coverOptionalListingSlugs(getCoverOptionalListingsSync());
-  if (!slugs.length) return publicCatalogHasCoverArt();
-  return or(publicCatalogHasCoverArt(), inArray(listings.slug, slugs));
+  const entries = getCoverOptionalListingsSync();
+  const slugs = coverOptionalListingSlugs(entries);
+  const urls = coverOptionalOfficialUrls(entries);
+  const branches = [publicCatalogHasCoverArt()];
+  if (slugs.length) branches.push(inArray(listings.slug, slugs));
+  if (urls.length) branches.push(inArray(listings.officialUrl, urls));
+  if (branches.length === 1) return branches[0];
+  return or(...branches);
 };
 
 /** Listings shown on home rails, browse, and analytics-backed rankings. */
