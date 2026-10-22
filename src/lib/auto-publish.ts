@@ -6,6 +6,10 @@ import {
   isMatureCatalogCandidate,
 } from "@/lib/catalog-maturity";
 import {
+  candidateMatchesCoverOptionalOverride,
+  loadCoverOptionalListings,
+} from "@/lib/cover-optional-listings";
+import {
   MISSING_STORE_COVER_REJECT_REASON,
   candidateHasPublishableStoreCover,
 } from "@/lib/listing-publish-profile";
@@ -140,7 +144,9 @@ export async function processCandidateAfterIngest(
     }
   }
 
-  if (!candidateHasPublishableStoreCover(c)) {
+  const coverOptionalEntries = await loadCoverOptionalListings();
+  const coverOptional = candidateMatchesCoverOptionalOverride(c, coverOptionalEntries);
+  if (!candidateHasPublishableStoreCover(c) && !coverOptional) {
     await rejectCandidate(
       candidateId,
       "auto_publish",

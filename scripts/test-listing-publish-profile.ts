@@ -1,8 +1,12 @@
 import {
+  candidateMatchesCoverOptionalOverride,
+  getCoverOptionalListingsSync,
+} from "../src/lib/cover-optional-listings";
+import {
   candidateHasPublishableStoreCover,
   storeCoverUrlFromIngest,
 } from "../src/lib/listing-publish-profile";
-import { publicCatalogHasCoverArt } from "../src/lib/catalog-visibility";
+import { publicCatalogCoverOrOverride } from "../src/lib/catalog-visibility";
 import { listings } from "../src/db/schema";
 
 const itchWithCover = candidateHasPublishableStoreCover({
@@ -32,9 +36,21 @@ if (!steamCover?.includes("/123/header.jpg")) {
   throw new Error("expected steam appId header fallback");
 }
 
-const coverSql = publicCatalogHasCoverArt();
+const entries = getCoverOptionalListingsSync();
+const coc2 = candidateMatchesCoverOptionalOverride(
+  {
+    outboundUrl: "https://incontinentcell.itch.io/corruption-of-champions-2",
+    externalId: "https://incontinentcell.itch.io/corruption-of-champions-2",
+  },
+  entries,
+);
+if (!coc2) {
+  throw new Error("expected CoC2 in cover-optional-listings.json");
+}
+
+const coverSql = publicCatalogCoverOrOverride();
 if (!coverSql) {
-  throw new Error("publicCatalogHasCoverArt should return a condition");
+  throw new Error("publicCatalogCoverOrOverride should return a condition");
 }
 if (!listings.coverImageUrl) {
   throw new Error("schema should expose coverImageUrl");

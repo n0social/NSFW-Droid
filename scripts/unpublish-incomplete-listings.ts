@@ -6,6 +6,10 @@ import "dotenv/config";
 import { inArray, isNull, or, sql } from "drizzle-orm";
 import { closeCatalogDb, getDb } from "../src/db";
 import { candidates, listings } from "../src/db/schema";
+import {
+  getCoverOptionalListingsSync,
+  listingMatchesCoverOptionalOverride,
+} from "../src/lib/cover-optional-listings";
 import { listingHasPublishableCover } from "../src/lib/listing-publish-profile";
 import { rejectCandidate } from "../src/lib/review";
 
@@ -17,10 +21,16 @@ async function main() {
   const apply = process.argv.includes("--apply");
   const db = await getDb();
 
+  const coverOptionalEntries = getCoverOptionalListingsSync();
+
   const incomplete = await db
     .select()
     .from(listings)
     .where(incompleteListingCondition());
+
+  const incompleteNotOverridden = incomplete.filter(
+    (l) => !listingMatchesCoverOptionalOverride(l, coverOptionalEntries),
+  );
 
   const candidateByKey = new Map<string, typeof candidates.$inferSelect>();
   const candidateRows = await db.select().from(candidates);
@@ -28,7 +38,7 @@ async function main() {
     candidateByKey.set(`${c.source}:${c.externalId}`, c);
   }
 
-  const toRemove = incomplete.map((l) => ({
+  const toRemove = incompleteNotOverridden.map((l) => ({
     id: l.id,
     slug: l.slug,
     title: l.title,
@@ -38,7 +48,7 @@ async function main() {
 
   if (apply && toRemove.length) {
     const removeIds = toRemove.map((r) => r.id);
-    for (const listing of incomplete) {
+    for (const listing of incompleteNotOverridden) {
       const candidate =
         listing.source && listing.externalId
           ? candidateByKey.get(`${listing.source}:${listing.externalId}`)

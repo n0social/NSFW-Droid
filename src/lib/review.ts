@@ -3,6 +3,10 @@ import { getDb } from "@/db";
 import { candidates, listings, type Candidate } from "@/db/schema";
 import { copyCandidateTagsToListing } from "@/lib/catalog-tags";
 import {
+  candidateMatchesCoverOptionalOverride,
+  getCoverOptionalListingsSync,
+} from "@/lib/cover-optional-listings";
+import {
   artworkSourceForCover,
   extractCoverImageUrl,
 } from "@/lib/listing-cover";
@@ -95,7 +99,11 @@ export async function approveCandidate(
   }
 
   const coverImageUrl = extractCoverImageUrl(c.source, c.rawPayload);
-  if (!coverImageUrl?.trim()) return null;
+  const coverOptional = candidateMatchesCoverOptionalOverride(
+    c,
+    getCoverOptionalListingsSync(),
+  );
+  if (!coverImageUrl?.trim() && !coverOptional) return null;
 
   const [listing] = await db
     .insert(listings)

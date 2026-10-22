@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { listings, listingTags, tags, type Listing, type Tag } from "@/db/schema";
 import {
-  publicCatalogHasCoverArt,
+  publicCatalogCoverOrOverride,
   publicCatalogLinkStatus,
   publicCatalogListingRow,
 } from "@/lib/catalog-visibility";
@@ -21,7 +21,7 @@ export async function getPublishedListingBySlug(slug: string): Promise<Listing |
         and(
           eq(listings.slug, trimmed),
           publicCatalogListingRow(),
-          publicCatalogHasCoverArt(),
+          publicCatalogCoverOrOverride(),
         ),
       )
       .limit(1);
