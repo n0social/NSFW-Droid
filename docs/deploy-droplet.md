@@ -59,7 +59,7 @@ Or: DigitalOcean → **Settings → Security → SSH keys** → Add, then **Drop
 | `@` (apex) | A | `159.203.136.220` |
 | `www` | A | `159.203.136.220` |
 
-Optional: CNAME `www` → apex if your DNS provider prefers it. Caddy in `deploy/Caddyfile` requests certificates for both `www.nsfwdroid.com` and `nsfwdroid.com`.
+Optional: CNAME `www` → apex if your DNS provider prefers it. Caddy in `deploy/Caddyfile` requests certificates for both hosts; **apex 301s to `www`** (canonical `NEXT_PUBLIC_SITE_URL`).
 
 Propagation can take up to an hour.
 
