@@ -16,8 +16,8 @@ type Props = ComponentPropsWithoutRef<"a"> & {
 };
 
 /**
- * Outbound store CTA. `/api/go/…` in the same tab; optional ExoClick popunder in a
- * background tab for non-Steam listings only.
+ * Outbound store CTA. `/api/go/…` opens in a focused new tab when popunder runs (ad
+ * behind); otherwise default same-tab navigation. Non-Steam listings only.
  */
 export function OutboundPlayLink({
   monetize = true,

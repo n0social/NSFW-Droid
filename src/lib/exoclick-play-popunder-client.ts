@@ -83,14 +83,11 @@ function openPopunderAdWindow(): Window | null {
 }
 
 /**
- * Open ad in a background tab, navigate this tab to `goHref` (e.g. `/api/go/…`).
- * Returns true when popunder ran (caller should preventDefault on the anchor).
+ * Open destination in a focused new tab with the ad behind (Play, videos, assets).
+ * Same-tab `location.assign` after `window.open(ad)` often leaves the ad tab focused.
  */
 export function firePlayPopunderThenNavigate(goHref: string): boolean {
-  if (!goHref) return false;
-  if (!openPopunderAdWindow()) return false;
-  window.location.assign(goHref);
-  return true;
+  return firePopunderThenOpenNewTab(goHref);
 }
 
 /**
