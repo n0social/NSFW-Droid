@@ -10,7 +10,12 @@ http://159.203.136.220 {
 	}
 }
 
-www.nsfwdroid.com, nsfwdroid.com {
+# Apex → www so Google only indexes one host (canonical in HTML points at www).
+nsfwdroid.com {
+	redir https://www.nsfwdroid.com{uri} permanent
+}
+
+www.nsfwdroid.com {
 	encode gzip
 	reverse_proxy 127.0.0.1:3000
 

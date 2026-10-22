@@ -55,6 +55,12 @@ Same pattern as home/browse: `AgeGate` until `age_verified` cookie; covers blurr
 - `app/sitemap.ts` — static site URLs, browse-safe **`/browse?tag={slug}`** tag hubs (at least one published title; `lastModified` from latest tagged listing), plus all published `/game/...` entries (`lastModified` from `listing.updated_at`).
 - `app/robots.ts` — allows `/` and `/game/`; disallows `/admin/`, `/api/`, `/account/`, auth/settings/newsletter/underage utility paths.
 
+## Canonical host (Search Console)
+
+- **`NEXT_PUBLIC_SITE_URL`** must be the primary index host (production: `https://www.nsfwdroid.com`).
+- Bare **`https://nsfwdroid.com`** must **301** to `www` (Caddy `deploy/Caddyfile` + `src/middleware.ts` fallback). Serving 200 on apex while HTML canonical points at `www` triggers GSC **“Alternate page with proper canonical tag”**.
+- **HTTP → HTTPS** (308) and **trailing-slash normalization** (e.g. `/browse/` → `/browse`) may appear as **“Page with redirect”**; that is expected. Sitemap URLs use `siteUrl` only (https + www, no trailing slash on `/browse`).
+
 ## Tag browse hubs
 
 - **`/browse?tag={slug}`** — filter catalog by a browse-safe tag (same filter as the browse dropdown).
