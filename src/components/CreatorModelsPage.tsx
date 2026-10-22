@@ -56,7 +56,7 @@ export function CreatorModelsPage({
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4">
             {TOP_SFM_MODELS.map((model) => (
               <li key={model.id}>
-                <SfmModelCard model={model} blur={blur} />
+                <SfmModelCard model={model} blur={blur} ageVerified={ageVerified} />
               </li>
             ))}
           </ul>

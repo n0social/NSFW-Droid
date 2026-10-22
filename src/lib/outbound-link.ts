@@ -225,6 +225,29 @@ export function resolveOutboundLink(listing: Pick<Listing, "affiliateUrl" | "off
   return { url: official, linkKind: "official" };
 }
 
+/** True for store.steampowered.com, steamcommunity.com, and parsed Steam app URLs. */
+export function isSteamOutboundUrl(url: string): boolean {
+  const trimmed = url.trim();
+  if (!trimmed) return false;
+  try {
+    const host = new URL(trimmed).hostname.toLowerCase();
+    if (host === "store.steampowered.com" || host.endsWith(".steampowered.com")) return true;
+    if (host === "steamcommunity.com" || host.endsWith(".steamcommunity.com")) return true;
+  } catch {
+    return false;
+  }
+  return parseStoreTarget(trimmed)?.kind === "steam";
+}
+
+/**
+ * Popunder on outbound clicks (videos, assets, play) — never on Steam URLs.
+ */
+export function urlEligibleForOutboundPopunder(url: string): boolean {
+  if (!isValidOutboundUrl(url)) return false;
+  if (isSteamOutboundUrl(url)) return false;
+  return true;
+}
+
 /**
  * Play-click popunder is allowed for itch, Nutaku, and other non-Steam storefronts.
  * Steam is excluded (partner trust / perceived security risk).
@@ -234,10 +257,7 @@ export function listingEligibleForPlayPopunder(
 ): boolean {
   if (listing.source === "steam") return false;
   const { url } = resolveOutboundLink(listing);
-  if (!isValidOutboundUrl(url)) return false;
-  const target = parseStoreTarget(url);
-  if (target?.kind === "steam") return false;
-  return true;
+  return urlEligibleForOutboundPopunder(url);
 }
 
 export function listingHasAffiliateLink(

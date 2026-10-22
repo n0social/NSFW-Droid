@@ -1,5 +1,6 @@
 "use client";
 
+import { OutboundPopunderLink } from "@/components/OutboundPopunderLink";
 import type { VideoFeedItem } from "@/lib/video-feeds";
 
 const gradients = [
@@ -12,6 +13,7 @@ type Props = {
   video: VideoFeedItem;
   index: number;
   blur: boolean;
+  ageVerified: boolean;
   layout?: "rail" | "grid";
 };
 
@@ -36,7 +38,7 @@ function formatDate(iso: string | null): string {
   }
 }
 
-export function VideoCard({ video, index, blur, layout = "grid" }: Props) {
+export function VideoCard({ video, index, blur, ageVerified, layout = "grid" }: Props) {
   const w = layout === "rail" ? "w-[min(42vw,168px)] md:w-[160px] shrink-0 snap-start" : "w-full";
   const h =
     layout === "rail" ? "h-[min(50vw,180px)] md:h-[160px]" : "aspect-video w-full";
@@ -49,8 +51,9 @@ export function VideoCard({ video, index, blur, layout = "grid" }: Props) {
     <article
       className={`${w} overflow-hidden rounded-2xl bg-[#241033] shadow-[0_10px_28px_rgba(0,0,0,0.45)]`}
     >
-      <a
+      <OutboundPopunderLink
         href={video.link}
+        ageVerified={ageVerified}
         target="_blank"
         rel="noopener noreferrer"
         className="group block"
@@ -97,7 +100,7 @@ export function VideoCard({ video, index, blur, layout = "grid" }: Props) {
             </span>
           )}
         </div>
-      </a>
+      </OutboundPopunderLink>
     </article>
   );
 }

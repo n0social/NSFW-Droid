@@ -245,6 +245,7 @@ export function Storefront({
                         video={video}
                         index={i}
                         blur={effectiveBlur}
+                        ageVerified={ageVerified}
                         layout="rail"
                       />
                     ))}

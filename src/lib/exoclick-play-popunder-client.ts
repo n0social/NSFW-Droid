@@ -55,19 +55,16 @@ export function buildExoclickPopunderClickUrl(zoneId: string, pageUrl: string): 
   return `https://${SYNDICATION_HOST}/v1/link.php?${params.toString()}`;
 }
 
-/**
- * Open ad in a background tab, keep this tab on the store `/api/go/…` navigation.
- * Returns true when popunder ran (caller should preventDefault on the anchor).
- */
-export function firePlayPopunderThenNavigate(goHref: string): boolean {
+/** Open syndication popunder in a background tab; returns null when blocked or capped. */
+function openPopunderAdWindow(): Window | null {
   const zoneId = popunderZoneIdForDevice();
-  if (!zoneId || !goHref) return false;
-  if (withinCapping(zoneId)) return false;
+  if (!zoneId) return null;
+  if (withinCapping(zoneId)) return null;
 
   const pageUrl = typeof window !== "undefined" ? window.location.href : "";
   const adUrl = buildExoclickPopunderClickUrl(zoneId, pageUrl);
   const adWin = window.open(adUrl, "_blank", "noopener,noreferrer");
-  if (!adWin) return false;
+  if (!adWin) return null;
 
   markOpened(zoneId);
 
@@ -82,6 +79,32 @@ export function firePlayPopunderThenNavigate(goHref: string): boolean {
     /* noop */
   }
 
+  return adWin;
+}
+
+/**
+ * Open ad in a background tab, navigate this tab to `goHref` (e.g. `/api/go/…`).
+ * Returns true when popunder ran (caller should preventDefault on the anchor).
+ */
+export function firePlayPopunderThenNavigate(goHref: string): boolean {
+  if (!goHref) return false;
+  if (!openPopunderAdWindow()) return false;
   window.location.assign(goHref);
+  return true;
+}
+
+/**
+ * Open ad in background, destination in a focused new tab (videos, assets, etc.).
+ */
+export function firePopunderThenOpenNewTab(destHref: string): boolean {
+  if (!destHref) return false;
+  if (!openPopunderAdWindow()) return false;
+  const destWin = window.open(destHref, "_blank", "noopener,noreferrer");
+  if (!destWin) return false;
+  try {
+    destWin.focus();
+  } catch {
+    /* noop */
+  }
   return true;
 }
