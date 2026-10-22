@@ -9,6 +9,7 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { displayListingTitle, listingCoverImageAlt } from "@/lib/listing-display";
 import { listingHasAffiliateLink } from "@/lib/outbound-link";
 import { GameCard } from "@/components/GameCard";
+import { OutboundPlayLink } from "@/components/OutboundPlayLink";
 import { ListingReportPanel } from "@/components/ListingReportPanel";
 import { gameListingPath } from "@/lib/listing-routes";
 import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
@@ -185,12 +186,13 @@ export function GameDetailPage({
                   </a>
                 </div>
               ) : (
-                <a
+                <OutboundPlayLink
                   href={playHref}
+                  ageVerified={ageVerified}
                   className="flex min-h-[48px] w-full items-center justify-center rounded-full bg-[#C026D3] px-6 py-3 text-sm font-black text-[#FFF1F7] shadow-lg hover:bg-[#FF4D8D] sm:w-auto sm:inline-flex"
                 >
                   Play on store →
-                </a>
+                </OutboundPlayLink>
               )}
 
               <ListingReportPanel

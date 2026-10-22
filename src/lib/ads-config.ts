@@ -51,6 +51,36 @@ export function exoclickLiveReady(): boolean {
   return Boolean(script && banner);
 }
 
+/** Numeric popunder zone id (`idzone` in ExoClick popunder adConfig). */
+export function exoclickPopunderZoneId(): string | undefined {
+  const id = process.env.NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER?.trim();
+  return id || undefined;
+}
+
+/**
+ * Path or absolute URL to the popunder loader (paste dashboard snippet into
+ * `public/exoclick-popunder.js` on the droplet, or host elsewhere).
+ */
+export function exoclickPopunderScriptSrc(): string | undefined {
+  const raw = process.env.NEXT_PUBLIC_EXOCLICK_POPUNDER_SCRIPT_SRC?.trim();
+  if (raw) return raw;
+  if (exoclickPopunderZoneId()) return "/exoclick-popunder.js";
+  return undefined;
+}
+
+export function exoclickPopunderLiveReady(): boolean {
+  if (!isAdsEnabled()) return false;
+  return Boolean(exoclickPopunderZoneId() && exoclickPopunderScriptSrc());
+}
+
+/** Play-click popunder: same gates as footer ads (age + no ad-free tier). */
+export function shouldShowPlayPopunder(ageVerified: boolean): boolean {
+  if (!exoclickPopunderLiveReady()) return false;
+  if (!ageVerified) return false;
+  if (hasAdFreeSubscription()) return false;
+  return true;
+}
+
 type ExoClickWindow = Window & {
   AdProvider?: Array<{ serve?: Record<string, never> }>;
 };

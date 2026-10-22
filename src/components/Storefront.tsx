@@ -113,7 +113,12 @@ export function Storefront({
             </div>
           )}
 
-          <HeroCarousel featured={heroFeatured} blur={effectiveBlur} layoutDecor={layoutDecor} />
+          <HeroCarousel
+            featured={heroFeatured}
+            blur={effectiveBlur}
+            ageVerified={ageVerified}
+            layoutDecor={layoutDecor}
+          />
           <ChipRow active={chip} onChange={setChip} />
 
           <hr
