@@ -77,7 +77,7 @@ export function Storefront({
     [featured, chip],
   );
 
-  const heroFeatured = filteredFeatured[0] ?? all[0] ?? null;
+  const heroFeatured = filteredFeatured[0] ?? null;
 
   const hotTitle = "Newest additions";
   const newTitle = rankingsFromAnalytics ? "Trending now" : "New releases";

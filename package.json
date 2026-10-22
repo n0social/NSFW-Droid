@@ -44,7 +44,8 @@
     "test:seo-utility": "tsx scripts/test-seo-utility-robots.ts",
     "test:seo-canonical-host": "tsx scripts/test-seo-canonical-host.ts",
     "test:ads-popunder-config": "tsx scripts/test-ads-popunder-config.ts",
-    "test:listing-play-popunder-eligibility": "tsx scripts/test-listing-play-popunder-eligibility.ts"
+    "test:listing-play-popunder-eligibility": "tsx scripts/test-listing-play-popunder-eligibility.ts",
+    "test:featured-listing-slugs": "tsx scripts/test-featured-listing-slugs.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.10",
