@@ -26,7 +26,9 @@ fi
 
 cd "$ROOT_DIR"
 
-echo "Building Next.js app (production env vars must be set for NEXT_PUBLIC_* )..."
+echo "Building Next.js app with production NEXT_PUBLIC_* from droplet..."
+# shellcheck source=cloud-agent-load-droplet-public-env.sh
+source "${SCRIPT_DIR}/cloud-agent-load-droplet-public-env.sh"
 npm run build
 
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"

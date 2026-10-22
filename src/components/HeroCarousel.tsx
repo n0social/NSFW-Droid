@@ -31,7 +31,7 @@ export function HeroCarousel({
       : "Discover adult titles on itch.io, Steam, and partner stores. Rankings from real traffic on this site.");
   const badge = badgeLabel ?? (featured ? "Featured" : "Welcome");
 
-  const playHref = featured ? `/api/go/${featured.id}` : "#browse";
+  const playHref = featured ? `/api/go/${featured.id}` : "#storefront";
   const coverUrl = featured?.coverImageUrl?.trim() || null;
   const [coverFailed, setCoverFailed] = useState(false);
   const showCover = Boolean(coverUrl) && !coverFailed;

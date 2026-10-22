@@ -91,10 +91,10 @@ export function GameDetailPage({
 
         <main className="mx-auto min-w-0 max-w-7xl px-4 py-6 md:px-6">
           <Link
-            href="/browse"
+            href="/"
             className="pointer-events-auto inline-flex min-h-[44px] items-center text-xs font-bold text-[#FF4D8D] hover:underline"
           >
-            ← Browse catalog
+            ← Back to home
           </Link>
 
           <article className="pointer-events-auto mx-auto mt-4 max-w-3xl overflow-hidden rounded-2xl border border-[var(--theme-primary)]/30 bg-[#241033] shadow-[0_16px_40px_rgba(0,0,0,0.45)]">
