@@ -56,15 +56,32 @@ export function buildExoclickPopunderClickUrl(zoneId: string, pageUrl: string): 
 }
 
 /**
- * Open ExoClick popunder in a new tab on the same user gesture; does not block navigation.
+ * Open ad in a background tab, keep this tab on the store `/api/go/…` navigation.
+ * Returns true when popunder ran (caller should preventDefault on the anchor).
  */
-export function firePlayPopunderIfAllowed(): void {
+export function firePlayPopunderThenNavigate(goHref: string): boolean {
   const zoneId = popunderZoneIdForDevice();
-  if (!zoneId) return;
-  if (withinCapping(zoneId)) return;
+  if (!zoneId || !goHref) return false;
+  if (withinCapping(zoneId)) return false;
 
   const pageUrl = typeof window !== "undefined" ? window.location.href : "";
   const adUrl = buildExoclickPopunderClickUrl(zoneId, pageUrl);
-  const opened = window.open(adUrl, "_blank", "noopener,noreferrer");
-  if (opened) markOpened(zoneId);
+  const adWin = window.open(adUrl, "_blank", "noopener,noreferrer");
+  if (!adWin) return false;
+
+  markOpened(zoneId);
+
+  try {
+    adWin.blur();
+  } catch {
+    /* noop */
+  }
+  try {
+    window.focus();
+  } catch {
+    /* noop */
+  }
+
+  window.location.assign(goHref);
+  return true;
 }

@@ -3,7 +3,7 @@
 import type { ComponentPropsWithoutRef, MouseEvent } from "react";
 import type { Listing } from "@/db/schema";
 import { shouldShowPlayPopunder } from "@/lib/ads-config";
-import { firePlayPopunderIfAllowed } from "@/lib/exoclick-play-popunder-client";
+import { firePlayPopunderThenNavigate } from "@/lib/exoclick-play-popunder-client";
 import { listingEligibleForPlayPopunder } from "@/lib/outbound-link";
 
 type ListingPick = Pick<Listing, "source" | "officialUrl" | "affiliateUrl">;
@@ -35,7 +35,12 @@ export function OutboundPlayLink({
 
   function handleClick(e: MouseEvent<HTMLAnchorElement>) {
     if (popunderEligible) {
-      firePlayPopunderIfAllowed();
+      const href = e.currentTarget.href;
+      if (firePlayPopunderThenNavigate(href)) {
+        e.preventDefault();
+        onClick?.(e);
+        return;
+      }
     }
     onClick?.(e);
   }
