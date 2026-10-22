@@ -42,7 +42,6 @@ yarn-error.log*
 !/data/itch-search-feed-queries.json
 !/data/itch-manual-game-urls.json
 !/data/video-feeds.json
-!/data/featured-listing-slugs.json
 !/data/cover-optional-listings.json
 !.env.example
 

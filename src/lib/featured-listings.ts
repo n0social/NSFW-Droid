@@ -1,19 +1,12 @@
-import { readFileSync } from "fs";
-import path from "path";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import type { CatalogDb } from "@/db";
 import { listings, type Listing } from "@/db/schema";
+import { getHotListings } from "@/lib/analytics";
 import { publicCatalogLinkStatus } from "@/lib/catalog-visibility";
-import { getWeeklyFeaturedByFavorites, type WeeklyFeaturedResult } from "@/lib/weekly-featured";
+import { getWeeklyFeaturedByFavorites } from "@/lib/weekly-featured";
 
-export const FEATURED_RAIL_LIMIT = 12;
-
-const DATA_PATH = path.join(process.cwd(), "data/featured-listing-slugs.json");
-
-let cachedDataSlugs: string[] | null = null;
-
-export type FeaturedListingsResult = {
-  listings: Listing[];
+export type FeaturedHeroResult = {
+  listing: Listing | null;
   heroSubtitle: string | null;
 };
 
@@ -26,59 +19,44 @@ export function featuredListingSlugsFromEnv(): string[] {
     .filter(Boolean);
 }
 
-/** Emergency / editorial override when weekly favorites are empty. */
-export function featuredListingSlugsFromData(): string[] {
-  if (cachedDataSlugs) return cachedDataSlugs;
-  try {
-    const parsed = JSON.parse(readFileSync(DATA_PATH, "utf8")) as unknown;
-    if (!Array.isArray(parsed)) {
-      cachedDataSlugs = [];
-      return cachedDataSlugs;
-    }
-    cachedDataSlugs = parsed
-      .map((s) => (typeof s === "string" ? s.trim().toLowerCase() : ""))
-      .filter(Boolean);
-  } catch {
-    cachedDataSlugs = [];
-  }
-  return cachedDataSlugs;
-}
-
-async function listingsForSlugOrder(db: CatalogDb, slugOrder: string[]): Promise<Listing[]> {
-  if (slugOrder.length === 0) return [];
-  const rows = await db
+async function listingForSlug(db: CatalogDb, slug: string): Promise<Listing | null> {
+  const [row] = await db
     .select()
     .from(listings)
-    .where(and(publicCatalogLinkStatus(), inArray(listings.slug, slugOrder)));
-  const bySlug = new Map(rows.map((r) => [r.slug.toLowerCase(), r]));
-  return slugOrder
-    .map((slug) => bySlug.get(slug))
-    .filter((row): row is Listing => Boolean(row))
-    .slice(0, FEATURED_RAIL_LIMIT);
+    .where(and(publicCatalogLinkStatus(), eq(listings.slug, slug)))
+    .limit(1);
+  return row ?? null;
 }
 
-export async function getFeaturedListings(db: CatalogDb): Promise<FeaturedListingsResult> {
+/**
+ * Single homepage hero featured pick (no carousel rail).
+ * Priority: env slug → last week's top ♡ → hot engagement rail algorithm → chart_bucket featured.
+ */
+export async function getFeaturedHeroPick(db: CatalogDb): Promise<FeaturedHeroResult> {
   const fromEnv = featuredListingSlugsFromEnv();
-  if (fromEnv.length > 0) {
-    return { listings: await listingsForSlugOrder(db, fromEnv), heroSubtitle: null };
+  if (fromEnv[0]) {
+    return { listing: await listingForSlug(db, fromEnv[0]), heroSubtitle: null };
   }
 
-  const weekly: WeeklyFeaturedResult = await getWeeklyFeaturedByFavorites(db);
-  if (weekly.listings.length > 0) {
-    return { listings: weekly.listings, heroSubtitle: weekly.heroSubtitle };
+  const weekly = await getWeeklyFeaturedByFavorites(db, 1);
+  if (weekly.listings[0]) {
+    return { listing: weekly.listings[0], heroSubtitle: weekly.heroSubtitle };
   }
 
-  const fromData = featuredListingSlugsFromData();
-  if (fromData.length > 0) {
-    return { listings: await listingsForSlugOrder(db, fromData), heroSubtitle: null };
+  const hot = await getHotListings(1);
+  if (hot[0]) {
+    return {
+      listing: hot[0],
+      heroSubtitle: "Featured pick from this week's community traffic on NSFW Droid.",
+    };
   }
 
-  const fromChart = await db
+  const [fromChart] = await db
     .select()
     .from(listings)
     .where(and(publicCatalogLinkStatus(), eq(listings.chartBucket, "featured")))
     .orderBy(asc(listings.chartRank), desc(listings.publishedAt))
-    .limit(FEATURED_RAIL_LIMIT);
+    .limit(1);
 
-  return { listings: fromChart, heroSubtitle: null };
+  return { listing: fromChart ?? null, heroSubtitle: null };
 }

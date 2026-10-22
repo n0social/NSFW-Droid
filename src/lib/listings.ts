@@ -15,12 +15,12 @@ import {
   listingFirstSeenAtExpr,
   newListingPublishedSinceCondition,
 } from "@/lib/new-listings";
-import { getFeaturedListings } from "@/lib/featured-listings";
+import { getFeaturedHeroPick } from "@/lib/featured-listings";
 
 const emptyStorefront = {
   topGrossing: [] as Listing[],
   newReleases: [] as Listing[],
-  featured: [] as Listing[],
+  featuredHeroPick: null as Listing | null,
   all: [] as Listing[],
   rankingsFromAnalytics: false,
 };
@@ -86,13 +86,13 @@ export async function getListingsForStorefront(): Promise<StorefrontListings> {
               .orderBy(desc(listingFirstSeenAtExpr()))
               .limit(RAIL_TRENDING_LIMIT);
 
-      const featuredResult = await getFeaturedListings(db);
+      const featuredHero = await getFeaturedHeroPick(db);
 
       return {
         topGrossing,
         newReleases,
-        featured: featuredResult.listings,
-        featuredHeroSubtitle: featuredResult.heroSubtitle,
+        featuredHeroPick: featuredHero.listing,
+        featuredHeroSubtitle: featuredHero.heroSubtitle,
         all,
         rankingsFromAnalytics: trendingRaw.length > 0,
       };

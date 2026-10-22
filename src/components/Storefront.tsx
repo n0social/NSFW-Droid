@@ -25,7 +25,7 @@ type Props = {
   themeAssets?: ThemeDecorFiles | null;
   layoutDecor?: ResolvedLayoutDecorItem[];
   topGrossing: Listing[];
-  featured: Listing[];
+  featuredHeroPick: Listing | null;
   newReleases: Listing[];
   recentVideos?: VideoFeedItem[];
   all: Listing[];
@@ -46,7 +46,7 @@ export function Storefront({
   ageVerified,
   blurCovers,
   topGrossing,
-  featured = [],
+  featuredHeroPick = null,
   newReleases,
   recentVideos = [],
   all,
@@ -74,12 +74,10 @@ export function Storefront({
     () => newReleases.filter((g) => matchesChip(g, chip)),
     [newReleases, chip],
   );
-  const filteredFeatured = useMemo(
-    () => featured.filter((g) => matchesChip(g, chip)),
-    [featured, chip],
-  );
-
-  const heroFeatured = filteredFeatured[0] ?? null;
+  const heroFeatured = useMemo(() => {
+    if (!featuredHeroPick) return null;
+    return matchesChip(featuredHeroPick, chip) ? featuredHeroPick : null;
+  }, [featuredHeroPick, chip]);
 
   const hotTitle = "Newest additions";
   const newTitle = rankingsFromAnalytics ? "Trending now" : "New releases";
@@ -146,35 +144,6 @@ export function Storefront({
             </div>
           ) : (
             <>
-              {filteredFeatured.length > 0 && (
-                <section className="mb-8">
-                  <div className="mb-3 flex items-center justify-between gap-2">
-                    <h2 className="flex items-center gap-2 text-sm font-black text-[#FFF1F7]">
-                      {themeAssets && (
-                        <ThemeAssetImage
-                          src={themeAssets.rail}
-                          alt=""
-                          className="h-5 w-10 shrink-0"
-                        />
-                      )}
-                      Featured
-                    </h2>
-                  </div>
-                  <div className="rail-scroll -mx-4 flex gap-3 overflow-x-auto overscroll-x-contain px-4 pb-2 scroll-smooth snap-x snap-mandatory touch-pan-x md:mx-0 md:px-0">
-                    {filteredFeatured.map((g, i) => (
-                      <GameCard
-                        key={g.id}
-                        game={g}
-                        index={i}
-                        blur={effectiveBlur}
-                        ageVerified={ageVerified}
-                        themeAssets={themeAssets}
-                      />
-                    ))}
-                  </div>
-                </section>
-              )}
-
               {filteredHot.length > 0 && (
                 <section className="mb-8">
                   <div className="mb-3 flex items-center justify-between gap-2">
