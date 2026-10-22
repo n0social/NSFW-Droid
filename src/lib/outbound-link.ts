@@ -225,6 +225,21 @@ export function resolveOutboundLink(listing: Pick<Listing, "affiliateUrl" | "off
   return { url: official, linkKind: "official" };
 }
 
+/**
+ * Play-click popunder is allowed for itch, Nutaku, and other non-Steam storefronts.
+ * Steam is excluded (partner trust / perceived security risk).
+ */
+export function listingEligibleForPlayPopunder(
+  listing: Pick<Listing, "source" | "officialUrl" | "affiliateUrl">,
+): boolean {
+  if (listing.source === "steam") return false;
+  const { url } = resolveOutboundLink(listing);
+  if (!isValidOutboundUrl(url)) return false;
+  const target = parseStoreTarget(url);
+  if (target?.kind === "steam") return false;
+  return true;
+}
+
 export function listingHasAffiliateLink(
   listing: Pick<Listing, "affiliateUrl" | "officialUrl">,
 ): boolean {

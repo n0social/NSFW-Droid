@@ -187,6 +187,7 @@ export function GameDetailPage({
                 </div>
               ) : (
                 <OutboundPlayLink
+                  listing={listing}
                   href={playHref}
                   ageVerified={ageVerified}
                   className="flex min-h-[48px] w-full items-center justify-center rounded-full bg-[#C026D3] px-6 py-3 text-sm font-black text-[#FFF1F7] shadow-lg hover:bg-[#FF4D8D] sm:w-auto sm:inline-flex"
