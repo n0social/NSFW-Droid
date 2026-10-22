@@ -51,6 +51,7 @@ export default async function HomePage() {
         all={storefront.all}
         listingCount={listingCount}
         catalogUnavailable={storefront.catalogUnavailable}
+        featuredHeroSubtitle={storefront.featuredHeroSubtitle}
         themeAssets={themeAssets}
       />
     </div>
