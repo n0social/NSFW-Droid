@@ -1,31 +1,47 @@
 "use client";
 
-import type { ComponentPropsWithoutRef } from "react";
+import type { ComponentPropsWithoutRef, MouseEvent } from "react";
+import type { Listing } from "@/db/schema";
 import { shouldShowPlayPopunder } from "@/lib/ads-config";
-import { outboundPlayLinkClassName } from "@/lib/outbound-play-link";
+import { firePlayPopunderIfAllowed } from "@/lib/exoclick-play-popunder-client";
+import { listingEligibleForPlayPopunder } from "@/lib/outbound-link";
+
+type ListingPick = Pick<Listing, "source" | "officialUrl" | "affiliateUrl">;
 
 type Props = ComponentPropsWithoutRef<"a"> & {
-  /** When false, never attach the ExoClick popunder trigger class (e.g. fallback links). */
+  listing: ListingPick;
+  /** When false, never run popunder (e.g. fallback links). */
   monetize?: boolean;
   ageVerified: boolean;
 };
 
 /**
- * Outbound store CTA. Keeps a normal `/api/go/…` navigation; ExoClick popunder
- * (when configured) hooks the same click via trigger class on the anchor.
+ * Outbound store CTA. `/api/go/…` in the same tab; optional ExoClick popunder in a
+ * background tab for non-Steam listings only.
  */
 export function OutboundPlayLink({
   monetize = true,
   ageVerified,
+  listing,
   className,
+  onClick,
   children,
   ...rest
 }: Props) {
-  const triggerPopunder = monetize && shouldShowPlayPopunder(ageVerified);
-  const mergedClass = triggerPopunder ? outboundPlayLinkClassName(className) : className;
+  const popunderEligible =
+    monetize &&
+    shouldShowPlayPopunder(ageVerified) &&
+    listingEligibleForPlayPopunder(listing);
+
+  function handleClick(e: MouseEvent<HTMLAnchorElement>) {
+    if (popunderEligible) {
+      firePlayPopunderIfAllowed();
+    }
+    onClick?.(e);
+  }
 
   return (
-    <a className={mergedClass} {...rest}>
+    <a className={className} onClick={handleClick} {...rest}>
       {children}
     </a>
   );

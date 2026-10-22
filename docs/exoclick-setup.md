@@ -101,7 +101,9 @@ Keep a screenshot or note of zone names ↔ placements for your own runbook.
 
 ## Play-click popunder
 
-Opens an ExoClick ad in a **background tab** when a visitor clicks **Play** / **Play on store** (normal `/api/go/…` redirect still runs in the foreground tab).
+Opens an ExoClick ad in a **background tab** when a visitor clicks **Play** / **Play on store** on **non-Steam** listings (itch.io, Nutaku, other partners). **Steam** Play buttons never fire a popunder. Normal `/api/go/…` redirect still runs in the same tab.
+
+Implementation: client click handler (`exoclick-play-popunder-client.ts`) opens ExoClick `v1/link.php` on the user gesture (works after SPA navigation; no global “all links” trigger).
 
 ### What to create in ExoClick
 
@@ -115,7 +117,7 @@ Opens an ExoClick ad in a **background tab** when a visitor clicks **Play** / **
 8. **Capping / frequency:** start conservative (e.g. **1** popunder per **24 hours** per user) so repeat Play clicks are not spammy.
 9. **Fallback to popup:** optional; OFF keeps the experience closer to “extra tab you close.”
 10. Code format: **Inline + Remote Script (Recommended)**.
-11. **Repo default:** `public/exoclick-popunder.js` picks **6062592** (desktop/web) or **6062594** (mobile UA) and loads ExoClick `popunder1000.js` with trigger class `nsfwdroid-play-outbound`. Create **two** popunder zones in ExoClick (web + mobile) with the same trigger class. If capping/frequency changes in the dashboard, update the shared settings in that file.
+11. Create **two** popunder zones in ExoClick (web **6062592** + mobile **6062594**). Dashboard trigger class is optional; the site opens the syndication URL only from **Play** on non-Steam listings. Align capping with `FREQUENCY_PERIOD_MINUTES` in `exoclick-play-popunder-client.ts` (default 60).
 
 **Important:** ExoClick’s default snippet often uses `trigger_method: 3` (every `<a>` on the page). That would pop on nav, tags, and legal links. This project uses **`trigger_method: 2`** and **`nsfwdroid-play-outbound`** so only **Play** CTAs fire the zone. Set the same trigger class in the ExoClick zone settings.
 

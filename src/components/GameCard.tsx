@@ -216,6 +216,7 @@ export function GameCard({
         </div>
       </Link>
       <OutboundPlayLink
+        listing={game}
         href={`/api/go/${game.id}`}
         onClick={(e) => e.stopPropagation()}
         ageVerified={ageVerified ?? false}
