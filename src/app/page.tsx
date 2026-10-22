@@ -44,7 +44,7 @@ export default async function HomePage() {
         ageVerified={ageVerified}
         blurCovers={blurCovers}
         topGrossing={storefront.topGrossing}
-        featured={storefront.featured}
+        featuredHeroPick={storefront.featuredHeroPick}
         newReleases={storefront.newReleases}
         recentVideos={recentVideos}
         rankingsFromAnalytics={storefront.rankingsFromAnalytics}

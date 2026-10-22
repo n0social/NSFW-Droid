@@ -7,7 +7,7 @@ import {
   previousWeekFavoriteWindow,
   type PreviousWeekFavoriteWindow,
 } from "@/lib/catalog-week";
-import { FEATURED_RAIL_LIMIT } from "@/lib/featured-listings";
+const DEFAULT_WEEKLY_LIMIT = 12;
 
 export type WeeklyFeaturedResult = {
   listings: Listing[];
@@ -28,7 +28,7 @@ export function weeklyFeaturedHeroSubtitle(window: PreviousWeekFavoriteWindow): 
  */
 export async function getWeeklyFeaturedByFavorites(
   db: CatalogDb,
-  limit = FEATURED_RAIL_LIMIT,
+  limit = DEFAULT_WEEKLY_LIMIT,
   now = new Date(),
 ): Promise<WeeklyFeaturedResult> {
   const window = previousWeekFavoriteWindow(now);
