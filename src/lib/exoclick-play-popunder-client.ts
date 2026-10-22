@@ -4,6 +4,8 @@
  */
 
 const SYNDICATION_HOST = "s.pemsrv.com";
+/** Avoid passing game/listing URLs as `p=` — ExoClick can open a second store tab. */
+export const EXOCLICK_POPUNDER_REFERRER_HOME = "https://www.nsfwdroid.com/";
 /** Matches ExoClick zone frequency_period (minutes) in public/exoclick-popunder.js */
 const FREQUENCY_PERIOD_MINUTES = 60;
 
@@ -55,13 +57,20 @@ export function buildExoclickPopunderClickUrl(zoneId: string, pageUrl: string): 
   return `https://${SYNDICATION_HOST}/v1/link.php?${params.toString()}`;
 }
 
+type PopunderOpenOptions = {
+  /** Page URL sent to ExoClick as `p` (tracking). Defaults to current page. */
+  adReferrerPage?: string;
+};
+
 /** Open syndication popunder in a background tab; returns null when blocked or capped. */
-function openPopunderAdWindow(): Window | null {
+function openPopunderAdWindow(options?: PopunderOpenOptions): Window | null {
   const zoneId = popunderZoneIdForDevice();
   if (!zoneId) return null;
   if (withinCapping(zoneId)) return null;
 
-  const pageUrl = typeof window !== "undefined" ? window.location.href : "";
+  const pageUrl =
+    options?.adReferrerPage?.trim() ||
+    (typeof window !== "undefined" ? window.location.href : "");
   const adUrl = buildExoclickPopunderClickUrl(zoneId, pageUrl);
   const adWin = window.open(adUrl, "_blank", "noopener,noreferrer");
   if (!adWin) return null;
@@ -86,19 +95,29 @@ function openPopunderAdWindow(): Window | null {
  * @deprecated Use {@link firePopunderThenOpenNewTab}; never navigates the current tab.
  */
 export function firePlayPopunderThenNavigate(goHref: string): boolean {
-  return firePopunderThenOpenNewTab(goHref);
+  return firePlayStorePopunder(goHref);
+}
+
+/** Play on store: one `/api/go/` tab + ad tab; ad `p=` is site home (not the listing page). */
+export function firePlayStorePopunder(goHref: string): boolean {
+  return firePopunderThenOpenNewTab(goHref, {
+    adReferrerPage: EXOCLICK_POPUNDER_REFERRER_HOME,
+  });
 }
 
 /**
  * Keep this tab on NSFW Droid: open store/content in a focused new tab, then popunder ad
  * (best effort). Destination opens first so popup blockers prioritize the real link.
  */
-export function firePopunderThenOpenNewTab(destHref: string): boolean {
+export function firePopunderThenOpenNewTab(
+  destHref: string,
+  options?: PopunderOpenOptions,
+): boolean {
   if (!destHref) return false;
   const destWin = window.open(destHref, "_blank", "noopener,noreferrer");
   if (!destWin) return false;
 
-  openPopunderAdWindow();
+  openPopunderAdWindow(options);
 
   try {
     destWin.focus();

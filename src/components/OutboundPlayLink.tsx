@@ -4,7 +4,7 @@ import type { ComponentPropsWithoutRef, MouseEvent } from "react";
 import type { Listing } from "@/db/schema";
 import { shouldShowPlayPopunder } from "@/lib/ads-config";
 import {
-  firePopunderThenOpenNewTab,
+  firePlayStorePopunder,
   openOutboundInNewTab,
 } from "@/lib/exoclick-play-popunder-client";
 import { listingEligibleForPlayPopunder } from "@/lib/outbound-link";
@@ -40,7 +40,7 @@ export function OutboundPlayLink({
     if (popunderEligible) {
       e.preventDefault();
       const href = e.currentTarget.href;
-      if (!firePopunderThenOpenNewTab(href)) {
+      if (!firePlayStorePopunder(href)) {
         openOutboundInNewTab(href);
       }
       onClick?.(e);
