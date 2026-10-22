@@ -22,14 +22,12 @@ type Props = ComponentPropsWithoutRef<"a"> & {
 export function OutboundPopunderLink({
   ageVerified,
   monetize = true,
-  openInNewTab,
   target,
   className,
   onClick,
   children,
   ...rest
 }: Props) {
-  const newTab = openInNewTab ?? target === "_blank";
   const popunderEligible = monetize && shouldShowPlayPopunder(ageVerified);
 
   function handleClick(e: MouseEvent<HTMLAnchorElement>) {
