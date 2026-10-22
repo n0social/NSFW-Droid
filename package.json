@@ -14,6 +14,8 @@
     "ingest:steam": "tsx scripts/db-migrate.ts && tsx scripts/ingest-steam.ts",
     "ingest:affiliate": "tsx scripts/db-migrate.ts && tsx scripts/ingest-affiliate.ts",
     "catalog:unpublish-non-nsfw": "tsx scripts/db-migrate.ts && tsx scripts/unpublish-non-nsfw-listings.ts",
+    "catalog:unpublish-incomplete": "tsx scripts/db-migrate.ts && tsx scripts/unpublish-incomplete-listings.ts",
+    "catalog:republish-cover-optional": "tsx scripts/db-migrate.ts && tsx scripts/republish-cover-optional-listings.ts",
     "catalog:recycle-stale": "tsx scripts/db-migrate.ts && tsx scripts/recycle-stale-listings.ts",
     "catalog:counts": "tsx scripts/db-migrate.ts && tsx scripts/catalog-counts.ts",
     "catalog:check-links": "tsx scripts/db-migrate.ts && tsx scripts/check-listing-links.ts",
@@ -39,7 +41,9 @@
     "validate:themes": "tsx scripts/validate-theme-packages.ts",
     "db:studio": "drizzle-kit studio",
     "creators:verify-blender-assets": "tsx scripts/verify-creator-assets-links.ts",
-    "test:seo-utility": "tsx scripts/test-seo-utility-robots.ts"
+    "test:seo-utility": "tsx scripts/test-seo-utility-robots.ts",
+    "test:seo-canonical-host": "tsx scripts/test-seo-canonical-host.ts",
+    "test:ads-popunder-config": "tsx scripts/test-ads-popunder-config.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.10",

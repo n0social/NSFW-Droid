@@ -59,7 +59,7 @@ Or: DigitalOcean → **Settings → Security → SSH keys** → Add, then **Drop
 | `@` (apex) | A | `159.203.136.220` |
 | `www` | A | `159.203.136.220` |
 
-Optional: CNAME `www` → apex if your DNS provider prefers it. Caddy in `deploy/Caddyfile` requests certificates for both `www.nsfwdroid.com` and `nsfwdroid.com`.
+Optional: CNAME `www` → apex if your DNS provider prefers it. Caddy in `deploy/Caddyfile` requests certificates for both hosts; **apex 301s to `www`** (canonical `NEXT_PUBLIC_SITE_URL`).
 
 Propagation can take up to an hour.
 
@@ -113,6 +113,8 @@ CATALOG_NSFW_ONLY=1
 NEXT_PUBLIC_ADS_ENABLED=0
 NEXT_PUBLIC_EXOCLICK_ZONE_ID_BANNER=
 NEXT_PUBLIC_EXOCLICK_ZONE_ID_NATIVE=
+NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER=
+NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER_MOBILE=
 # NEXT_PUBLIC_EXOCLICK_AD_SCRIPT_URL=https://a.magsrv.com/ad-provider.js
 # NEXT_PUBLIC_EXOCLICK_INS_CLASS=
 # Optional: AFFILIATE_EXPORT_PATH=/var/www/nsfwdroid/data/affiliate-export.json

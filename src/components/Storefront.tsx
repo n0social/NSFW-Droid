@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import type { Listing } from "@/db/schema";
 import { GameCard } from "./GameCard";
 import { AgeGate } from "./AgeGate";
@@ -54,7 +55,12 @@ export function Storefront({
   themeAssets = null,
   layoutDecor = [],
 }: Props) {
+  const pathname = usePathname();
   const [chip, setChip] = useState<ChipId>("all");
+
+  useEffect(() => {
+    if (pathname === "/") setChip("all");
+  }, [pathname]);
 
   const effectiveBlur = effectiveCoverBlur(ageVerified, blurCovers);
 
@@ -94,7 +100,7 @@ export function Storefront({
         />
 
         <main
-          id="browse"
+          id="storefront"
           className="mx-auto min-w-0 max-w-7xl px-4 pb-4 pt-4 md:px-6 lg:px-8"
         >
           {catalogUnavailable && (
@@ -107,7 +113,12 @@ export function Storefront({
             </div>
           )}
 
-          <HeroCarousel featured={heroFeatured} blur={effectiveBlur} layoutDecor={layoutDecor} />
+          <HeroCarousel
+            featured={heroFeatured}
+            blur={effectiveBlur}
+            ageVerified={ageVerified}
+            layoutDecor={layoutDecor}
+          />
           <ChipRow active={chip} onChange={setChip} />
 
           <hr

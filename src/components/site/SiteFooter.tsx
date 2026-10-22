@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AdSlot } from "@/components/AdSlot";
+import { ExoClickPopunderScript } from "@/components/ExoClickPopunderScript";
 import { ExoClickScript } from "@/components/ExoClickScript";
 import { NewsletterSignup } from "@/components/site/NewsletterSignup";
 import { PwaInstallPrompt } from "@/components/site/PwaInstallPrompt";
@@ -19,6 +20,7 @@ export function SiteFooter({ ageVerified, showFooterAds = true }: Props) {
   return (
     <footer className="mt-12 border-t border-[#241033] bg-[#241033]">
       {footerAdsLive && <ExoClickScript ageVerified={ageVerified} />}
+      <ExoClickPopunderScript ageVerified={ageVerified} />
       <div className="mx-auto max-w-7xl px-4 pt-6 pb-2 md:px-6 lg:px-8">
         <NewsletterSignup />
         {footerAdsLive && (

@@ -6,11 +6,13 @@ import type { Listing } from "@/db/schema";
 import { gameListingPath } from "@/lib/listing-routes";
 import type { ResolvedLayoutDecorItem } from "@/lib/themes/types";
 import { HERO_LAYOUT_DECOR_SLOTS, ThemeLayoutDecor } from "@/components/theme/ThemeLayoutDecor";
+import { OutboundPlayLink } from "@/components/OutboundPlayLink";
 import { displayListingTitle } from "@/lib/listing-display";
 
 type Props = {
   featured: Listing | null;
   blur: boolean;
+  ageVerified: boolean;
   layoutDecor?: ResolvedLayoutDecorItem[];
   badgeLabel?: string;
   subtitle?: string;
@@ -19,6 +21,7 @@ type Props = {
 export function HeroCarousel({
   featured,
   blur,
+  ageVerified,
   layoutDecor = [],
   badgeLabel,
   subtitle: subtitleOverride,
@@ -31,7 +34,7 @@ export function HeroCarousel({
       : "Discover adult titles on itch.io, Steam, and partner stores. Rankings from real traffic on this site.");
   const badge = badgeLabel ?? (featured ? "Featured" : "Welcome");
 
-  const playHref = featured ? `/api/go/${featured.id}` : "#browse";
+  const playHref = featured ? `/api/go/${featured.id}` : "#storefront";
   const coverUrl = featured?.coverImageUrl?.trim() || null;
   const [coverFailed, setCoverFailed] = useState(false);
   const showCover = Boolean(coverUrl) && !coverFailed;
@@ -85,12 +88,22 @@ export function HeroCarousel({
                   Game page
                 </Link>
               ) : null}
-              <a
-                href={playHref}
-                className="inline-flex min-h-[44px] items-center rounded-full bg-[var(--theme-accent)] px-4 py-2 text-[11px] font-black text-[var(--foreground)] shadow-lg hover:opacity-90 sm:px-5 sm:py-2.5 sm:text-xs"
-              >
-                {featured ? "Play on store" : "Browse catalog"}
-              </a>
+              {featured ? (
+                <OutboundPlayLink
+                  href={playHref}
+                  ageVerified={ageVerified}
+                  className="inline-flex min-h-[44px] items-center rounded-full bg-[var(--theme-accent)] px-4 py-2 text-[11px] font-black text-[var(--foreground)] shadow-lg hover:opacity-90 sm:px-5 sm:py-2.5 sm:text-xs"
+                >
+                  Play on store
+                </OutboundPlayLink>
+              ) : (
+                <a
+                  href={playHref}
+                  className="inline-flex min-h-[44px] items-center rounded-full bg-[var(--theme-accent)] px-4 py-2 text-[11px] font-black text-[var(--foreground)] shadow-lg hover:opacity-90 sm:px-5 sm:py-2.5 sm:text-xs"
+                >
+                  Browse catalog
+                </a>
+              )}
             </div>
           </div>
         </div>

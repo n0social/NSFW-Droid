@@ -44,6 +44,11 @@ export function SiteHeader({ listingCount, ageVerified, themeAssets }: Props) {
     </span>
   );
 
+  const signInLinkClass =
+    "rounded-full border border-[var(--theme-primary)]/40 px-3 py-2 text-[10px] font-bold text-[var(--theme-accent)] hover:bg-[var(--theme-surface)]";
+  const signInLinkMobileClass =
+    "inline-flex min-h-[44px] items-center rounded-full border border-[var(--theme-primary)]/40 px-2.5 py-2 text-[10px] font-bold text-[var(--theme-accent)]";
+
   return (
     <header className="relative sticky top-0 z-50 overflow-x-clip border-b-[3px] border-[var(--theme-primary)]/35 bg-[var(--background)]/95 backdrop-blur-md">
       {themeAssets && (
@@ -92,7 +97,7 @@ export function SiteHeader({ listingCount, ageVerified, themeAssets }: Props) {
 
         <div className="ml-auto hidden flex-wrap items-center gap-2 md:flex">
           {gameCountBadge}
-          {!loading && configured && user ? (
+          {user ? (
             <>
               <Link
                 href="/account"
@@ -108,39 +113,26 @@ export function SiteHeader({ listingCount, ageVerified, themeAssets }: Props) {
                 Sign out
               </button>
             </>
-          ) : !loading && configured ? (
-            <Link
-              href="/sign-in"
-              className="rounded-full border border-[var(--theme-primary)]/40 px-3 py-2 text-[10px] font-bold text-[var(--theme-accent)] hover:bg-[var(--theme-surface)]"
-            >
+          ) : (
+            <Link href="/sign-in" className={signInLinkClass} title={configured ? undefined : "Sign-in needs Firebase env on the server build"}>
               Sign in
             </Link>
-          ) : (
-            <span
-              className="rounded-full border border-[var(--theme-surface)] px-3 py-2 text-[10px] font-semibold text-[var(--theme-text-muted)]/40"
-              title="Accounts are not available yet"
-            >
-              Sign in — soon
-            </span>
           )}
         </div>
 
         <div className="ml-auto flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2 md:hidden">
-          {!loading && configured && user ? (
+          {user ? (
             <Link
               href="/account"
               className="inline-flex min-h-[44px] max-w-[5.5rem] items-center truncate rounded-full border border-[var(--theme-primary)]/40 px-2 py-2 text-[10px] font-bold text-[var(--theme-text-muted)]"
             >
               Account
             </Link>
-          ) : !loading && configured ? (
-            <Link
-              href="/sign-in"
-              className="inline-flex min-h-[44px] items-center rounded-full border border-[var(--theme-primary)]/40 px-2.5 py-2 text-[10px] font-bold text-[var(--theme-accent)]"
-            >
+          ) : (
+            <Link href="/sign-in" className={signInLinkMobileClass}>
               Sign in
             </Link>
-          ) : null}
+          )}
           <button
             type="button"
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border-2 border-[var(--theme-primary)]/50 text-[var(--foreground)] hover:bg-[var(--theme-surface)]"
@@ -226,7 +218,7 @@ export function SiteHeader({ listingCount, ageVerified, themeAssets }: Props) {
                 Submit game
               </Link>
             </li>
-            {!loading && configured && user ? (
+            {user ? (
               <li>
                 <Link
                   href="/settings"
@@ -236,7 +228,17 @@ export function SiteHeader({ listingCount, ageVerified, themeAssets }: Props) {
                   Settings
                 </Link>
               </li>
-            ) : null}
+            ) : (
+              <li>
+                <Link
+                  href="/sign-in"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex min-h-[44px] w-full items-center rounded-xl px-3 hover:bg-[var(--theme-surface)]"
+                >
+                  Sign in
+                </Link>
+              </li>
+            )}
           </ul>
           <div className="mt-4 flex flex-col gap-3 border-t border-[var(--theme-primary)]/20 pt-4">
             {gameCountBadge}

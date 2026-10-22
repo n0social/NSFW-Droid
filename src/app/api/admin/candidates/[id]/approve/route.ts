@@ -14,7 +14,10 @@ export async function POST(
   const { id } = await context.params;
   const listing = await approveCandidate(id, "admin");
   if (!listing) {
-    return NextResponse.json({ error: "not_found_or_not_pending" }, { status: 404 });
+    return NextResponse.json(
+      { error: "not_found_or_not_pending_or_missing_store_cover" },
+      { status: 404 },
+    );
   }
   await logAdminAction({
     action: "candidate_approve",

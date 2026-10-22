@@ -74,6 +74,7 @@ export function NewArrivalsPage({
             <HeroCarousel
               featured={featured}
               blur={effectiveBlur}
+              ageVerified={ageVerified}
               layoutDecor={layoutDecor}
               badgeLabel="Newest"
               subtitle="Latest title added to NSFW Droid — open the store page after you confirm 18+."
