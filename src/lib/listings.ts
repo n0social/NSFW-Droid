@@ -27,6 +27,8 @@ const emptyStorefront = {
 
 export type StorefrontListings = typeof emptyStorefront & {
   catalogUnavailable?: boolean;
+  /** When set, homepage hero uses this instead of the default featured line. */
+  featuredHeroSubtitle?: string | null;
 };
 
 export async function getListingsForStorefront(): Promise<StorefrontListings> {
@@ -84,12 +86,13 @@ export async function getListingsForStorefront(): Promise<StorefrontListings> {
               .orderBy(desc(listingFirstSeenAtExpr()))
               .limit(RAIL_TRENDING_LIMIT);
 
-      const featured = await getFeaturedListings(db);
+      const featuredResult = await getFeaturedListings(db);
 
       return {
         topGrossing,
         newReleases,
-        featured,
+        featured: featuredResult.listings,
+        featuredHeroSubtitle: featuredResult.heroSubtitle,
         all,
         rankingsFromAnalytics: trendingRaw.length > 0,
       };

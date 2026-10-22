@@ -4,12 +4,18 @@ import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import type { CatalogDb } from "@/db";
 import { listings, type Listing } from "@/db/schema";
 import { publicCatalogLinkStatus } from "@/lib/catalog-visibility";
+import { getWeeklyFeaturedByFavorites, type WeeklyFeaturedResult } from "@/lib/weekly-featured";
 
 export const FEATURED_RAIL_LIMIT = 12;
 
 const DATA_PATH = path.join(process.cwd(), "data/featured-listing-slugs.json");
 
 let cachedDataSlugs: string[] | null = null;
+
+export type FeaturedListingsResult = {
+  listings: Listing[];
+  heroSubtitle: string | null;
+};
 
 export function featuredListingSlugsFromEnv(): string[] {
   const raw = process.env.FEATURED_LISTING_SLUGS?.trim();
@@ -20,7 +26,7 @@ export function featuredListingSlugsFromEnv(): string[] {
     .filter(Boolean);
 }
 
-/** Curated homepage featured rail (first slug = hero). Overridden by `FEATURED_LISTING_SLUGS` env. */
+/** Emergency / editorial override when weekly favorites are empty. */
 export function featuredListingSlugsFromData(): string[] {
   if (cachedDataSlugs) return cachedDataSlugs;
   try {
@@ -51,21 +57,28 @@ async function listingsForSlugOrder(db: CatalogDb, slugOrder: string[]): Promise
     .slice(0, FEATURED_RAIL_LIMIT);
 }
 
-export async function getFeaturedListings(db: CatalogDb): Promise<Listing[]> {
+export async function getFeaturedListings(db: CatalogDb): Promise<FeaturedListingsResult> {
   const fromEnv = featuredListingSlugsFromEnv();
   if (fromEnv.length > 0) {
-    return listingsForSlugOrder(db, fromEnv);
+    return { listings: await listingsForSlugOrder(db, fromEnv), heroSubtitle: null };
+  }
+
+  const weekly: WeeklyFeaturedResult = await getWeeklyFeaturedByFavorites(db);
+  if (weekly.listings.length > 0) {
+    return { listings: weekly.listings, heroSubtitle: weekly.heroSubtitle };
   }
 
   const fromData = featuredListingSlugsFromData();
   if (fromData.length > 0) {
-    return listingsForSlugOrder(db, fromData);
+    return { listings: await listingsForSlugOrder(db, fromData), heroSubtitle: null };
   }
 
-  return db
+  const fromChart = await db
     .select()
     .from(listings)
     .where(and(publicCatalogLinkStatus(), eq(listings.chartBucket, "featured")))
     .orderBy(asc(listings.chartRank), desc(listings.publishedAt))
     .limit(FEATURED_RAIL_LIMIT);
+
+  return { listings: fromChart, heroSubtitle: null };
 }

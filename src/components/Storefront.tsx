@@ -32,6 +32,7 @@ type Props = {
   listingCount: number;
   rankingsFromAnalytics?: boolean;
   catalogUnavailable?: boolean;
+  featuredHeroSubtitle?: string | null;
 };
 
 function matchesChip(game: Listing, chip: ChipId) {
@@ -54,6 +55,7 @@ export function Storefront({
   catalogUnavailable = false,
   themeAssets = null,
   layoutDecor = [],
+  featuredHeroSubtitle = null,
 }: Props) {
   const pathname = usePathname();
   const [chip, setChip] = useState<ChipId>("all");
@@ -118,6 +120,8 @@ export function Storefront({
             blur={effectiveBlur}
             ageVerified={ageVerified}
             layoutDecor={layoutDecor}
+            badgeLabel={featuredHeroSubtitle ? "Featured pick" : undefined}
+            subtitle={featuredHeroSubtitle ?? undefined}
           />
           <ChipRow active={chip} onChange={setChip} />
 

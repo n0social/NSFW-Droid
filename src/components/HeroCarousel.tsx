@@ -30,9 +30,9 @@ export function HeroCarousel({
   const subtitle =
     subtitleOverride ??
     (featured
-      ? "Featured pick from the catalog — open the store page after you confirm 18+."
-      : "Discover adult titles on itch.io, Steam, and partner stores. Rankings from real traffic on this site.");
-  const badge = badgeLabel ?? (featured ? "Featured" : "Welcome");
+      ? "Open the store page after you confirm 18+."
+      : "Discover adult titles on itch.io, Steam, and partner stores. Rankings from real traffic on this site."));
+  const badge = badgeLabel ?? (featured ? "Featured pick" : "Welcome");
 
   const playHref = featured ? `/api/go/${featured.id}` : "#storefront";
   const coverUrl = featured?.coverImageUrl?.trim() || null;
