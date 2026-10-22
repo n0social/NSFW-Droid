@@ -1,6 +1,10 @@
 import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { listings, listingTags, tags, type Listing, type Tag } from "@/db/schema";
-import { publicCatalogLinkStatus, publicCatalogListingRow } from "@/lib/catalog-visibility";
+import {
+  publicCatalogHasCoverArt,
+  publicCatalogLinkStatus,
+  publicCatalogListingRow,
+} from "@/lib/catalog-visibility";
 import { safeCatalogQuery } from "@/lib/db-safe";
 import { displayListingTitle } from "@/lib/listing-display";
 import { filterTagsForBrowseDisplay } from "@/lib/tag-filter";
@@ -13,7 +17,13 @@ export async function getPublishedListingBySlug(slug: string): Promise<Listing |
     const [row] = await db
       .select()
       .from(listings)
-      .where(and(eq(listings.slug, trimmed), publicCatalogListingRow()))
+      .where(
+        and(
+          eq(listings.slug, trimmed),
+          publicCatalogListingRow(),
+          publicCatalogHasCoverArt(),
+        ),
+      )
       .limit(1);
     return row ?? null;
   });

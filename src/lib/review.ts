@@ -95,6 +95,7 @@ export async function approveCandidate(
   }
 
   const coverImageUrl = extractCoverImageUrl(c.source, c.rawPayload);
+  if (!coverImageUrl?.trim()) return null;
 
   const [listing] = await db
     .insert(listings)

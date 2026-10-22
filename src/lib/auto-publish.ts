@@ -5,6 +5,10 @@ import {
   isCatalogNsfwEnforcementEnabled,
   isMatureCatalogCandidate,
 } from "@/lib/catalog-maturity";
+import {
+  MISSING_STORE_COVER_REJECT_REASON,
+  candidateHasPublishableStoreCover,
+} from "@/lib/listing-publish-profile";
 import { approveCandidate, rejectCandidate } from "@/lib/review";
 import {
   screenCandidateFields,
@@ -18,6 +22,7 @@ export type CandidateIngestOutcome =
   | "pending"
   | "skipped"
   | "rejected_non_mature"
+  | "rejected_incomplete_profile"
   | "publish_failed";
 
 export type AutoPublishError = {
@@ -135,6 +140,15 @@ export async function processCandidateAfterIngest(
     }
   }
 
+  if (!candidateHasPublishableStoreCover(c)) {
+    await rejectCandidate(
+      candidateId,
+      "auto_publish",
+      MISSING_STORE_COVER_REJECT_REASON,
+    );
+    return "rejected_incomplete_profile";
+  }
+
   if (!isIngestAutoPublishEnabled()) return "pending";
 
   const raw = c.rawPayload as { platforms?: string[] } | null;
@@ -170,6 +184,7 @@ export async function autoPublishPendingCandidates(limit = 100): Promise<{
   pending: number;
   skipped: number;
   rejectedNonMature: number;
+  rejectedIncompleteProfile: number;
   publishFailed: number;
   publishErrors: AutoPublishError[];
 }> {
@@ -185,6 +200,7 @@ export async function autoPublishPendingCandidates(limit = 100): Promise<{
   let stillPending = 0;
   let skipped = 0;
   let rejectedNonMature = 0;
+  let rejectedIncompleteProfile = 0;
   let publishFailed = 0;
   const publishErrors: AutoPublishError[] = [];
 
@@ -194,6 +210,7 @@ export async function autoPublishPendingCandidates(limit = 100): Promise<{
     else if (outcome === "held") held += 1;
     else if (outcome === "pending") stillPending += 1;
     else if (outcome === "rejected_non_mature") rejectedNonMature += 1;
+    else if (outcome === "rejected_incomplete_profile") rejectedIncompleteProfile += 1;
     else if (outcome === "publish_failed") {
       publishFailed += 1;
       if (publishErrors.length < 8) {
@@ -218,6 +235,7 @@ export async function autoPublishPendingCandidates(limit = 100): Promise<{
     pending: stillPending,
     skipped,
     rejectedNonMature,
+    rejectedIncompleteProfile,
     publishFailed,
     publishErrors,
   };
