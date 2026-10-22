@@ -83,19 +83,39 @@ function openPopunderAdWindow(): Window | null {
 }
 
 /**
- * Open destination in a focused new tab with the ad behind (Play, videos, assets).
- * Same-tab `location.assign` after `window.open(ad)` often leaves the ad tab focused.
+ * @deprecated Use {@link firePopunderThenOpenNewTab}; never navigates the current tab.
  */
 export function firePlayPopunderThenNavigate(goHref: string): boolean {
   return firePopunderThenOpenNewTab(goHref);
 }
 
 /**
- * Open ad in background, destination in a focused new tab (videos, assets, etc.).
+ * Keep this tab on NSFW Droid: open store/content in a focused new tab, then popunder ad
+ * (best effort). Destination opens first so popup blockers prioritize the real link.
  */
 export function firePopunderThenOpenNewTab(destHref: string): boolean {
   if (!destHref) return false;
-  if (!openPopunderAdWindow()) return false;
+  const destWin = window.open(destHref, "_blank", "noopener,noreferrer");
+  if (!destWin) return false;
+
+  openPopunderAdWindow();
+
+  try {
+    destWin.focus();
+  } catch {
+    /* noop */
+  }
+  try {
+    window.focus();
+  } catch {
+    /* noop */
+  }
+  return true;
+}
+
+/** Open `/api/go/…` or external URL in a new tab without popunder (same-tab never). */
+export function openOutboundInNewTab(destHref: string): boolean {
+  if (!destHref) return false;
   const destWin = window.open(destHref, "_blank", "noopener,noreferrer");
   if (!destWin) return false;
   try {

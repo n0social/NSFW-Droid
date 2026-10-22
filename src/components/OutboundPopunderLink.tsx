@@ -3,8 +3,8 @@
 import type { ComponentPropsWithoutRef, MouseEvent } from "react";
 import { shouldShowPlayPopunder } from "@/lib/ads-config";
 import {
-  firePlayPopunderThenNavigate,
   firePopunderThenOpenNewTab,
+  openOutboundInNewTab,
 } from "@/lib/exoclick-play-popunder-client";
 import { urlEligibleForOutboundPopunder } from "@/lib/outbound-link";
 
@@ -36,14 +36,12 @@ export function OutboundPopunderLink({
     if (popunderEligible) {
       const href = e.currentTarget.href;
       if (urlEligibleForOutboundPopunder(href)) {
-        const fired = newTab
-          ? firePopunderThenOpenNewTab(href)
-          : firePlayPopunderThenNavigate(href);
-        if (fired) {
-          e.preventDefault();
-          onClick?.(e);
-          return;
+        e.preventDefault();
+        if (!firePopunderThenOpenNewTab(href)) {
+          openOutboundInNewTab(href);
         }
+        onClick?.(e);
+        return;
       }
     }
     onClick?.(e);

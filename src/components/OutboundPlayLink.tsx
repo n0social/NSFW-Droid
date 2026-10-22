@@ -3,7 +3,10 @@
 import type { ComponentPropsWithoutRef, MouseEvent } from "react";
 import type { Listing } from "@/db/schema";
 import { shouldShowPlayPopunder } from "@/lib/ads-config";
-import { firePlayPopunderThenNavigate } from "@/lib/exoclick-play-popunder-client";
+import {
+  firePopunderThenOpenNewTab,
+  openOutboundInNewTab,
+} from "@/lib/exoclick-play-popunder-client";
 import { listingEligibleForPlayPopunder } from "@/lib/outbound-link";
 
 type ListingPick = Pick<Listing, "source" | "officialUrl" | "affiliateUrl">;
@@ -16,8 +19,8 @@ type Props = ComponentPropsWithoutRef<"a"> & {
 };
 
 /**
- * Outbound store CTA. `/api/go/…` opens in a focused new tab when popunder runs (ad
- * behind); otherwise default same-tab navigation. Non-Steam listings only.
+ * Outbound store CTA. When popunder applies: stay on NSFW Droid, open store + ad in new
+ * tabs (store focused). Otherwise same-tab `/api/go/…`. Non-Steam listings only.
  */
 export function OutboundPlayLink({
   monetize = true,
@@ -35,12 +38,13 @@ export function OutboundPlayLink({
 
   function handleClick(e: MouseEvent<HTMLAnchorElement>) {
     if (popunderEligible) {
+      e.preventDefault();
       const href = e.currentTarget.href;
-      if (firePlayPopunderThenNavigate(href)) {
-        e.preventDefault();
-        onClick?.(e);
-        return;
+      if (!firePopunderThenOpenNewTab(href)) {
+        openOutboundInNewTab(href);
       }
+      onClick?.(e);
+      return;
     }
     onClick?.(e);
   }

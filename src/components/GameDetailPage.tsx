@@ -178,12 +178,14 @@ export function GameDetailPage({
                   >
                     Play on store (link check failed)
                   </button>
-                  <a
+                  <OutboundPlayLink
+                    listing={listing}
                     href={playHref}
+                    ageVerified={ageVerified}
                     className="inline-flex text-[11px] font-bold text-amber-200 underline hover:text-[#FF4D8D]"
                   >
                     Try store link anyway — may not work
-                  </a>
+                  </OutboundPlayLink>
                 </div>
               ) : (
                 <OutboundPlayLink
