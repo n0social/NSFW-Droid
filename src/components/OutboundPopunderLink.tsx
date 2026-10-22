@@ -22,6 +22,7 @@ type Props = ComponentPropsWithoutRef<"a"> & {
 export function OutboundPopunderLink({
   ageVerified,
   monetize = true,
+  openInNewTab: _openInNewTab,
   target,
   className,
   onClick,
