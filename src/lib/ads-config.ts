@@ -51,9 +51,15 @@ export function exoclickLiveReady(): boolean {
   return Boolean(script && banner);
 }
 
-/** Numeric popunder zone id (`idzone` in ExoClick popunder adConfig). */
+/** Desktop / web popunder zone (`idzone` in ExoClick popunder adConfig). */
 export function exoclickPopunderZoneId(): string | undefined {
   const id = process.env.NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER?.trim();
+  return id || undefined;
+}
+
+/** Mobile popunder zone (separate ExoClick zone for phone traffic). */
+export function exoclickPopunderZoneIdMobile(): string | undefined {
+  const id = process.env.NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER_MOBILE?.trim();
   return id || undefined;
 }
 
@@ -64,13 +70,14 @@ export function exoclickPopunderZoneId(): string | undefined {
 export function exoclickPopunderScriptSrc(): string | undefined {
   const raw = process.env.NEXT_PUBLIC_EXOCLICK_POPUNDER_SCRIPT_SRC?.trim();
   if (raw) return raw;
-  if (exoclickPopunderZoneId()) return "/exoclick-popunder.js";
+  if (exoclickPopunderZoneId() || exoclickPopunderZoneIdMobile()) return "/exoclick-popunder.js";
   return undefined;
 }
 
 export function exoclickPopunderLiveReady(): boolean {
   if (!isAdsEnabled()) return false;
-  return Boolean(exoclickPopunderZoneId() && exoclickPopunderScriptSrc());
+  const hasZone = exoclickPopunderZoneId() || exoclickPopunderZoneIdMobile();
+  return Boolean(hasZone && exoclickPopunderScriptSrc());
 }
 
 /** Play-click popunder: same gates as footer ads (age + no ad-free tier). */

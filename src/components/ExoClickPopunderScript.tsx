@@ -1,7 +1,12 @@
 "use client";
 
 import Script from "next/script";
-import { exoclickPopunderScriptSrc, shouldShowPlayPopunder } from "@/lib/ads-config";
+import {
+  exoclickPopunderScriptSrc,
+  exoclickPopunderZoneId,
+  exoclickPopunderZoneIdMobile,
+  shouldShowPlayPopunder,
+} from "@/lib/ads-config";
 
 type Props = {
   ageVerified: boolean;
@@ -16,11 +21,16 @@ export function ExoClickPopunderScript({ ageVerified }: Props) {
   const src = live ? exoclickPopunderScriptSrc() : undefined;
   if (!live || !src) return null;
 
+  const zoneDesktop = exoclickPopunderZoneId() ?? "6062592";
+  const zoneMobile = exoclickPopunderZoneIdMobile() ?? "6062594";
+
   return (
     <Script
       id="exoclick-popunder-loader"
       src={src}
       strategy="afterInteractive"
+      data-zone-desktop={zoneDesktop}
+      data-zone-mobile={zoneMobile}
     />
   );
 }

@@ -42,10 +42,20 @@ const on = runCase(
   {
     NEXT_PUBLIC_ADS_ENABLED: "1",
     NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER: "999888",
+    NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER_MOBILE: "999889",
   },
   true,
 );
 assert.equal(on.src, "/exoclick-popunder.js");
+
+runCase(
+  {
+    NEXT_PUBLIC_ADS_ENABLED: "1",
+    NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER: undefined,
+    NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER_MOBILE: "6062594",
+  },
+  true,
+);
 
 import {
   EXOCLICK_PLAY_OUTBOUND_TRIGGER_CLASS,
