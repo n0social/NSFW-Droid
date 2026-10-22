@@ -115,13 +115,15 @@ Opens an ExoClick ad in a **background tab** when a visitor clicks **Play** / **
 8. **Capping / frequency:** start conservative (e.g. **1** popunder per **24 hours** per user) so repeat Play clicks are not spammy.
 9. **Fallback to popup:** optional; OFF keeps the experience closer to “extra tab you close.”
 10. Code format: **Inline + Remote Script (Recommended)**.
-11. After create, copy the **entire** JavaScript snippet into `public/exoclick-popunder.js` on the server (replace the placeholder). Confirm `idzone` in `adConfig` matches your new zone ID and `trigger_class` is `nsfwdroid-play-outbound`.
+11. **Repo default:** `public/exoclick-popunder.js` loads ExoClick `popunder1000.js` with zone **6062592** and trigger class `nsfwdroid-play-outbound`. If you create a new zone or change capping/frequency in the dashboard, update that file (or paste a fresh dashboard snippet and set `trigger_method` / `trigger_class` as below).
+
+**Important:** ExoClick’s default snippet often uses `trigger_method: 3` (every `<a>` on the page). That would pop on nav, tags, and legal links. This project uses **`trigger_method: 2`** and **`nsfwdroid-play-outbound`** so only **Play** CTAs fire the zone. Set the same trigger class in the ExoClick zone settings.
 
 ### Droplet env
 
 | Copy this | Into env |
 | --- | --- |
-| Popunder **Zone ID** (`idzone` in the snippet) | `NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER` |
+| Popunder **Zone ID** (`idzone` in the snippet) | `NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER` (production: **6062592**) |
 | (Optional) custom script URL | `NEXT_PUBLIC_EXOCLICK_POPUNDER_SCRIPT_SRC` — default `/exoclick-popunder.js` |
 
 Rebuild after setting `NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER` (same as other `NEXT_PUBLIC_*` vars).
