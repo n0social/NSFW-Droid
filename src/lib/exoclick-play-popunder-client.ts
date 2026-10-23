@@ -3,20 +3,21 @@
  * does not rely on ExoClick binding all `<a>` tags at window.load.
  */
 
-const SYNDICATION_HOST = "s.pemsrv.com";
-/** Avoid passing game/listing URLs as `p=` — ExoClick can open a second store tab. */
-export const EXOCLICK_POPUNDER_REFERRER_HOME = "https://www.nsfwdroid.com/";
+import {
+  buildExoclickPopunderClickUrl,
+  EXOCLICK_POPUNDER_LAUNCH_PATH,
+  EXOCLICK_POPUNDER_REFERRER_HOME,
+  popunderZoneIdForUserAgent,
+} from "@/lib/exoclick-popunder-syndication";
+
+export { EXOCLICK_POPUNDER_REFERRER_HOME } from "@/lib/exoclick-popunder-syndication";
+
 /** Matches ExoClick zone frequency_period (minutes) in public/exoclick-popunder.js */
 const FREQUENCY_PERIOD_MINUTES = 60;
 
 function popunderZoneIdForDevice(): string | undefined {
   if (typeof navigator === "undefined") return undefined;
-  const mobile = /Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|WebOS|Windows Phone/i.test(
-    navigator.userAgent,
-  );
-  const desktop = process.env.NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER?.trim();
-  const mobileZone = process.env.NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER_MOBILE?.trim();
-  return mobile ? mobileZone || desktop : desktop;
+  return popunderZoneIdForUserAgent(navigator.userAgent);
 }
 
 function capStorageKey(zoneId: string): string {
@@ -43,26 +44,14 @@ function markOpened(zoneId: string): void {
   }
 }
 
-export function buildExoclickPopunderClickUrl(zoneId: string, pageUrl: string): string {
-  const params = new URLSearchParams({
-    idzone: zoneId,
-    type: "8",
-    p: pageUrl,
-    sub: "",
-    block: "1",
-    gdpr: "0",
-    cookieconsent: "true",
-    cb: String(Math.floor(Math.random() * 1e9)),
-  });
-  return `https://${SYNDICATION_HOST}/v1/link.php?${params.toString()}`;
-}
+export { buildExoclickPopunderClickUrl };
 
 type PopunderOpenOptions = {
   /** Page URL sent to ExoClick as `p` (tracking). Defaults to current page. */
   adReferrerPage?: string;
 };
 
-/** Open syndication popunder in a background tab; returns null when blocked or capped. */
+/** Open ad tab via same-origin launcher → ExoClick syndication (real ad, not store duplicate). */
 function openPopunderAdWindow(options?: PopunderOpenOptions): Window | null {
   const zoneId = popunderZoneIdForDevice();
   if (!zoneId) return null;
@@ -70,9 +59,13 @@ function openPopunderAdWindow(options?: PopunderOpenOptions): Window | null {
 
   const pageUrl =
     options?.adReferrerPage?.trim() ||
-    (typeof window !== "undefined" ? window.location.href : "");
-  const adUrl = buildExoclickPopunderClickUrl(zoneId, pageUrl);
-  const adWin = window.open(adUrl, "_blank", "noopener,noreferrer");
+    (typeof window !== "undefined" ? window.location.href : EXOCLICK_POPUNDER_REFERRER_HOME);
+
+  const launchUrl = new URL(EXOCLICK_POPUNDER_LAUNCH_PATH, window.location.origin);
+  launchUrl.searchParams.set("p", pageUrl);
+  launchUrl.searchParams.set("cb", String(Math.floor(Math.random() * 1e9)));
+
+  const adWin = window.open(launchUrl.toString(), "_blank", "noopener,noreferrer");
   if (!adWin) return null;
 
   markOpened(zoneId);
