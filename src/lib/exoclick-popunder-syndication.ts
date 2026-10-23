@@ -6,6 +6,8 @@ export const EXOCLICK_POPUNDER_REFERRER_HOME = "https://www.nsfwdroid.com/";
 
 export const EXOCLICK_POPUNDER_LAUNCH_PATH = "/api/ads/popunder-launch";
 
+export const EXOCLICK_POPUNDER_DESTINATION_PATH = "/api/ads/popunder-destination";
+
 const MOBILE_UA_RE =
   /Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|WebOS|Windows Phone/i;
 
@@ -50,10 +52,14 @@ const POPUNDER_RESOLVE_TIMEOUT_MS = 8_000;
  * Follow ExoClick syndication redirects server-side so the browser tab opens the
  * advertiser directly (avoids popunder JS opening a second store tab).
  */
+/**
+ * Resolved advertiser URL, or `null` when syndication must not be opened in a browser tab
+ * (opening the raw syndication link often redirects to the game store again).
+ */
 export async function resolveExoclickPopunderDestination(
   syndicationUrl: string,
   userAgent: string | null | undefined,
-): Promise<string> {
+): Promise<string | null> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), POPUNDER_RESOLVE_TIMEOUT_MS);
   try {
@@ -74,5 +80,5 @@ export async function resolveExoclickPopunderDestination(
   } finally {
     clearTimeout(timer);
   }
-  return syndicationUrl;
+  return null;
 }

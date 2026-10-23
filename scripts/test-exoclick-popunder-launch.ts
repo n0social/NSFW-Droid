@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
 import {
   buildExoclickPopunderClickUrl,
+  EXOCLICK_POPUNDER_DESTINATION_PATH,
   EXOCLICK_POPUNDER_LAUNCH_PATH,
   EXOCLICK_POPUNDER_REFERRER_HOME,
   isGameStorePopunderDestination,
 } from "../src/lib/exoclick-popunder-syndication";
 
 assert.equal(EXOCLICK_POPUNDER_LAUNCH_PATH, "/api/ads/popunder-launch");
+assert.equal(EXOCLICK_POPUNDER_DESTINATION_PATH, "/api/ads/popunder-destination");
 
 const url = buildExoclickPopunderClickUrl("6062592", EXOCLICK_POPUNDER_REFERRER_HOME);
 assert.ok(url.includes("s.pemsrv.com/v1/link.php"));

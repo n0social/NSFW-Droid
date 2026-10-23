@@ -4,9 +4,9 @@
  */
 
 import {
-  buildExoclickPopunderClickUrl,
-  EXOCLICK_POPUNDER_LAUNCH_PATH,
+  EXOCLICK_POPUNDER_DESTINATION_PATH,
   EXOCLICK_POPUNDER_REFERRER_HOME,
+  isGameStorePopunderDestination,
   popunderZoneIdForUserAgent,
 } from "@/lib/exoclick-popunder-syndication";
 
@@ -44,27 +44,54 @@ function markOpened(zoneId: string): void {
   }
 }
 
-export { buildExoclickPopunderClickUrl };
-
 type PopunderOpenOptions = {
-  /** Page URL sent to ExoClick as `p` (tracking). Defaults to current page. */
+  /** Page URL sent to ExoClick as `p` (tracking). Defaults to site home for play clicks. */
   adReferrerPage?: string;
+  /** Prefetched advertiser URL from {@link prefetchPopunderAdUrl}. */
+  prefetchedAdUrl?: string | null;
 };
 
-/** Open ad tab via same-origin launcher → ExoClick syndication (real ad, not store duplicate). */
-function openPopunderAdWindow(options?: PopunderOpenOptions): Window | null {
-  const zoneId = popunderZoneIdForDevice();
-  if (!zoneId) return null;
-  if (withinCapping(zoneId)) return null;
-
-  const launchUrl = new URL(EXOCLICK_POPUNDER_LAUNCH_PATH, window.location.origin);
+function buildPopunderDestinationRequestUrl(adReferrerPage?: string): string {
+  const launchUrl = new URL(EXOCLICK_POPUNDER_DESTINATION_PATH, window.location.origin);
   launchUrl.searchParams.set(
     "p",
-    options?.adReferrerPage?.trim() || EXOCLICK_POPUNDER_REFERRER_HOME,
+    adReferrerPage?.trim() || EXOCLICK_POPUNDER_REFERRER_HOME,
   );
   launchUrl.searchParams.set("cb", String(Math.floor(Math.random() * 1e9)));
+  return launchUrl.toString();
+}
 
-  const adWin = window.open(launchUrl.toString(), "_blank", "noopener,noreferrer");
+/** Resolve advertiser URL server-side (credentials send age cookie). */
+export async function prefetchPopunderAdUrl(
+  adReferrerPage?: string,
+): Promise<string | null> {
+  const zoneId = popunderZoneIdForDevice();
+  if (!zoneId || withinCapping(zoneId)) return null;
+
+  try {
+    const res = await fetch(buildPopunderDestinationRequestUrl(adReferrerPage), {
+      credentials: "same-origin",
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { ok?: boolean; url?: string };
+    const url = data.url?.trim() ?? "";
+    if (!data.ok || !url.startsWith("http") || isGameStorePopunderDestination(url)) {
+      return null;
+    }
+    return url;
+  } catch {
+    return null;
+  }
+}
+
+/** Open a resolved advertiser URL in a background tab (never syndication or `/api/go`). */
+function openResolvedAdTab(adUrl: string): Window | null {
+  const zoneId = popunderZoneIdForDevice();
+  if (!zoneId || withinCapping(zoneId)) return null;
+  if (!adUrl.startsWith("http") || isGameStorePopunderDestination(adUrl)) return null;
+
+  const adWin = window.open(adUrl, "_blank", "noopener,noreferrer");
   if (!adWin) return null;
 
   markOpened(zoneId);
@@ -91,15 +118,20 @@ export function firePlayPopunderThenNavigate(goHref: string): boolean {
 }
 
 /** Play on store: one `/api/go/` tab + ad tab; ad `p=` is site home (not the listing page). */
-export function firePlayStorePopunder(goHref: string): boolean {
+export function firePlayStorePopunder(
+  goHref: string,
+  options?: Pick<PopunderOpenOptions, "prefetchedAdUrl">,
+): boolean {
   return firePopunderThenOpenNewTab(goHref, {
     adReferrerPage: EXOCLICK_POPUNDER_REFERRER_HOME,
+    prefetchedAdUrl: options?.prefetchedAdUrl,
   });
 }
 
 /**
  * Keep this tab on NSFW Droid: open store/content in a focused new tab, then popunder ad
- * (best effort). Destination opens first so popup blockers prioritize the real link.
+ * (best effort). Uses a prefetched advertiser URL so we never open ExoClick syndication in
+ * a popup (that path was opening a second store tab).
  */
 export function firePopunderThenOpenNewTab(
   destHref: string,
@@ -109,7 +141,10 @@ export function firePopunderThenOpenNewTab(
   const destWin = window.open(destHref, "_blank", "noopener,noreferrer");
   if (!destWin) return false;
 
-  openPopunderAdWindow(options);
+  const adUrl = options?.prefetchedAdUrl;
+  if (adUrl) {
+    openResolvedAdTab(adUrl);
+  }
 
   try {
     destWin.focus();
