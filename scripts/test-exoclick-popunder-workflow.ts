@@ -1,7 +1,7 @@
 /**
  * Documents and asserts the 2-tab Play monetization chain:
  * 1) window.open → /api/go (visible store tab)
- * 2) hidden iframe → /api/ads/popunder-launch?hop=syndication → 302 → s.pemsrv.com link.php (browser)
+ * 2) fetch (no iframe) → /api/ads/popunder-launch?hop=syndication → 302 → s.pemsrv.com link.php
  */
 import assert from "node:assert/strict";
 import {
@@ -23,5 +23,5 @@ assert.equal(launch.searchParams.get("hop"), "syndication");
 
 console.log("test-exoclick-popunder-workflow: ok");
 console.log("  visible tab: /api/go/{listingId}");
-console.log("  iframe src:", launch.pathname + "?" + launch.searchParams.toString());
+console.log("  fetch url:", launch.pathname + "?" + launch.searchParams.toString());
 console.log("  launch 302 →", syndicationUrl.slice(0, 72) + "...");

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ComponentPropsWithoutRef, MouseEvent } from "react";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { shouldShowPlayPopunder } from "@/lib/ads-config";
 import {
   firePopunderThenOpenNewTab,
@@ -20,8 +20,16 @@ type Props = Omit<AnchorProps, "href"> & {
   openInNewTab?: boolean;
 };
 
+function absoluteOutboundHref(href: string): string {
+  if (href.startsWith("http://") || href.startsWith("https://")) return href;
+  if (typeof window !== "undefined") {
+    return new URL(href, window.location.origin).href;
+  }
+  return href;
+}
+
 /**
- * External outbound anchor. Popunder: one visible new tab + ad in hidden iframe (keeps card layout).
+ * External outbound anchor. Popunder: one visible new tab + ExoClick fetch (no iframe).
  */
 export function OutboundPopunderLink({
   ageVerified,
@@ -35,18 +43,13 @@ export function OutboundPopunderLink({
   ...rest
 }: Props) {
   const popunderEligible = monetize && shouldShowPlayPopunder(ageVerified);
-  const [monetizedOutbound, setMonetizedOutbound] = useState(false);
 
-  useEffect(() => {
-    if (!popunderEligible) {
-      setMonetizedOutbound(false);
-      return;
-    }
+  const monetizedOutbound = useMemo(() => {
+    if (!popunderEligible) return false;
     try {
-      const full = new URL(href, window.location.origin).href;
-      setMonetizedOutbound(urlEligibleForOutboundPopunder(full));
+      return urlEligibleForOutboundPopunder(absoluteOutboundHref(href));
     } catch {
-      setMonetizedOutbound(false);
+      return false;
     }
   }, [popunderEligible, href]);
 
