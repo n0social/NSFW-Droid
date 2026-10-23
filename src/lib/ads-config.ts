@@ -80,11 +80,16 @@ export function exoclickPopunderLiveReady(): boolean {
   return Boolean(hasZone && exoclickPopunderScriptSrc());
 }
 
-/** Client localStorage cap between popunder iframe fires (align with ExoClick zone capping). */
+/**
+ * Optional client localStorage cap between popunder iframe fires.
+ * **0** (default) = attempt monetization on every eligible outbound click.
+ * Set e.g. `30` to throttle iframe hops (visible UX is still one store tab per click).
+ */
 export function exoclickPopunderFrequencyMinutes(): number {
   const raw = process.env.NEXT_PUBLIC_EXOCLICK_POPUNDER_FREQUENCY_MINUTES?.trim();
-  const n = raw ? Number.parseInt(raw, 10) : 30;
-  if (!Number.isFinite(n) || n < 1) return 30;
+  if (!raw) return 0;
+  const n = Number.parseInt(raw, 10);
+  if (!Number.isFinite(n) || n < 1) return 0;
   return Math.min(n, 24 * 60);
 }
 

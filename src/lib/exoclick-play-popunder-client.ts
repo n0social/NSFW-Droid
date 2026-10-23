@@ -24,12 +24,14 @@ function capStorageKey(zoneId: string): string {
 }
 
 function withinCapping(zoneId: string): boolean {
+  const periodMin = exoclickPopunderFrequencyMinutes();
+  if (periodMin < 1) return false;
   try {
     const raw = localStorage.getItem(capStorageKey(zoneId));
     if (!raw) return false;
     const last = Number(raw);
     if (!Number.isFinite(last)) return false;
-    return Date.now() - last < exoclickPopunderFrequencyMinutes() * 60 * 1000;
+    return Date.now() - last < periodMin * 60 * 1000;
   } catch {
     return false;
   }
@@ -78,7 +80,9 @@ function openPopunderAdInHiddenFrame(options?: PopunderOpenOptions): void {
     "position:absolute;width:0;height:0;border:0;clip:rect(0,0,0,0);overflow:hidden";
 
   document.body.appendChild(iframe);
-  markOpened(zoneId);
+  if (exoclickPopunderFrequencyMinutes() >= 1) {
+    markOpened(zoneId);
+  }
 
   window.setTimeout(() => {
     iframe.remove();

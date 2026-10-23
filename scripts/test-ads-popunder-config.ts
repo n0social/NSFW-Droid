@@ -63,7 +63,7 @@ import {
   outboundPlayLinkClassName,
 } from "../src/lib/outbound-play-link";
 
-assert.equal(exoclickPopunderFrequencyMinutes(), 30);
+assert.equal(exoclickPopunderFrequencyMinutes(), 0);
 const cap15 = spawnSync(
   "npx",
   [
