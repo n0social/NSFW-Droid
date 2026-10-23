@@ -3,6 +3,7 @@
  * does not rely on ExoClick binding all `<a>` tags at window.load.
  */
 
+import { exoclickPopunderFrequencyMinutes } from "@/lib/ads-config";
 import {
   EXOCLICK_POPUNDER_LAUNCH_PATH,
   EXOCLICK_POPUNDER_REFERRER_HOME,
@@ -10,9 +11,6 @@ import {
 } from "@/lib/exoclick-popunder-syndication";
 
 export { EXOCLICK_POPUNDER_REFERRER_HOME } from "@/lib/exoclick-popunder-syndication";
-
-/** Matches ExoClick zone frequency_period (minutes) in public/exoclick-popunder.js */
-const FREQUENCY_PERIOD_MINUTES = 60;
 
 const HIDDEN_FRAME_CLEANUP_MS = 120_000;
 
@@ -31,7 +29,7 @@ function withinCapping(zoneId: string): boolean {
     if (!raw) return false;
     const last = Number(raw);
     if (!Number.isFinite(last)) return false;
-    return Date.now() - last < FREQUENCY_PERIOD_MINUTES * 60 * 1000;
+    return Date.now() - last < exoclickPopunderFrequencyMinutes() * 60 * 1000;
   } catch {
     return false;
   }

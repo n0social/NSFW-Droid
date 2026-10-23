@@ -57,10 +57,29 @@ runCase(
   true,
 );
 
+import { exoclickPopunderFrequencyMinutes } from "../src/lib/ads-config";
 import {
   EXOCLICK_PLAY_OUTBOUND_TRIGGER_CLASS,
   outboundPlayLinkClassName,
 } from "../src/lib/outbound-play-link";
+
+assert.equal(exoclickPopunderFrequencyMinutes(), 30);
+const cap15 = spawnSync(
+  "npx",
+  [
+    "tsx",
+    "-e",
+    `import { exoclickPopunderFrequencyMinutes } from './src/lib/ads-config.ts';
+console.log(exoclickPopunderFrequencyMinutes());`,
+  ],
+  {
+    cwd: process.cwd(),
+    env: { ...process.env, NEXT_PUBLIC_EXOCLICK_POPUNDER_FREQUENCY_MINUTES: "15" },
+    encoding: "utf8",
+  },
+);
+assert.equal(cap15.status, 0);
+assert.equal(cap15.stdout.trim(), "15");
 assert.equal(EXOCLICK_PLAY_OUTBOUND_TRIGGER_CLASS, "nsfwdroid-play-outbound");
 assert.equal(outboundPlayLinkClassName("btn"), "nsfwdroid-play-outbound btn");
 

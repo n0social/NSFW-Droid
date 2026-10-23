@@ -117,7 +117,7 @@ Implementation: client click handler (`exoclick-play-popunder-client.ts`) opens 
 8. **Capping / frequency:** start conservative (e.g. **1** popunder per **24 hours** per user) so repeat Play clicks are not spammy.
 9. **Fallback to popup:** optional; OFF keeps the experience closer to “extra tab you close.”
 10. Code format: **Inline + Remote Script (Recommended)**.
-11. Create **two** popunder zones in ExoClick (web **6062592** + mobile **6062594**). Dashboard trigger class is optional; the site opens the syndication URL only from **Play** on non-Steam listings. Align capping with `FREQUENCY_PERIOD_MINUTES` in `exoclick-play-popunder-client.ts` (default 60).
+11. Create **two** popunder zones in ExoClick (web **6062592** + mobile **6062594**). Dashboard trigger class is optional; the site fires popunder from monetized outbound clicks (Play, videos, creators, etc.). Align zone capping with `NEXT_PUBLIC_EXOCLICK_POPUNDER_FREQUENCY_MINUTES` (default **30** minutes).
 
 **Important:** ExoClick’s default snippet often uses `trigger_method: 3` (every `<a>` on the page). That would pop on nav, tags, and legal links. This project uses **`trigger_method: 2`** and **`nsfwdroid-play-outbound`** so only **Play** CTAs fire the zone. Set the same trigger class in the ExoClick zone settings.
 
@@ -128,6 +128,7 @@ Implementation: client click handler (`exoclick-play-popunder-client.ts`) opens 
 | Desktop popunder **Zone ID** | `NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER` (production: **6062592**) |
 | Mobile popunder **Zone ID** | `NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER_MOBILE` (production: **6062594**) |
 | (Optional) custom script URL | `NEXT_PUBLIC_EXOCLICK_POPUNDER_SCRIPT_SRC` — default `/exoclick-popunder.js` |
+| Popunder cap (minutes, per browser) | `NEXT_PUBLIC_EXOCLICK_POPUNDER_FREQUENCY_MINUTES` — default **30** |
 
 Rebuild after setting `NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER` (same as other `NEXT_PUBLIC_*` vars).
 
