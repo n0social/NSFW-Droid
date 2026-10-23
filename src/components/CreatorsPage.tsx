@@ -10,6 +10,7 @@ import {
   type CuratedGame,
   type CuratedStudio,
 } from "@/lib/creators-curated";
+import { OutboundPopunderLink } from "@/components/OutboundPopunderLink";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
@@ -47,7 +48,15 @@ function studioOutboundLabel(href: string): string {
   return "Official site →";
 }
 
-function StudioCard({ studio, index }: { studio: CuratedStudio; index: number }) {
+function StudioCard({
+  studio,
+  index,
+  ageVerified,
+}: {
+  studio: CuratedStudio;
+  index: number;
+  ageVerified: boolean;
+}) {
   const initial = studio.name.trim().charAt(0).toUpperCase();
   const gradient = CARD_GRADIENTS[index % CARD_GRADIENTS.length];
 
@@ -55,8 +64,9 @@ function StudioCard({ studio, index }: { studio: CuratedStudio; index: number })
     <article
       className="flex h-full flex-col rounded-2xl border border-[var(--theme-primary)]/25 bg-[var(--theme-surface)]/70 shadow-[0_8px_24px_rgba(0,0,0,0.35)]"
     >
-      <a
+      <OutboundPopunderLink
         href={studio.href}
+        ageVerified={ageVerified}
         target="_blank"
         rel="noopener noreferrer"
         className="group flex flex-1 flex-col p-4 sm:p-5"
@@ -80,12 +90,20 @@ function StudioCard({ studio, index }: { studio: CuratedStudio; index: number })
         <p className="mt-4 text-[10px] font-bold uppercase tracking-wide text-[#FF4D8D]">
           {studioOutboundLabel(studio.href)}
         </p>
-      </a>
+      </OutboundPopunderLink>
     </article>
   );
 }
 
-function GameCard({ game, index }: { game: CuratedGame; index: number }) {
+function GameCard({
+  game,
+  index,
+  ageVerified,
+}: {
+  game: CuratedGame;
+  index: number;
+  ageVerified: boolean;
+}) {
   const initial = game.title.trim().charAt(0).toUpperCase();
   const gradient = CARD_GRADIENTS[(index + 1) % CARD_GRADIENTS.length];
 
@@ -93,8 +111,9 @@ function GameCard({ game, index }: { game: CuratedGame; index: number }) {
     <article
       className="flex h-full flex-col rounded-2xl border border-[var(--theme-primary)]/25 bg-[#241033]/90 shadow-[0_8px_24px_rgba(0,0,0,0.35)]"
     >
-      <a
+      <OutboundPopunderLink
         href={game.href}
+        ageVerified={ageVerified}
         target="_blank"
         rel="noopener noreferrer"
         className="group flex flex-1 flex-col p-4 sm:p-5"
@@ -123,7 +142,7 @@ function GameCard({ game, index }: { game: CuratedGame; index: number }) {
         <p className="mt-4 text-[10px] font-bold uppercase tracking-wide text-[#FF4D8D]">
           {storeLabel(game.store)} →
         </p>
-      </a>
+      </OutboundPopunderLink>
     </article>
   );
 }
@@ -193,7 +212,7 @@ export function CreatorsPage({
                   <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {items.map((studio, i) => (
                       <li key={studio.id}>
-                        <StudioCard studio={studio} index={i} />
+                        <StudioCard studio={studio} index={i} ageVerified={ageVerified} />
                       </li>
                     ))}
                   </ul>
@@ -224,7 +243,7 @@ export function CreatorsPage({
                   <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {items.map((game, i) => (
                       <li key={game.id}>
-                        <GameCard game={game} index={i} />
+                        <GameCard game={game} index={i} ageVerified={ageVerified} />
                       </li>
                     ))}
                   </ul>

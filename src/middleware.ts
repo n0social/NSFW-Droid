@@ -17,7 +17,8 @@ export function middleware(request: NextRequest) {
   const needsNoIndex =
     pathname.startsWith("/admin") ||
     pathname === "/api/go" ||
-    pathname.startsWith("/api/go/");
+    pathname.startsWith("/api/go/") ||
+    pathname.startsWith("/api/ads/");
 
   if (!needsNoIndex) {
     return NextResponse.next();

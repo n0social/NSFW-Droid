@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { OutboundPopunderLink } from "@/components/OutboundPopunderLink";
 import type { CuratedSfmModel } from "@/lib/sfm-models-curated";
 import { smutbaseHref } from "@/lib/sfm-models-curated";
 
 type Props = {
   model: CuratedSfmModel;
   blur: boolean;
+  ageVerified: boolean;
 };
 
-export function SfmModelCard({ model, blur }: Props) {
+export function SfmModelCard({ model, blur, ageVerified }: Props) {
   const [imageFailed, setImageFailed] = useState(false);
   const href = smutbaseHref(model);
   const src = model.previewImageSrc?.trim();
@@ -17,8 +19,9 @@ export function SfmModelCard({ model, blur }: Props) {
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--theme-primary)]/30 bg-[var(--theme-surface)]/80 shadow-[0_10px_28px_rgba(0,0,0,0.4)]">
-      <a
+      <OutboundPopunderLink
         href={href}
+        ageVerified={ageVerified}
         target="_blank"
         rel="noopener noreferrer"
         className="relative flex aspect-[3/4] w-full flex-col justify-end overflow-hidden"
@@ -49,7 +52,7 @@ export function SfmModelCard({ model, blur }: Props) {
             {model.characterName}
           </h3>
         </div>
-      </a>
+      </OutboundPopunderLink>
       <p className="px-3 py-2 text-[10px] leading-snug text-[#E9D5FF]/65">{model.pickNote}</p>
       <p className="px-3 pb-3 text-[10px] font-bold uppercase tracking-wide text-[#FF4D8D]">
         SmutBase →

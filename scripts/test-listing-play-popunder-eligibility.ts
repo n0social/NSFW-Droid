@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
-import { listingEligibleForPlayPopunder } from "../src/lib/outbound-link";
+import {
+  isSteamOutboundUrl,
+  listingEligibleForPlayPopunder,
+  urlEligibleForOutboundPopunder,
+} from "../src/lib/outbound-link";
 
 assert.equal(
   listingEligibleForPlayPopunder({
@@ -36,5 +40,10 @@ assert.equal(
   }),
   false,
 );
+
+assert.equal(isSteamOutboundUrl("https://store.steampowered.com/app/1/"), true);
+assert.equal(isSteamOutboundUrl("https://steamcommunity.com/groups/foo"), true);
+assert.equal(urlEligibleForOutboundPopunder("https://creator.itch.io/game"), true);
+assert.equal(urlEligibleForOutboundPopunder("https://store.steampowered.com/app/1/"), false);
 
 console.log("test-listing-play-popunder-eligibility: ok");
