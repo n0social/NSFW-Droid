@@ -31,6 +31,19 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const pageUrl = url.searchParams.get("p")?.trim() || EXOCLICK_POPUNDER_REFERRER_HOME;
   const syndicationUrl = buildExoclickPopunderClickUrl(zoneId, pageUrl);
+  const hop = url.searchParams.get("hop")?.trim().toLowerCase();
+
+  /**
+   * `hop=syndication` (default for Play iframe): browser must request ExoClick link.php
+   * so the zone records the impression. Server-only resolve does not monetize.
+   */
+  if (hop === "syndication" || hop === "exo") {
+    const response = NextResponse.redirect(syndicationUrl, 302);
+    response.headers.set("Referrer-Policy", "no-referrer");
+    response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+    return response;
+  }
+
   const destination = await resolveExoclickPopunderDestination(
     syndicationUrl,
     request.headers.get("user-agent"),
