@@ -29,3 +29,50 @@ export function buildExoclickPopunderClickUrl(zoneId: string, pageUrl: string): 
   });
   return `https://${EXOCLICK_SYNDICATION_HOST}/v1/link.php?${params.toString()}`;
 }
+
+/** True when a resolved popunder URL is a game store, not an ad network landing page. */
+export function isGameStorePopunderDestination(url: string): boolean {
+  try {
+    const u = new URL(url.trim());
+    const host = u.hostname.toLowerCase();
+    if (host === "itch.io" || host.endsWith(".itch.io")) return true;
+    if (host === "store.steampowered.com" || host.endsWith(".steampowered.com")) return true;
+    if (host.includes("nsfwdroid.com") && u.pathname.startsWith("/api/go")) return true;
+  } catch {
+    return true;
+  }
+  return false;
+}
+
+const POPUNDER_RESOLVE_TIMEOUT_MS = 8_000;
+
+/**
+ * Follow ExoClick syndication redirects server-side so the browser tab opens the
+ * advertiser directly (avoids popunder JS opening a second store tab).
+ */
+export async function resolveExoclickPopunderDestination(
+  syndicationUrl: string,
+  userAgent: string | null | undefined,
+): Promise<string> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), POPUNDER_RESOLVE_TIMEOUT_MS);
+  try {
+    const res = await fetch(syndicationUrl, {
+      redirect: "follow",
+      signal: controller.signal,
+      headers: {
+        "User-Agent": userAgent?.trim() || "Mozilla/5.0 (compatible; NSFW-Droid/1.0)",
+        Accept: "text/html,application/xhtml+xml,*/*;q=0.8",
+      },
+    });
+    const final = res.url?.trim() ?? "";
+    if (final.startsWith("http") && !isGameStorePopunderDestination(final)) {
+      return final;
+    }
+  } catch {
+    /* fall through */
+  } finally {
+    clearTimeout(timer);
+  }
+  return syndicationUrl;
+}

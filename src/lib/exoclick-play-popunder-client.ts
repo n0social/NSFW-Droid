@@ -57,12 +57,11 @@ function openPopunderAdWindow(options?: PopunderOpenOptions): Window | null {
   if (!zoneId) return null;
   if (withinCapping(zoneId)) return null;
 
-  const pageUrl =
-    options?.adReferrerPage?.trim() ||
-    (typeof window !== "undefined" ? window.location.href : EXOCLICK_POPUNDER_REFERRER_HOME);
-
   const launchUrl = new URL(EXOCLICK_POPUNDER_LAUNCH_PATH, window.location.origin);
-  launchUrl.searchParams.set("p", pageUrl);
+  launchUrl.searchParams.set(
+    "p",
+    options?.adReferrerPage?.trim() || EXOCLICK_POPUNDER_REFERRER_HOME,
+  );
   launchUrl.searchParams.set("cb", String(Math.floor(Math.random() * 1e9)));
 
   const adWin = window.open(launchUrl.toString(), "_blank", "noopener,noreferrer");
