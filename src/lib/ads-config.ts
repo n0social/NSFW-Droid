@@ -80,6 +80,14 @@ export function exoclickPopunderLiveReady(): boolean {
   return Boolean(hasZone && exoclickPopunderScriptSrc());
 }
 
+/** Client localStorage cap between popunder iframe fires (align with ExoClick zone capping). */
+export function exoclickPopunderFrequencyMinutes(): number {
+  const raw = process.env.NEXT_PUBLIC_EXOCLICK_POPUNDER_FREQUENCY_MINUTES?.trim();
+  const n = raw ? Number.parseInt(raw, 10) : 30;
+  if (!Number.isFinite(n) || n < 1) return 30;
+  return Math.min(n, 24 * 60);
+}
+
 /** Play-click popunder: same gates as footer ads (age + no ad-free tier). */
 export function shouldShowPlayPopunder(ageVerified: boolean): boolean {
   if (!exoclickPopunderLiveReady()) return false;
