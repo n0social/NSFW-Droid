@@ -1,14 +1,11 @@
 "use client";
 
 import type { ComponentPropsWithoutRef, MouseEvent } from "react";
-import { useEffect, useRef, useState } from "react";
 import type { Listing } from "@/db/schema";
 import { shouldShowPlayPopunder } from "@/lib/ads-config";
 import {
-  EXOCLICK_POPUNDER_REFERRER_HOME,
   firePlayStorePopunder,
   openOutboundInNewTab,
-  prefetchPopunderAdUrl,
 } from "@/lib/exoclick-play-popunder-client";
 import { listingEligibleForPlayPopunder } from "@/lib/outbound-link";
 
@@ -25,8 +22,8 @@ type Props = Omit<AnchorProps, "href"> & {
 };
 
 /**
- * Outbound store CTA. When popunder applies: `<button>` (not `<a>`) so ad scripts cannot
- * intercept the href; stay on NSFW Droid, open store + prefetched ad in new tabs.
+ * Outbound store CTA. Popunder: stay on site, one new store tab, ad in hidden iframe.
+ * Uses `<button>` when monetized so `/api/go` is not a real anchor for ad tag hooks.
  */
 export function OutboundPlayLink({
   monetize = true,
@@ -43,43 +40,14 @@ export function OutboundPlayLink({
     shouldShowPlayPopunder(ageVerified) &&
     listingEligibleForPlayPopunder(listing);
 
-  const [prefetchedAdUrl, setPrefetchedAdUrl] = useState<string | null>(null);
-  const prefetchStarted = useRef(false);
-
-  useEffect(() => {
-    if (!popunderEligible || prefetchStarted.current) return;
-    prefetchStarted.current = true;
-    void prefetchPopunderAdUrl(EXOCLICK_POPUNDER_REFERRER_HOME).then(setPrefetchedAdUrl);
-  }, [popunderEligible]);
-
-  async function runPopunderPlay(goHref: string) {
-    let adUrl = prefetchedAdUrl;
-    if (!adUrl) {
-      adUrl = await prefetchPopunderAdUrl(EXOCLICK_POPUNDER_REFERRER_HOME);
-      setPrefetchedAdUrl(adUrl);
-    }
-    if (!firePlayStorePopunder(goHref, { prefetchedAdUrl: adUrl })) {
-      openOutboundInNewTab(goHref);
-    }
-  }
-
-  function handleClick(e: MouseEvent<HTMLAnchorElement | HTMLButtonElement>) {
+  function handleMonetizedClick(e: MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     e.stopPropagation();
-
-    if (popunderEligible) {
-      const goHref =
-        e.currentTarget instanceof HTMLAnchorElement
-          ? e.currentTarget.href
-          : new URL(href, window.location.origin).href;
-      void runPopunderPlay(goHref);
-      onClick?.(e as MouseEvent<HTMLAnchorElement>);
-      return;
+    const goHref = new URL(href, window.location.origin).href;
+    if (!firePlayStorePopunder(goHref)) {
+      openOutboundInNewTab(goHref);
     }
-
-    if (e.currentTarget instanceof HTMLAnchorElement) {
-      onClick?.(e as MouseEvent<HTMLAnchorElement>);
-    }
+    onClick?.(e as unknown as MouseEvent<HTMLAnchorElement>);
   }
 
   if (popunderEligible) {
@@ -88,7 +56,7 @@ export function OutboundPlayLink({
       <button
         type="button"
         className={className}
-        onClick={handleClick}
+        onClick={handleMonetizedClick}
         {...buttonRest}
       >
         {children}
@@ -97,7 +65,7 @@ export function OutboundPlayLink({
   }
 
   return (
-    <a className={className} href={href} onClick={handleClick} {...rest}>
+    <a className={className} href={href} onClick={onClick} {...rest}>
       {children}
     </a>
   );

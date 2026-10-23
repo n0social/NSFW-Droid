@@ -4,9 +4,8 @@
  */
 
 import {
-  EXOCLICK_POPUNDER_DESTINATION_PATH,
+  EXOCLICK_POPUNDER_LAUNCH_PATH,
   EXOCLICK_POPUNDER_REFERRER_HOME,
-  isGameStorePopunderDestination,
   popunderZoneIdForUserAgent,
 } from "@/lib/exoclick-popunder-syndication";
 
@@ -14,6 +13,8 @@ export { EXOCLICK_POPUNDER_REFERRER_HOME } from "@/lib/exoclick-popunder-syndica
 
 /** Matches ExoClick zone frequency_period (minutes) in public/exoclick-popunder.js */
 const FREQUENCY_PERIOD_MINUTES = 60;
+
+const HIDDEN_FRAME_CLEANUP_MS = 120_000;
 
 function popunderZoneIdForDevice(): string | undefined {
   if (typeof navigator === "undefined") return undefined;
@@ -47,12 +48,10 @@ function markOpened(zoneId: string): void {
 type PopunderOpenOptions = {
   /** Page URL sent to ExoClick as `p` (tracking). Defaults to site home for play clicks. */
   adReferrerPage?: string;
-  /** Prefetched advertiser URL from {@link prefetchPopunderAdUrl}. */
-  prefetchedAdUrl?: string | null;
 };
 
-function buildPopunderDestinationRequestUrl(adReferrerPage?: string): string {
-  const launchUrl = new URL(EXOCLICK_POPUNDER_DESTINATION_PATH, window.location.origin);
+function buildPopunderLaunchUrl(adReferrerPage?: string): string {
+  const launchUrl = new URL(EXOCLICK_POPUNDER_LAUNCH_PATH, window.location.origin);
   launchUrl.searchParams.set(
     "p",
     adReferrerPage?.trim() || EXOCLICK_POPUNDER_REFERRER_HOME,
@@ -61,53 +60,29 @@ function buildPopunderDestinationRequestUrl(adReferrerPage?: string): string {
   return launchUrl.toString();
 }
 
-/** Resolve advertiser URL server-side (credentials send age cookie). */
-export async function prefetchPopunderAdUrl(
-  adReferrerPage?: string,
-): Promise<string | null> {
+/**
+ * Load popunder through same-origin launch → server-resolved advertiser redirect inside a
+ * hidden iframe (not a visible tab). ExoClick still gets a browser navigation on the hop;
+ * the user only sees one new tab (the store / outbound destination).
+ */
+function openPopunderAdInHiddenFrame(options?: PopunderOpenOptions): void {
   const zoneId = popunderZoneIdForDevice();
-  if (!zoneId || withinCapping(zoneId)) return null;
+  if (!zoneId || withinCapping(zoneId)) return;
 
-  try {
-    const res = await fetch(buildPopunderDestinationRequestUrl(adReferrerPage), {
-      credentials: "same-origin",
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as { ok?: boolean; url?: string };
-    const url = data.url?.trim() ?? "";
-    if (!data.ok || !url.startsWith("http") || isGameStorePopunderDestination(url)) {
-      return null;
-    }
-    return url;
-  } catch {
-    return null;
-  }
-}
+  const iframe = document.createElement("iframe");
+  iframe.setAttribute("aria-hidden", "true");
+  iframe.setAttribute("tabindex", "-1");
+  iframe.title = "";
+  iframe.src = buildPopunderLaunchUrl(options?.adReferrerPage);
+  iframe.style.cssText =
+    "position:absolute;width:0;height:0;border:0;clip:rect(0,0,0,0);overflow:hidden";
 
-/** Open a resolved advertiser URL in a background tab (never syndication or `/api/go`). */
-function openResolvedAdTab(adUrl: string): Window | null {
-  const zoneId = popunderZoneIdForDevice();
-  if (!zoneId || withinCapping(zoneId)) return null;
-  if (!adUrl.startsWith("http") || isGameStorePopunderDestination(adUrl)) return null;
-
-  const adWin = window.open(adUrl, "_blank", "noopener,noreferrer");
-  if (!adWin) return null;
-
+  document.body.appendChild(iframe);
   markOpened(zoneId);
 
-  try {
-    adWin.blur();
-  } catch {
-    /* noop */
-  }
-  try {
-    window.focus();
-  } catch {
-    /* noop */
-  }
-
-  return adWin;
+  window.setTimeout(() => {
+    iframe.remove();
+  }, HIDDEN_FRAME_CLEANUP_MS);
 }
 
 /**
@@ -117,34 +92,27 @@ export function firePlayPopunderThenNavigate(goHref: string): boolean {
   return firePlayStorePopunder(goHref);
 }
 
-/** Play on store: one `/api/go/` tab + ad tab; ad `p=` is site home (not the listing page). */
-export function firePlayStorePopunder(
-  goHref: string,
-  options?: Pick<PopunderOpenOptions, "prefetchedAdUrl">,
-): boolean {
+/** Play on store: one visible `/api/go/` tab; ad loads in a hidden iframe. */
+export function firePlayStorePopunder(goHref: string): boolean {
   return firePopunderThenOpenNewTab(goHref, {
     adReferrerPage: EXOCLICK_POPUNDER_REFERRER_HOME,
-    prefetchedAdUrl: options?.prefetchedAdUrl,
   });
 }
 
 /**
- * Keep this tab on NSFW Droid: open store/content in a focused new tab, then popunder ad
- * (best effort). Uses a prefetched advertiser URL so we never open ExoClick syndication in
- * a popup (that path was opening a second store tab).
+ * Stay on NSFW Droid: open exactly one new tab for the destination (synchronous, user
+ * gesture), then fire the popunder hop in a hidden iframe.
  */
 export function firePopunderThenOpenNewTab(
   destHref: string,
   options?: PopunderOpenOptions,
 ): boolean {
   if (!destHref) return false;
+
   const destWin = window.open(destHref, "_blank", "noopener,noreferrer");
   if (!destWin) return false;
 
-  const adUrl = options?.prefetchedAdUrl;
-  if (adUrl) {
-    openResolvedAdTab(adUrl);
-  }
+  openPopunderAdInHiddenFrame(options);
 
   try {
     destWin.focus();
