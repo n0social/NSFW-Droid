@@ -18,8 +18,7 @@ type Props = Omit<AnchorProps, "href"> & {
 };
 
 /**
- * Store Play CTA. Monetized: same-tab navigation to `/api/go` (server interstitial +
- * ExoClick beacon, then store). No `window.open` — avoids extra tabs.
+ * Store Play CTA. Monetized: same-tab `/api/go` (server ExoClick + 302). No `window.open`.
  */
 export function OutboundPlayLink({
   monetize = true,
