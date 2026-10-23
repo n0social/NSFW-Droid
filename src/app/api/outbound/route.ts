@@ -1,14 +1,11 @@
 import { NextResponse } from "next/server";
+import { shouldServeExoclickRedirectInterstitial } from "@/lib/exoclick-go-interstitial";
+import { scheduleExoclickPopunderSyndicationHit } from "@/lib/exoclick-popunder-server";
 import { isValidOutboundUrl } from "@/lib/outbound-link";
-import {
-  buildMonetizedRedirectInterstitialHtml,
-  buildPopunderLaunchUrlForRequest,
-  shouldServeExoclickRedirectInterstitial,
-} from "@/lib/exoclick-go-interstitial";
 import { AGE_VERIFIED_COOKIE, parseAgeVerified } from "@/lib/cookies";
 import { cookies } from "next/headers";
 
-/** Same-tab external outbound with optional ExoClick interstitial (videos, creators, etc.). */
+/** Same-tab external outbound (videos, creators). ExoClick on server; 302 only in browser. */
 export async function GET(request: Request) {
   const reqUrl = new URL(request.url);
   const raw = reqUrl.searchParams.get("u")?.trim() ?? "";
@@ -20,21 +17,11 @@ export async function GET(request: Request) {
   const ageVerified = parseAgeVerified(jar.get(AGE_VERIFIED_COOKIE)?.value);
 
   if (shouldServeExoclickRedirectInterstitial(ageVerified, undefined, raw)) {
-    const launch = buildPopunderLaunchUrlForRequest(request.url);
-    const html = buildMonetizedRedirectInterstitialHtml(raw, launch);
-    const response = new NextResponse(html, {
-      status: 200,
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-        "Referrer-Policy": "no-referrer",
-        "X-Robots-Tag": "noindex, nofollow, noarchive",
-        "Cache-Control": "private, no-store",
-      },
-    });
-    return response;
+    scheduleExoclickPopunderSyndicationHit(request.headers.get("user-agent"));
   }
 
   const response = NextResponse.redirect(raw, 302);
   response.headers.set("Referrer-Policy", "no-referrer");
+  response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
   return response;
 }

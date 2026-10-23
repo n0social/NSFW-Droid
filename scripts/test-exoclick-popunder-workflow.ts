@@ -1,13 +1,8 @@
 /**
- * Same-tab monetized outbound:
- * - Play → /api/go → HTML interstitial → store (one tab)
- * - Videos → /api/outbound?u= → interstitial → publisher (one tab)
+ * Same-tab outbound: /api/go or /api/outbound → server ExoClick ping → 302 (no HTML, no window.open).
  */
 import assert from "node:assert/strict";
-import {
-  buildMonetizedRedirectInterstitialHtml,
-  buildPopunderLaunchUrlForRequest,
-} from "../src/lib/exoclick-go-interstitial";
+import { shouldServeExoclickRedirectInterstitial } from "../src/lib/exoclick-go-interstitial";
 import {
   buildExoclickPopunderClickUrl,
   EXOCLICK_POPUNDER_REFERRER_HOME,
@@ -19,13 +14,14 @@ const syndicationUrl = buildExoclickPopunderClickUrl(zoneId, EXOCLICK_POPUNDER_R
 
 assert.ok(syndicationUrl.includes(`https://${EXOCLICK_SYNDICATION_HOST}/v1/link.php`));
 
-const launch = buildPopunderLaunchUrlForRequest("https://www.nsfwdroid.com/api/go/test");
-assert.ok(launch.includes("hop=syndication"));
-
-const html = buildMonetizedRedirectInterstitialHtml("https://example.itch.io/game", launch);
-assert.ok(html.includes("location.replace"));
-assert.ok(html.includes("new Image"));
+assert.equal(
+  shouldServeExoclickRedirectInterstitial(
+    true,
+    { source: "itch", officialUrl: "https://x.itch.io/y", affiliateUrl: null },
+  ),
+  false,
+);
 
 console.log("test-exoclick-popunder-workflow: ok");
-console.log("  play: same tab /api/go → interstitial → itch");
-console.log("  outbound: /api/outbound?u= → interstitial → target");
+console.log("  play: /api/go → server syndication fetch → 302 store");
+console.log("  outbound: /api/outbound?u= → server fetch → 302 publisher");
