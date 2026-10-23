@@ -1,12 +1,8 @@
 "use client";
 
-import type { ComponentPropsWithoutRef, MouseEvent } from "react";
+import type { ComponentPropsWithoutRef } from "react";
 import { useMemo } from "react";
 import { shouldShowPlayPopunder } from "@/lib/ads-config";
-import {
-  firePopunderThenOpenNewTab,
-  openOutboundInNewTab,
-} from "@/lib/exoclick-play-popunder-client";
 import { urlEligibleForOutboundPopunder } from "@/lib/outbound-link";
 
 type AnchorProps = ComponentPropsWithoutRef<"a">;
@@ -16,7 +12,6 @@ type Props = Omit<AnchorProps, "href"> & {
   ageVerified: boolean;
   /** When false, never run popunder. */
   monetize?: boolean;
-  /** Default: true when `target="_blank"`. */
   openInNewTab?: boolean;
 };
 
@@ -29,12 +24,12 @@ function absoluteOutboundHref(href: string): string {
 }
 
 /**
- * External outbound anchor. Popunder: one visible new tab + ExoClick fetch (no iframe).
+ * External outbound link. Monetized: same-tab `/api/outbound?u=…` (interstitial + ExoClick).
  */
 export function OutboundPopunderLink({
   ageVerified,
   monetize = true,
-  openInNewTab: _openInNewTab,
+  openInNewTab,
   target,
   href,
   className,
@@ -53,22 +48,20 @@ export function OutboundPopunderLink({
     }
   }, [popunderEligible, href]);
 
-  function handleClick(e: MouseEvent<HTMLAnchorElement>) {
-    if (monetizedOutbound) {
-      e.preventDefault();
-      e.stopPropagation();
-      const destHref = e.currentTarget.href;
-      if (!firePopunderThenOpenNewTab(destHref)) {
-        openOutboundInNewTab(destHref);
-      }
-      onClick?.(e);
-      return;
-    }
-    onClick?.(e);
-  }
+  const linkHref = monetizedOutbound
+    ? `/api/outbound?u=${encodeURIComponent(absoluteOutboundHref(href))}`
+    : href;
+
+  const linkTarget = monetizedOutbound ? undefined : target ?? (openInNewTab ? "_blank" : undefined);
 
   return (
-    <a className={className} href={href} target={target} onClick={handleClick} {...rest}>
+    <a
+      className={className}
+      href={linkHref}
+      target={linkTarget}
+      onClick={onClick}
+      {...rest}
+    >
       {children}
     </a>
   );

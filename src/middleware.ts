@@ -18,6 +18,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/admin") ||
     pathname === "/api/go" ||
     pathname.startsWith("/api/go/") ||
+    pathname.startsWith("/api/outbound") ||
     pathname.startsWith("/api/ads/");
 
   if (!needsNoIndex) {
