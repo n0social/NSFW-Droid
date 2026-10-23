@@ -1,12 +1,11 @@
 "use client";
 
 import type { ComponentPropsWithoutRef, MouseEvent } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { shouldShowPlayPopunder } from "@/lib/ads-config";
 import {
   firePopunderThenOpenNewTab,
   openOutboundInNewTab,
-  prefetchPopunderAdUrl,
 } from "@/lib/exoclick-play-popunder-client";
 import { urlEligibleForOutboundPopunder } from "@/lib/outbound-link";
 
@@ -22,8 +21,7 @@ type Props = Omit<AnchorProps, "href"> & {
 };
 
 /**
- * External or `/api/go/` outbound control with optional ExoClick popunder (non-Steam only).
- * Uses a button when popunder applies so outbound `<a href>` is not double-opened by ad tags.
+ * External outbound anchor. Popunder: one visible new tab + ad in hidden iframe (keeps card layout).
  */
 export function OutboundPopunderLink({
   ageVerified,
@@ -37,67 +35,33 @@ export function OutboundPopunderLink({
   ...rest
 }: Props) {
   const popunderEligible = monetize && shouldShowPlayPopunder(ageVerified);
-  const [useButton, setUseButton] = useState(false);
-  const [prefetchedAdUrl, setPrefetchedAdUrl] = useState<string | null>(null);
-  const prefetchStarted = useRef(false);
+  const [monetizedOutbound, setMonetizedOutbound] = useState(false);
 
   useEffect(() => {
     if (!popunderEligible) {
-      setUseButton(false);
+      setMonetizedOutbound(false);
       return;
     }
     try {
       const full = new URL(href, window.location.origin).href;
-      setUseButton(urlEligibleForOutboundPopunder(full));
+      setMonetizedOutbound(urlEligibleForOutboundPopunder(full));
     } catch {
-      setUseButton(false);
+      setMonetizedOutbound(false);
     }
   }, [popunderEligible, href]);
 
-  useEffect(() => {
-    if (!useButton || prefetchStarted.current) return;
-    prefetchStarted.current = true;
-    void prefetchPopunderAdUrl().then(setPrefetchedAdUrl);
-  }, [useButton]);
-
-  async function runPopunderOutbound(destHref: string) {
-    let adUrl = prefetchedAdUrl;
-    if (!adUrl) {
-      adUrl = await prefetchPopunderAdUrl();
-      setPrefetchedAdUrl(adUrl);
-    }
-    if (!firePopunderThenOpenNewTab(destHref, { prefetchedAdUrl: adUrl })) {
-      openOutboundInNewTab(destHref);
-    }
-  }
-
-  function handleClick(e: MouseEvent<HTMLAnchorElement | HTMLButtonElement>) {
-    if (useButton) {
+  function handleClick(e: MouseEvent<HTMLAnchorElement>) {
+    if (monetizedOutbound) {
       e.preventDefault();
       e.stopPropagation();
-      const destHref =
-        e.currentTarget instanceof HTMLAnchorElement
-          ? e.currentTarget.href
-          : new URL(href, window.location.origin).href;
-      void runPopunderOutbound(destHref);
-      onClick?.(e as MouseEvent<HTMLAnchorElement>);
+      const destHref = e.currentTarget.href;
+      if (!firePopunderThenOpenNewTab(destHref)) {
+        openOutboundInNewTab(destHref);
+      }
+      onClick?.(e);
       return;
     }
-    onClick?.(e as MouseEvent<HTMLAnchorElement>);
-  }
-
-  if (useButton) {
-    const { type: _type, ...buttonRest } = rest as ComponentPropsWithoutRef<"button">;
-    return (
-      <button
-        type="button"
-        className={className}
-        onClick={handleClick}
-        {...buttonRest}
-      >
-        {children}
-      </button>
-    );
+    onClick?.(e);
   }
 
   return (
