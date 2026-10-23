@@ -57,13 +57,15 @@ function buildPopunderLaunchUrl(adReferrerPage?: string): string {
     adReferrerPage?.trim() || EXOCLICK_POPUNDER_REFERRER_HOME,
   );
   launchUrl.searchParams.set("cb", String(Math.floor(Math.random() * 1e9)));
+  launchUrl.searchParams.set("hop", "syndication");
   return launchUrl.toString();
 }
 
 /**
  * Load popunder through same-origin launch → server-resolved advertiser redirect inside a
- * hidden iframe (not a visible tab). ExoClick still gets a browser navigation on the hop;
- * the user only sees one new tab (the store / outbound destination).
+ * hidden iframe (not a visible tab). Iframe hits `/api/ads/popunder-launch?hop=syndication`
+ * so the **browser** requests ExoClick `link.php` (required for zone stats / pay).
+ * The user only sees one new tab (the store / outbound destination).
  */
 function openPopunderAdInHiddenFrame(options?: PopunderOpenOptions): void {
   const zoneId = popunderZoneIdForDevice();
