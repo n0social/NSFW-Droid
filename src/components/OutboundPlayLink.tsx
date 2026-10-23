@@ -3,10 +3,6 @@
 import type { ComponentPropsWithoutRef, MouseEvent } from "react";
 import type { Listing } from "@/db/schema";
 import { shouldShowPlayPopunder } from "@/lib/ads-config";
-import {
-  firePlayStorePopunder,
-  openOutboundInNewTab,
-} from "@/lib/exoclick-play-popunder-client";
 import { listingEligibleForPlayPopunder } from "@/lib/outbound-link";
 
 type ListingPick = Pick<Listing, "source" | "officialUrl" | "affiliateUrl">;
@@ -22,8 +18,8 @@ type Props = Omit<AnchorProps, "href"> & {
 };
 
 /**
- * Outbound store CTA. Popunder: stay on site, one new store tab, ad in hidden iframe.
- * Uses `<button>` when monetized so `/api/go` is not a real anchor for ad tag hooks.
+ * Store Play CTA. Monetized: same-tab navigation to `/api/go` (server interstitial +
+ * ExoClick beacon, then store). No `window.open` — avoids extra tabs.
  */
 export function OutboundPlayLink({
   monetize = true,
@@ -43,10 +39,7 @@ export function OutboundPlayLink({
   function handleMonetizedClick(e: MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     e.stopPropagation();
-    const goHref = new URL(href, window.location.origin).href;
-    if (!firePlayStorePopunder(goHref)) {
-      openOutboundInNewTab(goHref);
-    }
+    window.location.assign(new URL(href, window.location.origin).href);
     onClick?.(e as unknown as MouseEvent<HTMLAnchorElement>);
   }
 

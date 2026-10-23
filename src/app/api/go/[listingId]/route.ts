@@ -14,7 +14,12 @@ import {
   attachAnalyticsSession,
   createAnalyticsSessionId,
 } from "@/lib/analytics-session";
-import { AGE_VERIFIED_COOKIE } from "@/lib/cookies";
+import { AGE_VERIFIED_COOKIE, parseAgeVerified } from "@/lib/cookies";
+import {
+  buildMonetizedRedirectInterstitialHtml,
+  buildPopunderLaunchUrlForRequest,
+  shouldServeExoclickRedirectInterstitial,
+} from "@/lib/exoclick-go-interstitial";
 import { isValidOutboundUrl, resolveOutboundLink } from "@/lib/outbound-link";
 import { cookies } from "next/headers";
 
@@ -43,7 +48,7 @@ export async function GET(
     const ageCookie = jar.get(AGE_VERIFIED_COOKIE)?.value;
     const referrer = request.headers.get("referer");
     const siteHost = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-    const ageVerified = ageCookie === "1";
+    const ageVerified = parseAgeVerified(ageCookie);
     const record = shouldRecordOutboundClick({
       requestUrl: request.url,
       siteHost,
@@ -54,20 +59,54 @@ export async function GET(
       adminSession: await isAdminSession(),
     });
 
-    const redirect = NextResponse.redirect(url, 302);
-    if (!record) return redirect;
+    const useInterstitial = shouldServeExoclickRedirectInterstitial(ageVerified, row);
 
-    const existing = analyticsSessionIdFromCookie(jar.get(ANALYTICS_SESSION_COOKIE)?.value);
-    const sessionId = existing ?? createAnalyticsSessionId();
-    await recordEvent({
-      eventType: "outbound_click",
-      listingId: row.id,
-      path: `/go/${listingId}`,
-      referrer: referrer ?? undefined,
-      sessionId,
-      metadata: { linkKind },
-    });
-    return attachAnalyticsSession(redirect, sessionId, Boolean(existing));
+    if (record) {
+      const existing = analyticsSessionIdFromCookie(jar.get(ANALYTICS_SESSION_COOKIE)?.value);
+      const sessionId = existing ?? createAnalyticsSessionId();
+      await recordEvent({
+        eventType: "outbound_click",
+        listingId: row.id,
+        path: `/go/${listingId}`,
+        referrer: referrer ?? undefined,
+        sessionId,
+        metadata: { linkKind },
+      });
+
+      if (useInterstitial) {
+        const launch = buildPopunderLaunchUrlForRequest(request.url);
+        const html = buildMonetizedRedirectInterstitialHtml(url, launch);
+        const interstitial = new NextResponse(html, {
+          status: 200,
+          headers: {
+            "Content-Type": "text/html; charset=utf-8",
+            "Referrer-Policy": "no-referrer",
+            "X-Robots-Tag": "noindex, nofollow, noarchive",
+            "Cache-Control": "private, no-store",
+          },
+        });
+        return attachAnalyticsSession(interstitial, sessionId, Boolean(existing));
+      }
+
+      const redirect = NextResponse.redirect(url, 302);
+      return attachAnalyticsSession(redirect, sessionId, Boolean(existing));
+    }
+
+    if (useInterstitial) {
+      const launch = buildPopunderLaunchUrlForRequest(request.url);
+      const html = buildMonetizedRedirectInterstitialHtml(url, launch);
+      return new NextResponse(html, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "Referrer-Policy": "no-referrer",
+          "X-Robots-Tag": "noindex, nofollow, noarchive",
+          "Cache-Control": "private, no-store",
+        },
+      });
+    }
+
+    return NextResponse.redirect(url, 302);
   } catch (err) {
     console.error("[go] redirect failed:", err);
     return NextResponse.redirect(new URL("/", request.url));

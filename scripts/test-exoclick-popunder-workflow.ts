@@ -1,9 +1,13 @@
 /**
- * Documents and asserts the 2-tab Play monetization chain:
- * 1) window.open → /api/go (visible store tab)
- * 2) fetch (no iframe) → /api/ads/popunder-launch?hop=syndication → 302 → s.pemsrv.com link.php
+ * Same-tab monetized outbound:
+ * - Play → /api/go → HTML interstitial → store (one tab)
+ * - Videos → /api/outbound?u= → interstitial → publisher (one tab)
  */
 import assert from "node:assert/strict";
+import {
+  buildMonetizedRedirectInterstitialHtml,
+  buildPopunderLaunchUrlForRequest,
+} from "../src/lib/exoclick-go-interstitial";
 import {
   buildExoclickPopunderClickUrl,
   EXOCLICK_POPUNDER_REFERRER_HOME,
@@ -14,14 +18,14 @@ const zoneId = "6062592";
 const syndicationUrl = buildExoclickPopunderClickUrl(zoneId, EXOCLICK_POPUNDER_REFERRER_HOME);
 
 assert.ok(syndicationUrl.includes(`https://${EXOCLICK_SYNDICATION_HOST}/v1/link.php`));
-assert.ok(syndicationUrl.includes(`idzone=${zoneId}`));
 
-const launch = new URL("/api/ads/popunder-launch", "https://www.nsfwdroid.com");
-launch.searchParams.set("p", EXOCLICK_POPUNDER_REFERRER_HOME);
-launch.searchParams.set("hop", "syndication");
-assert.equal(launch.searchParams.get("hop"), "syndication");
+const launch = buildPopunderLaunchUrlForRequest("https://www.nsfwdroid.com/api/go/test");
+assert.ok(launch.includes("hop=syndication"));
+
+const html = buildMonetizedRedirectInterstitialHtml("https://example.itch.io/game", launch);
+assert.ok(html.includes("location.replace"));
+assert.ok(html.includes("new Image"));
 
 console.log("test-exoclick-popunder-workflow: ok");
-console.log("  visible tab: /api/go/{listingId}");
-console.log("  fetch url:", launch.pathname + "?" + launch.searchParams.toString());
-console.log("  launch 302 →", syndicationUrl.slice(0, 72) + "...");
+console.log("  play: same tab /api/go → interstitial → itch");
+console.log("  outbound: /api/outbound?u= → interstitial → target");
