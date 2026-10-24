@@ -30,7 +30,7 @@ async function listingForSlug(db: CatalogDb, slug: string): Promise<Listing | nu
 
 /**
  * Single homepage hero featured pick (no carousel rail).
- * Priority: env slug → automated weekly rotation → hot engagement → chart_bucket featured.
+ * Priority: env slug → weekly pick from prior week’s new additions → hot engagement → chart_bucket featured.
  */
 export async function getFeaturedHeroPick(db: CatalogDb): Promise<FeaturedHeroResult> {
   const fromEnv = featuredListingSlugsFromEnv();
