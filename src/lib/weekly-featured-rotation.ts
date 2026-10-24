@@ -4,8 +4,6 @@ import { listings, type Listing } from "@/db/schema";
 import { publicCatalogLinkStatus } from "@/lib/catalog-visibility";
 import {
   catalogWeekTimeZone,
-  formatCurrentIsoWeekRangeLabel,
-  formatPreviousWeekRangeLabel,
   previousWeekFavoriteWindow,
   type PreviousWeekFavoriteWindow,
 } from "@/lib/catalog-week";
@@ -47,11 +45,8 @@ export async function getWeeklyRotatedFeaturedHero(
     return { listing: null, heroSubtitle: null };
   }
 
-  const featuredWeek = formatCurrentIsoWeekRangeLabel(now, tz);
-  const additionsWeek = formatPreviousWeekRangeLabel(sourceWindow);
-
   return {
     listing: pool[0] ?? null,
-    heroSubtitle: `Featured game of the week (${featuredWeek}) — newest addition from last week (${additionsWeek}).`,
+    heroSubtitle: null,
   };
 }
