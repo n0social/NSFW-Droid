@@ -34,6 +34,7 @@
     "test-hub-page-metadata": "tsx scripts/test-hub-page-metadata.ts",
     "test-default-og-metadata": "tsx scripts/test-default-og-metadata.ts",
     "test:public-post-csrf": "tsx scripts/test-public-post-csrf.ts",
+    "test:security-headers": "tsx scripts/test-security-headers.ts",
     "test:newsletter": "tsx scripts/test-newsletter-sendmail.ts && tsx scripts/test-newsletter-signing-secret.ts && tsx scripts/test-newsletter-email-diagnostics.ts && tsx scripts/test-newsletter-weekly-guard.ts",
     "analytics:purge-inflated": "tsx scripts/db-migrate.ts && tsx scripts/purge-inflated-analytics.ts",
     "db:backfill-covers": "tsx scripts/db-migrate.ts && tsx scripts/backfill-listing-covers.ts",

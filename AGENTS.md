@@ -10,6 +10,7 @@
 - Droplet **cron** (`deploy/cron.d/`) runs ingest 3×/day UTC, watchdog every 5 min, Tuesday maintenance, optional Friday newsletter — details in autonomous-ops.
 - After merging changes under `deploy/cron.d/`, run `./scripts/cloud-agent-droplet-install-cron.sh` or have the owner run `install-droplet-cron.sh` on the box.
 - Ops alerts require `ALERT_EMAIL_TO` and local Exim `sendmail` (or optional `SMTP_*`) in `/etc/nsfwdroid.env`; there is no SMS integration.
+- **Owner maintenance timing:** Before DNS cutovers, droplet deploys, or other work that may cause 502/503 or brief catalog downtime, remind the owner to use the windows in [docs/autonomous-ops.md](docs/autonomous-ops.md#human-scheduled-changes-dns-deploy-maintenance) (weekly Tue UTC maintenance, late-night Eastern, avoid ingest triples when possible).
 
 ## Mobile / phone workflow
 
