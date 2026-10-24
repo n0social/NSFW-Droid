@@ -48,6 +48,7 @@
     "test:video-thumbnail-fallback": "tsx scripts/test-video-thumbnail-fallback.ts",
     "test:exoclick-popunder-launch": "tsx scripts/test-exoclick-popunder-launch.ts",
     "test:exoclick-popunder-workflow": "tsx scripts/test-exoclick-popunder-workflow.ts",
+    "test:weekly-featured-rotation": "tsx scripts/test-weekly-featured-rotation.ts",
     "test:featured-hero-env": "tsx scripts/test-featured-listing-slugs.ts",
     "test:catalog-week": "tsx scripts/test-catalog-week.ts"
   },

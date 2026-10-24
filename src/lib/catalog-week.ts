@@ -103,3 +103,13 @@ export function formatPreviousWeekRangeLabel(
   const endLabel = endDay.toLocaleDateString("en-US", opts);
   return `${startLabel} – ${endLabel}`;
 }
+
+/** Mon–Sun range for the ISO week containing `date` (for “game of the week” copy). */
+export function formatCurrentIsoWeekRangeLabel(
+  date: Date = new Date(),
+  timeZone: string = catalogWeekTimeZone(),
+): string {
+  const statsStart = startOfIsoWeekInTimeZone(date, timeZone);
+  const statsEnd = new Date(statsStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+  return formatPreviousWeekRangeLabel({ statsStart, statsEnd, timeZone });
+}

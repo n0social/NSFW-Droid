@@ -357,7 +357,7 @@ That installs every file under `deploy/cron.d/` (ingest 3×/day UTC, watchdog ev
 
 **Newsletter cron** (`nsfwdroid-weekly-newsletter`) runs `scripts/weekly-newsletter-cron.sh` (preflight + ops alert on failure). No-ops unless `NEWSLETTER_ENABLED=1` and sendmail/Brevo is configured. Log: `/var/log/nsfwdroid-newsletter.log`. Runbook: [newsletter-exim-runbook.md](newsletter-exim-runbook.md).
 
-**Homepage hero featured pick** (no featured rail): previous week's top ♡ save (Mon–Sun, `NEWSLETTER_WEEKLY_TZ`), else the hot-traffic algorithm. Shown all week; rolls over each Monday. Override with the first slug in `FEATURED_LISTING_SLUGS`, or `chart_bucket = featured` rank 1:
+**Homepage hero featured pick** (no featured rail): **automated weekly rotation** through browse-visible listings (stable slug order, one game per Mon–Sun in `NEWSLETTER_WEEKLY_TZ` / America/New_York). Rolls over each **Monday 00:00** in that zone; homepage ISR may cache up to ~1 hour. Override with the first slug in `FEATURED_LISTING_SLUGS`, else hot-traffic / `chart_bucket = featured` fallbacks if the catalog pool is empty:
 
 ```bash
 # FEATURED_LISTING_SLUGS=slug-one,slug-two
