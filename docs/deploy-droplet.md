@@ -360,8 +360,15 @@ That installs every file under `deploy/cron.d/` (ingest 3×/day UTC, watchdog ev
 **Homepage hero featured pick** (no featured rail): each calendar week (Mon–Sun in `NEWSLETTER_WEEKLY_TZ` / America/New_York), the **newest** browse-visible title **first seen during the previous week** is featured; the following Monday the hero switches to that new “previous week.” Rolls over **Monday 00:00** in that zone; homepage ISR may cache up to ~1 hour. Override with the first slug in `FEATURED_LISTING_SLUGS`, else hot-traffic / `chart_bucket = featured` when the prior week had no ingest:
 
 ```bash
-# FEATURED_LISTING_SLUGS=slug-one,slug-two
+# Permanent override (until removed):
+# FEATURED_LISTING_SLUGS=slug-one
+
+# One-week manual pick, then weekly rotation resumes automatically:
+# FEATURED_LISTING_SLUGS=fazbooba-simulator-zbooba-simulator
+# FEATURED_LISTING_SLUGS_UNTIL=auto
 ```
+
+`FEATURED_LISTING_SLUGS_UNTIL=auto` expires at the **next Monday 00:00** in the catalog week timezone. Or set `YYYY-MM-DD` for that midnight. **Restart** `nsfwdroid` after changing these (no rebuild required). Clear both vars after a dated override if you want to force rotation early.
 
 ### Ops email alerts
 
