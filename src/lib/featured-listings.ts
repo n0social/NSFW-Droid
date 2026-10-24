@@ -1,9 +1,9 @@
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import type { CatalogDb } from "@/db";
 import { listings, type Listing } from "@/db/schema";
 import { getHotListings } from "@/lib/analytics";
 import { publicCatalogLinkStatus } from "@/lib/catalog-visibility";
-import { getWeeklyFeaturedByFavorites } from "@/lib/weekly-featured";
+import { getWeeklyRotatedFeaturedHero } from "@/lib/weekly-featured-rotation";
 
 export type FeaturedHeroResult = {
   listing: Listing | null;
@@ -30,7 +30,7 @@ async function listingForSlug(db: CatalogDb, slug: string): Promise<Listing | nu
 
 /**
  * Single homepage hero featured pick (no carousel rail).
- * Priority: env slug → last week's top ♡ → hot engagement rail algorithm → chart_bucket featured.
+ * Priority: env slug → automated weekly rotation → hot engagement → chart_bucket featured.
  */
 export async function getFeaturedHeroPick(db: CatalogDb): Promise<FeaturedHeroResult> {
   const fromEnv = featuredListingSlugsFromEnv();
@@ -38,16 +38,16 @@ export async function getFeaturedHeroPick(db: CatalogDb): Promise<FeaturedHeroRe
     return { listing: await listingForSlug(db, fromEnv[0]), heroSubtitle: null };
   }
 
-  const weekly = await getWeeklyFeaturedByFavorites(db, 1);
-  if (weekly.listings[0]) {
-    return { listing: weekly.listings[0], heroSubtitle: weekly.heroSubtitle };
+  const rotated = await getWeeklyRotatedFeaturedHero(db);
+  if (rotated.listing) {
+    return rotated;
   }
 
   const hot = await getHotListings(1);
   if (hot[0]) {
     return {
       listing: hot[0],
-      heroSubtitle: "Featured pick from this week's community traffic on NSFW Droid.",
+      heroSubtitle: "Featured pick from recent community traffic on NSFW Droid.",
     };
   }
 
