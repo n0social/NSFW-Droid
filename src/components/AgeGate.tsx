@@ -53,7 +53,7 @@ export function AgeGate({ open }: Props) {
           Are you over 18?
         </h2>
         <p className="mt-2 text-xs font-semibold leading-relaxed text-[#E9D5FF]">
-          You must be 18 or older to browse this catalog. Production will add verified age checks.
+          You must be 18 or older to browse this catalog.
         </p>
         <p className="mt-3 text-[10px] font-semibold text-[#E9D5FF]/70">
           <a href="/terms" className="underline hover:text-[#FF4D8D]">Terms</a>
