@@ -3,6 +3,10 @@ import type { CatalogDb } from "@/db";
 import { listings, type Listing } from "@/db/schema";
 import { getHotListings } from "@/lib/analytics";
 import { publicCatalogLinkStatus } from "@/lib/catalog-visibility";
+import {
+  featuredListingEnvOverrideActive,
+  featuredListingSlugsFromEnv,
+} from "@/lib/featured-override";
 import { getWeeklyRotatedFeaturedHero } from "@/lib/weekly-featured-rotation";
 
 export type FeaturedHeroResult = {
@@ -10,14 +14,7 @@ export type FeaturedHeroResult = {
   heroSubtitle: string | null;
 };
 
-export function featuredListingSlugsFromEnv(): string[] {
-  const raw = process.env.FEATURED_LISTING_SLUGS?.trim();
-  if (!raw) return [];
-  return raw
-    .split(",")
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-}
+export { featuredListingSlugsFromEnv } from "@/lib/featured-override";
 
 async function listingForSlug(db: CatalogDb, slug: string): Promise<Listing | null> {
   const [row] = await db
@@ -33,9 +30,11 @@ async function listingForSlug(db: CatalogDb, slug: string): Promise<Listing | nu
  * Priority: env slug → weekly pick from prior week’s new additions → hot engagement → chart_bucket featured.
  */
 export async function getFeaturedHeroPick(db: CatalogDb): Promise<FeaturedHeroResult> {
-  const fromEnv = featuredListingSlugsFromEnv();
-  if (fromEnv[0]) {
-    return { listing: await listingForSlug(db, fromEnv[0]), heroSubtitle: null };
+  if (featuredListingEnvOverrideActive()) {
+    const slug = featuredListingSlugsFromEnv()[0];
+    if (slug) {
+      return { listing: await listingForSlug(db, slug), heroSubtitle: null };
+    }
   }
 
   const rotated = await getWeeklyRotatedFeaturedHero(db);

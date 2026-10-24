@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { featuredListingSlugsFromEnv } from "../src/lib/featured-listings";
+import { featuredListingSlugsFromEnv } from "../src/lib/featured-override";
 
 assert.equal(featuredListingSlugsFromEnv().length, 0);
 
