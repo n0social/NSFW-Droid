@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { redirectHostForCanonicalOrigin } from "@/lib/canonical-host";
+import { applySecurityHeaders } from "@/lib/security-headers";
 
 const ROBOTS_TAG = "noindex, nofollow, noarchive";
+
+function finish(request: NextRequest, response: NextResponse): NextResponse {
+  applySecurityHeaders(request, response);
+  return response;
+}
 
 export function middleware(request: NextRequest) {
   const targetHost = redirectHostForCanonicalOrigin(request.headers.get("host"));
@@ -10,7 +16,7 @@ export function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.protocol = "https";
     url.host = targetHost;
-    return NextResponse.redirect(url, 301);
+    return finish(request, NextResponse.redirect(url, 301));
   }
 
   const pathname = request.nextUrl.pathname;
@@ -21,13 +27,11 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/api/outbound") ||
     pathname.startsWith("/api/ads/");
 
-  if (!needsNoIndex) {
-    return NextResponse.next();
-  }
-
   const response = NextResponse.next();
-  response.headers.set("X-Robots-Tag", ROBOTS_TAG);
-  return response;
+  if (needsNoIndex) {
+    response.headers.set("X-Robots-Tag", ROBOTS_TAG);
+  }
+  return finish(request, response);
 }
 
 export const config = {

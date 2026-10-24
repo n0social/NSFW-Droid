@@ -423,6 +423,7 @@ Storefront chrome matches `docs/design-layout.md` (header, 21:9 hero, chip row, 
 - Rotate any API key ever pasted in chat.
 - Restrict SSH to your IP in DigitalOcean Cloud Firewall when possible.
 - Keep `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` only in `/etc/nsfwdroid.env` (never commit). Use a dedicated `ADMIN_SESSION_SECRET` so password rotation does not invalidate moderator sessions.
+- **Cloudflare** (optional edge): [cloudflare.md](cloudflare.md). App sets baseline security headers in middleware; POST APIs use IP rate limits (see `src/lib/rate-limit.ts`).
 
 ### Exim (local `sendmail`, not an open relay)
 

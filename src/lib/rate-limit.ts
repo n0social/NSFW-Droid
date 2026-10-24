@@ -20,3 +20,15 @@ export function clientIp(request: Request): string {
   if (forwarded) return forwarded.split(",")[0]?.trim() || "unknown";
   return request.headers.get("x-real-ip") ?? "unknown";
 }
+
+/** Returns a 429 JSON response when over limit; otherwise null. */
+export function rateLimitExceededResponse(
+  request: Request,
+  keyPrefix: string,
+  limit: number,
+  windowMs: number,
+): Response | null {
+  const ip = clientIp(request);
+  if (rateLimit(`${keyPrefix}:${ip}`, limit, windowMs)) return null;
+  return Response.json({ ok: false, error: "rate_limited" }, { status: 429 });
+}

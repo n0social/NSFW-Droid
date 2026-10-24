@@ -7,6 +7,7 @@ import {
   ANALYTICS_SESSION_COOKIE,
 } from "@/lib/analytics-session";
 import { rejectCrossSitePublicPost } from "@/lib/public-post-csrf";
+import { rateLimitExceededResponse } from "@/lib/rate-limit";
 import { isInternalAnalyticsRequest, shouldSkipAnalyticsRecording } from "@/lib/analytics-quality";
 import { isAdminSession } from "@/lib/admin-auth";
 import { AGE_VERIFIED_COOKIE } from "@/lib/cookies";
@@ -15,6 +16,11 @@ import { cookies } from "next/headers";
 export async function POST(request: Request) {
   const csrf = rejectCrossSitePublicPost(request);
   if (csrf) return csrf;
+
+  if (!isInternalAnalyticsRequest(request.headers)) {
+    const limited = rateLimitExceededResponse(request, "analytics-view", 120, 60 * 1000);
+    if (limited) return limited;
+  }
 
   const body = await request.json().catch(() => ({}));
   const jar = await cookies();

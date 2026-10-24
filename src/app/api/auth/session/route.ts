@@ -7,8 +7,12 @@ import {
 } from "@/lib/session-cookie";
 import { AGE_VERIFIED_COOKIE, ageVerifiedCookieOptions } from "@/lib/cookies";
 import { USER_SESSION_COOKIE } from "@/lib/user-session";
+import { rateLimitExceededResponse } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
+  const limited = rateLimitExceededResponse(request, "auth-session", 30, 15 * 60 * 1000);
+  if (limited) return limited;
+
   if (!isFirebaseAdminConfigured()) {
     return NextResponse.json(
       { ok: false, error: "server_auth_not_configured" },

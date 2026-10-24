@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { AGE_VERIFIED_COOKIE, ageVerifiedCookieOptions } from "@/lib/cookies";
+import { rateLimitExceededResponse } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
+  const limited = rateLimitExceededResponse(request, "age-gate", 40, 60 * 1000);
+  if (limited) return limited;
+
   const body = await request.json().catch(() => ({}));
   const answer = body?.answer;
 

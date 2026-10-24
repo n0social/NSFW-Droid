@@ -20,6 +20,23 @@ These jobs are installed from `deploy/cron.d/` via `scripts/install-droplet-cron
 | **Tue 03:00–04:00 UTC** | `nsfwdroid-weekly-maintenance` | `scripts/weekly-maintenance.sh` → `weekly-maintenance-inner.sh` | **Maintenance page** while `nsfwdroid` stopped (Caddy 502/503/504 path) | Start, failure, and success emails (daily keys) |
 | **Fri 21:00 America/New_York** | `nsfwdroid-weekly-newsletter` | `catalog-maintenance.sh` → `send-weekly-newsletter.ts` | Brief stop/start for PGlite | No ops mail (member newsletter only) |
 
+### Human-scheduled changes (DNS, deploy, maintenance)
+
+**Agents and operators:** Before asking the owner to change nameservers, run `./scripts/cloud-agent-deploy-droplet.sh`, or do anything that may cause **502/503**, **brief catalog downtime**, or **confusing DNS flips**, call out the windows below and suggest scheduling when traffic is lowest.
+
+Times in **America/New_York** (`NEWSLETTER_WEEKLY_TZ` / default site timezone). Droplet cron uses **UTC** unless `CRON_TZ` is set on a job.
+
+| Window | When (Eastern) | What already happens | Good for owner-initiated work |
+| --- | --- | --- | --- |
+| **Weekly maintenance** | **Mon ~11:00 PM – Tue ~12:00 AM** (Tue 03:00–04:00 **UTC**) | Full maintenance page; `nsfwdroid` stopped | DB/catalog work, risky deploys, long Caddy changes |
+| **Maintenance notice** | **Mon ~10:00 PM** (Tue 02:00 **UTC**) | Amber banner only | Communicate upcoming work |
+| **Ingest** | **~2:00 AM, ~10:00 AM, ~6:00 PM** Eastern (06:00 / 14:00 / 22:00 **UTC**) | Brief stop/start (~minutes) | Avoid overlapping manual deploys |
+| **Friday newsletter** | **Fri 9:00 PM** Eastern | Brief stop/start | Avoid if possible |
+
+**DNS / Cloudflare nameserver changes** can cause mixed resolver behavior for hours; prefer **late evening Eastern** or the **weekly maintenance** window. See [cloudflare.md](cloudflare.md).
+
+**Deploy** (`cloud-agent-deploy-droplet.sh`) restarts the app (~seconds of blip); still best during low traffic or right after weekly maintenance.
+
 ### Inside each ingest run (`catalog-ingest-cron.sh`)
 
 When the ingest cron fires, the inner script (always via `catalog-maintenance.sh`) automatically:
