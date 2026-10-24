@@ -357,7 +357,7 @@ That installs every file under `deploy/cron.d/` (ingest 3×/day UTC, watchdog ev
 
 **Newsletter cron** (`nsfwdroid-weekly-newsletter`) runs `scripts/weekly-newsletter-cron.sh` (preflight + ops alert on failure). No-ops unless `NEWSLETTER_ENABLED=1` and sendmail/Brevo is configured. Log: `/var/log/nsfwdroid-newsletter.log`. Runbook: [newsletter-exim-runbook.md](newsletter-exim-runbook.md).
 
-**Homepage hero featured pick** (no featured rail): **automated weekly pick** from the **previous calendar week’s new catalog additions** (`first_seen_at`, Mon–Sun in `NEWSLETTER_WEEKLY_TZ` / America/New_York). If that week had no new titles, the hero walks back up to four earlier weeks. One game per display week; rolls over each **Monday 00:00** in that zone; homepage ISR may cache up to ~1 hour. Override with the first slug in `FEATURED_LISTING_SLUGS`, else hot-traffic / `chart_bucket = featured` fallbacks when no recent additions match:
+**Homepage hero featured pick** (no featured rail): each calendar week (Mon–Sun in `NEWSLETTER_WEEKLY_TZ` / America/New_York), the **newest** browse-visible title **first seen during the previous week** is featured; the following Monday the hero switches to that new “previous week.” Rolls over **Monday 00:00** in that zone; homepage ISR may cache up to ~1 hour. Override with the first slug in `FEATURED_LISTING_SLUGS`, else hot-traffic / `chart_bucket = featured` when the prior week had no ingest:
 
 ```bash
 # FEATURED_LISTING_SLUGS=slug-one,slug-two
