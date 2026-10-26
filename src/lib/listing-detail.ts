@@ -8,6 +8,7 @@ import {
 import { safeCatalogQuery } from "@/lib/db-safe";
 import { displayListingTitle } from "@/lib/listing-display";
 import { filterTagsForBrowseDisplay } from "@/lib/tag-filter";
+import { isListingSlugSafeForPublicUrl } from "@/lib/listing-routes";
 
 export async function getPublishedListingBySlug(slug: string): Promise<Listing | null> {
   const trimmed = slug.trim();
@@ -85,7 +86,7 @@ export async function getPublishedListingsForSitemap(): Promise<ListingSitemapRo
       .from(listings)
       .where(publicCatalogLinkStatus());
   });
-  return result.data;
+  return result.data.filter((row) => isListingSlugSafeForPublicUrl(row.slug));
 }
 
 function storeLabel(source: Listing["source"]): string {

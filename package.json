@@ -27,6 +27,7 @@
     "test:tos-screen": "tsx scripts/test-tos-screen.ts",
     "test:analytics-quality": "tsx scripts/test-outbound-click-record.ts && tsx scripts/test-visitor-click-sql.ts && tsx scripts/test-analytics-session.ts && tsx scripts/test-analytics-purge.ts",
     "test:seo-catalog-revalidate": "tsx scripts/test-seo-catalog-revalidate.ts",
+    "test:sitemap-slug-safety": "tsx scripts/test-sitemap-slug-safety.ts",
     "test:browse-tag-hub-seo": "tsx scripts/test-browse-tag-hub-seo.ts",
     "test-listing-json-ld": "tsx scripts/test-listing-json-ld.ts",
     "test-listing-cover-alt": "tsx scripts/test-listing-cover-alt.ts",

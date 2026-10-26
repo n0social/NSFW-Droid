@@ -5,7 +5,22 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      allow: ["/", "/game/"],
+      allow: [
+        "/",
+        "/browse",
+        "/browse/",
+        "/new",
+        "/videos",
+        "/creators",
+        "/creators/",
+        "/links",
+        "/submit",
+        "/terms",
+        "/privacy",
+        "/affiliate",
+        "/dmca",
+        "/game/",
+      ],
       disallow: [
         "/admin",
         "/admin/",
