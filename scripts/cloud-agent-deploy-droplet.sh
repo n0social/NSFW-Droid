@@ -17,6 +17,7 @@ REMOTE_UPLOAD_DIR="${REMOTE_UPLOAD_DIR:-${REMOTE_ROOT}/.deploy-upload}"
 
 if [[ "$DEPLOY_USER" == "root" ]]; then
   REMOTE_FINISH="chown -R www-data:www-data .
+rm -rf .next/server/route-cache .next/server/app/sitemap.xml.body .next/server/app/sitemap.xml.meta
 systemctl start nsfwdroid
 sleep 3
 curl -sfI http://127.0.0.1:3000/api/health | head -1"
