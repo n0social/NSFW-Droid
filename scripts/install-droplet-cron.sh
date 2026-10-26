@@ -14,6 +14,8 @@ chmod +x \
   "$APP_DIR/scripts/catalog-maintenance.sh" \
   "$APP_DIR/scripts/catalog-ingest-cron.sh" \
   "$APP_DIR/scripts/ensure-nsfwdroid.sh" \
+  "$APP_DIR/scripts/ensure-caddy.sh" \
+  "$APP_DIR/scripts/verify-droplet-ops-env.sh" \
   "$APP_DIR/scripts/maintenance-notice.sh" \
   "$APP_DIR/scripts/weekly-maintenance.sh" \
   "$APP_DIR/scripts/weekly-maintenance-inner.sh" \
@@ -28,8 +30,8 @@ chmod +x \
   "$APP_DIR/scripts/ops-exim-relay-smoke-alert.sh" \
   "$APP_DIR/scripts/health-probe-selftest.sh" 2>/dev/null || true
 
-for f in nsfwdroid-ingest nsfwdroid-watchdog nsfwdroid-maintenance-notice \
-  nsfwdroid-weekly-maintenance nsfwdroid-weekly-newsletter; do
+for f in nsfwdroid-ingest nsfwdroid-watchdog nsfwdroid-caddy-watchdog \
+  nsfwdroid-maintenance-notice nsfwdroid-weekly-maintenance nsfwdroid-weekly-newsletter; do
   src="${CRON_SRC}/${f}"
   if [[ ! -f "$src" ]]; then
     echo "skip missing $src" >&2
@@ -42,6 +44,7 @@ done
 touch \
   /var/log/nsfwdroid-ingest.log \
   /var/log/nsfwdroid-watchdog.log \
+  /var/log/nsfwdroid-caddy-watchdog.log \
   /var/log/nsfwdroid-maintenance-notice.log \
   /var/log/nsfwdroid-weekly-maintenance.log \
   /var/log/nsfwdroid-newsletter.log \
