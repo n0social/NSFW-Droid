@@ -99,6 +99,13 @@
       "when": 1792006600000,
       "tag": "0013_social_outbox",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1792006700000,
+      "tag": "0014_listing_store_description",
+      "breakpoints": true
     }
   ]
 }

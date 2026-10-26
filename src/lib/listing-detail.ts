@@ -9,6 +9,7 @@ import { safeCatalogQuery } from "@/lib/db-safe";
 import { displayListingTitle } from "@/lib/listing-display";
 import { filterTagsForBrowseDisplay } from "@/lib/tag-filter";
 import { isListingSlugSafeForPublicUrl } from "@/lib/listing-routes";
+import { listingSynopsisForSeo } from "@/lib/listing-store-description";
 
 export async function getPublishedListingBySlug(slug: string): Promise<Listing | null> {
   const trimmed = slug.trim();
@@ -117,5 +118,6 @@ export function listingMetaDescription(
     tagLabels.length > 0
       ? ` Tags: ${tagLabels.slice(0, 6).join(", ")}.`
       : "";
-  return `${title}${platformPhrase} — mature game on ${storeLabel(listing.source)}. Open the official store page from NSFW Droid (18+ catalog).${tagPhrase}`;
+  const template = `${title}${platformPhrase} — mature game on ${storeLabel(listing.source)}. Open the official store page from NSFW Droid (18+ catalog).${tagPhrase}`;
+  return listingSynopsisForSeo(listing, template);
 }

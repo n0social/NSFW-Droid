@@ -16,7 +16,7 @@ Root `src/app/layout.tsx` sets a default **Open Graph** and **Twitter** image (`
 Each game page sets:
 
 - `title` (display title from catalog, brackets stripped per `listing-display.ts`)
-- `description` (generated from platforms, store source, and browse-safe tags — no store pricing)
+- `description` — store synopsis when `listing.store_description` is set (Steam `short_description`, itch RSS); otherwise generated from platforms, store source, and browse-safe tags (no store pricing)
 - `alternates.canonical` → `/game/{slug}`
 - **Open Graph** and **Twitter** cards; `summary_large_image` when `cover_image_url` is set
 

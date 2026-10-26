@@ -13,6 +13,7 @@ import {
 import { slugify } from "@/lib/slug";
 import { allocateUniqueListingSlug } from "@/lib/listing-slug";
 import { resolveListingAffiliateUrl } from "@/lib/listing-affiliate";
+import { storeDescriptionFromRawPayload } from "@/lib/listing-store-description";
 
 export async function approveCandidate(
   candidateId: string,
@@ -44,18 +45,23 @@ export async function approveCandidate(
           existingAffiliate: existingListing?.affiliateUrl,
         });
 
+  const storeDescription = storeDescriptionFromRawPayload(c.source, c.rawPayload);
+
   if (existingListing) {
     await copyCandidateTagsToListing(candidateId, existingListing.id);
     const listingPatch = {
       title: c.title,
       officialUrl: c.outboundUrl,
       affiliateUrl,
+      ...(storeDescription ? { storeDescription } : {}),
       updatedAt: new Date(),
     };
     if (
       listingPatch.title !== existingListing.title ||
       listingPatch.officialUrl !== existingListing.officialUrl ||
-      listingPatch.affiliateUrl !== existingListing.affiliateUrl
+      listingPatch.affiliateUrl !== existingListing.affiliateUrl ||
+      (storeDescription &&
+        storeDescription !== (existingListing.storeDescription ?? "").trim())
     ) {
       await db
         .update(listings)
@@ -120,6 +126,7 @@ export async function approveCandidate(
       firstSeenAt: c.firstSeenAt,
       chartBucket: opts?.chartBucket ?? (opts?.chartRank ? "top_grossing" : "new"),
       chartRank: opts?.chartRank ?? null,
+      storeDescription,
     })
     .returning();
 

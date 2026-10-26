@@ -132,6 +132,12 @@ export async function generateMetadata({
       title: `${label} · Browse`,
       description,
       alternates: { canonical: path },
+      openGraph: {
+        title: `${label} · Browse`,
+        description,
+        url: path,
+        type: "website",
+      },
     };
     appendBrowsePaginationLinks(metadata, {
       rail,

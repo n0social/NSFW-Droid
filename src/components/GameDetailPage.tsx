@@ -22,6 +22,7 @@ type Props = {
   listing: Listing;
   tags: Tag[];
   similarGames?: Listing[];
+  storeDescription?: string | null;
   ageVerified: boolean;
   blurCovers: boolean;
   listingCount: number;
@@ -47,6 +48,7 @@ export function GameDetailPage({
   listing,
   tags,
   similarGames = [],
+  storeDescription = null,
   ageVerified,
   blurCovers,
   listingCount,
@@ -91,12 +93,32 @@ export function GameDetailPage({
         />
 
         <main className="mx-auto min-w-0 max-w-7xl px-4 py-6 md:px-6">
-          <Link
-            href="/"
-            className="pointer-events-auto inline-flex min-h-[44px] items-center text-xs font-bold text-[#FF4D8D] hover:underline"
+          <nav
+            aria-label="Breadcrumb"
+            className="pointer-events-auto text-[11px] font-semibold text-[#E9D5FF]/80"
           >
-            ← Back to home
-          </Link>
+            <ol className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <li>
+                <Link href="/" className="text-[#FF4D8D] hover:underline">
+                  Home
+                </Link>
+              </li>
+              <li aria-hidden="true">/</li>
+              <li>
+                <Link href="/browse" className="text-[#FF4D8D] hover:underline">
+                  Browse
+                </Link>
+              </li>
+              <li aria-hidden="true">/</li>
+              <li>
+                <Link href="/new" className="text-[#FF4D8D] hover:underline">
+                  New
+                </Link>
+              </li>
+              <li aria-hidden="true">/</li>
+              <li className="text-[#F9A8D4]">{displayTitle}</li>
+            </ol>
+          </nav>
 
           <article className="pointer-events-auto mx-auto mt-4 max-w-3xl overflow-hidden rounded-2xl border border-[var(--theme-primary)]/30 bg-[#241033] shadow-[0_16px_40px_rgba(0,0,0,0.45)]">
             <div
@@ -153,6 +175,12 @@ export function GameDetailPage({
                   ))}
                 </ul>
               )}
+
+              {storeDescription?.trim() ? (
+                <p className="text-sm leading-relaxed text-[#FFF1F7]/95">
+                  {storeDescription.trim()}
+                </p>
+              ) : null}
 
               <p className="text-sm leading-relaxed text-[#E9D5FF]/90">
                 This listing links out to the official storefront. Purchases and content policies are

@@ -53,7 +53,7 @@ When the ingest cron fires, the inner script (always via `catalog-maintenance.sh
 | Mechanism | Behavior |
 | --- | --- |
 | **systemd** `nsfwdroid.service` | `Restart=always` on crash/OOM; `ExecStartPre` removes stale `postmaster.pid` |
-| **Watchdog** | Stale PGlite lock cleanup + `systemctl restart` before emailing |
+| **Watchdog** | Stale PGlite lock cleanup + `systemctl restart` before emailing; clears **orphaned** `data/.catalog-maintenance.lock` when the PID is dead or the lock is older than `CATALOG_MAINT_LOCK_MAX_AGE_SEC` (default 2h) so ingest crashes do not leave the site down until manual restart |
 
 There is **no GitHub Actions deploy** and **no auto-merge** to production. Merging to `main` updates the repo only until something runs `scripts/cloud-agent-deploy-droplet.sh` (or a human deploy on the droplet).
 
