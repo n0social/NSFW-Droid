@@ -4,6 +4,8 @@ import { ExoClickScript } from "@/components/ExoClickScript";
 import { NewsletterSignup } from "@/components/site/NewsletterSignup";
 import { PwaInstallPrompt } from "@/components/site/PwaInstallPrompt";
 import { shouldShowFooterAds } from "@/lib/ads-config";
+import { browseCatalogPath } from "@/lib/browse-catalog-path";
+import { BROWSE_PLATFORM_HUBS } from "@/lib/browse-platforms";
 import { siteName, siteUrl } from "@/lib/site";
 
 type Props = {
@@ -33,6 +35,18 @@ export function SiteFooter({ ageVerified, showFooterAds = true }: Props) {
       </div>
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-center text-[11px] font-semibold text-[#E9D5FF]/80 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:text-left md:px-6 lg:px-8">
         <nav className="flex flex-wrap justify-center gap-x-4 gap-y-3 sm:justify-start">
+          <Link href="/browse" className="inline-flex min-h-[44px] items-center hover:text-[#FF4D8D] sm:min-h-0">
+            Browse
+          </Link>
+          {BROWSE_PLATFORM_HUBS.map((hub) => (
+            <Link
+              key={hub.slug}
+              href={browseCatalogPath({ platform: hub.slug })}
+              className="inline-flex min-h-[44px] items-center hover:text-[#FF4D8D] sm:min-h-0"
+            >
+              {hub.label}
+            </Link>
+          ))}
           <Link href="/terms" className="inline-flex min-h-[44px] items-center hover:text-[#FF4D8D] sm:min-h-0">
             Terms
           </Link>

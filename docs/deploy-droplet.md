@@ -394,12 +394,12 @@ Configure in `/etc/nsfwdroid.env` (never commit). If `ALERT_EMAIL_TO` is unset, 
 | --- | --- |
 | `ALERT_EMAIL_TO` | Recipient (required to send). `ALERT_EMAIL` is accepted as an alias |
 | `ALERT_EMAIL_FROM` | From address (default `alerts@nsfwdroid.com`). Production uses `NSFW Droid <alerts@nsfwdroid.com>` |
-| `ALERT_EMAIL_TRANSPORT` | `sendmail` (default, Exim on droplet) or `smtp` |
+| `ALERT_EMAIL_TRANSPORT` | `sendmail` (default, Exim on droplet), **`brevo`** (recommended — uses `BREVO_API_KEY` + authenticated domain; avoids Gmail spam), or `smtp` |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | Optional SMTP via `curl` when `ALERT_EMAIL_TRANSPORT=smtp` or as fallback after sendmail failure |
 | `ALERT_DEDUPE_MINUTES` | Same `--key` max once per N minutes (default `30`) |
 | `ALERT_DEDUPE_DIR` | Dedupe stamps (default `/var/lib/nsfwdroid/alert-dedupe`) |
 
-Primary transport: local `sendmail` (Exim on the droplet). Script: `scripts/alert-email.sh` (watchdog, ingest checks, weekly cron failures).
+**Inbox vs spam:** Raw Exim from the droplet IP often lands in Gmail **Spam** until SPF/DKIM align for that IP. Prefer **`ALERT_EMAIL_TRANSPORT=brevo`** after authenticating **nsfwdroid.com** in Brevo (same DNS as newsletter). Script: `scripts/alert-email.sh` → `scripts/send-alert-email.ts`.
 
 Example:
 

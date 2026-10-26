@@ -83,7 +83,7 @@ Without these, scripts **log and skip email**; outages may go unnoticed until yo
 | --- | --- |
 | `ALERT_EMAIL_TO` | **Owner inbox** for all ops alerts (use an address you read on your phone) |
 | `ALERT_EMAIL_FROM` | From line (e.g. `NSFW Droid <alerts@nsfwdroid.com>`) |
-| `ALERT_EMAIL_TRANSPORT` | `sendmail` (droplet Exim default) or `smtp` with `SMTP_*` |
+| `ALERT_EMAIL_TRANSPORT` | `sendmail` (droplet Exim), `brevo` (recommended when `BREVO_API_KEY` is set — DKIM/SPF via Brevo), or `smtp` with `SMTP_*` |
 | `WATCHDOG_RESTART` | `1` (default) — `ensure-nsfwdroid.sh` restarts the app; `0` = alert only |
 | `CADDY_WATCHDOG_RESTART` | `1` (default) — `ensure-caddy.sh` restarts Caddy; `0` = alert only |
 | Local Exim `sendmail` (default) **or** `SMTP_*` with `ALERT_EMAIL_TRANSPORT=smtp` | Delivery — see [deploy-droplet.md § Ops email alerts](deploy-droplet.md#ops-email-alerts) |

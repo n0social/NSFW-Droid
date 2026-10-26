@@ -58,7 +58,6 @@ if [[ -f "$stamp_file" ]]; then
   fi
 fi
 
-FROM="${ALERT_EMAIL_FROM:-alerts@nsfwdroid.com}"
 HOSTNAME_SHORT=$(hostname -s 2>/dev/null || hostname)
 FULL_BODY="[$HOSTNAME_SHORT] $(date -Is)
 
@@ -67,69 +66,16 @@ $BODY
 ---
 NSFW Droid ops alert (key=$KEY)"
 
-sendmail_bin() {
-  if [[ -n "${SENDMAIL_PATH:-}" && -x "${SENDMAIL_PATH}" ]]; then
-    echo "$SENDMAIL_PATH"
-    return 0
-  fi
-  if command -v sendmail >/dev/null 2>&1; then
-    command -v sendmail
-    return 0
-  fi
-  if [[ -x /usr/sbin/sendmail ]]; then
-    echo /usr/sbin/sendmail
-    return 0
-  fi
-  return 1
-}
-
-transport_lc=$(echo "${ALERT_EMAIL_TRANSPORT:-sendmail}" | tr '[:upper:]' '[:lower:]')
-sent=false
-
-try_sendmail() {
-  local bin
-  bin=$(sendmail_bin) || return 1
-  {
-    echo "To: $TO"
-    echo "From: $FROM"
-    echo "Subject: $SUBJECT"
-    echo
-    echo "$FULL_BODY"
-  } | "$bin" -t -oi
-}
-
-if [[ "$transport_lc" != "smtp" ]]; then
-  try_sendmail && sent=true
+APP_DIR="${NSFWDROID_APP_DIR:-/var/www/nsfwdroid}"
+if [[ -d "$APP_DIR/node_modules" ]]; then
+  cd "$APP_DIR"
 fi
 
-if [[ "$sent" == false && -n "${SMTP_HOST:-}" ]]; then
-  SMTP_PORT="${SMTP_PORT:-587}"
-  SMTP_USER="${SMTP_USER:-}"
-  SMTP_PASS="${SMTP_PASS:-}"
-  if command -v curl >/dev/null; then
-    url="smtp://${SMTP_HOST}:${SMTP_PORT}"
-    auth=()
-    if [[ -n "$SMTP_USER" ]]; then
-      auth=(--mail-user "$SMTP_USER:$SMTP_PASS")
-    fi
-    if curl -sf --max-time 30 "${auth[@]}" \
-      --mail-from "$FROM" \
-      --mail-rcpt "$TO" \
-      --url "$url" \
-      -T - <<<"Subject: $SUBJECT
-
-$FULL_BODY"; then
-      sent=true
-    fi
-  fi
-fi
-
-if [[ "$sent" == false && "$transport_lc" == "smtp" ]]; then
-  try_sendmail && sent=true
-fi
-
-if [[ "$sent" == false ]]; then
-  echo "[alert-email] no mail transport configured (install Exim/sendmail or set SMTP_HOST; ALERT_EMAIL_TRANSPORT=sendmail|smtp)" >&2
+if ! npx --yes tsx scripts/send-alert-email.ts \
+  --to "$TO" \
+  --subject "$SUBJECT" \
+  --body "$FULL_BODY"; then
+  echo "[alert-email] send-alert-email.ts failed" >&2
   exit 1
 fi
 

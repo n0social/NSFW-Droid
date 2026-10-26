@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { browseCatalogPath } from "@/lib/browse-catalog-path";
+import { HomeCatalogIntro } from "@/components/HomeCatalogIntro";
 import { useEffect, useMemo, useState } from "react";
 import type { Listing } from "@/db/schema";
 import { GameCard } from "./GameCard";
@@ -58,6 +60,7 @@ export function Storefront({
   featuredHeroSubtitle = null,
 }: Props) {
   const pathname = usePathname();
+  const router = useRouter();
   const [chip, setChip] = useState<ChipId>("all");
 
   useEffect(() => {
@@ -121,7 +124,21 @@ export function Storefront({
             badgeLabel={featuredHeroSubtitle ? "Featured pick" : undefined}
             subtitle={featuredHeroSubtitle ?? undefined}
           />
-          <ChipRow active={chip} onChange={setChip} />
+          <HomeCatalogIntro />
+          <ChipRow
+            active={chip}
+            onChange={(id) => {
+              if (id === "all") {
+                setChip("all");
+                return;
+              }
+              if (id === "new") {
+                router.push("/new");
+                return;
+              }
+              router.push(browseCatalogPath({ platform: id }));
+            }}
+          />
 
           <hr
             className="mb-8 h-1.5 rounded-full border-0 bg-[var(--theme-primary)]/60 md:h-2"

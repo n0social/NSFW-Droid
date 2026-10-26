@@ -17,7 +17,14 @@ import {
   browsePrefsToQueryString,
 } from "@/lib/browse-preferences";
 import { getUserProfile, parseUserPreferences } from "@/lib/user-profile";
+import { browseCatalogDefaultIntro } from "@/lib/browse-catalog-intro";
+import {
+  browsePlatformHubIntro,
+  browsePlatformHubMeta,
+  normalizeBrowsePlatformSlug,
+} from "@/lib/browse-platforms";
 import { browseTagHubIntro } from "@/lib/browse-tag-intro";
+import { hubPageMetadata } from "@/lib/hub-page-metadata";
 import { getSessionUserId } from "@/lib/user-session";
 
 /** Keep in sync with `CATALOG_PAGE_REVALIDATE_SECONDS` (Next.js requires a literal). */
@@ -33,12 +40,13 @@ function paramOne(value: string | string[] | undefined): string | null {
 function browseFiltersFromSearchParams(sp: Record<string, string | string[] | undefined>) {
   const rail = paramOne(sp.rail);
   const tag = paramOne(sp.tag);
+  const platform = paramOne(sp.platform);
   const q = paramOne(sp.q);
   const vanilla = paramOne(sp.vanilla) === "1";
   const sort = paramOne(sp.sort);
   const pageRaw = paramOne(sp.page);
   const page = Math.max(1, parseInt(pageRaw ?? "1", 10) || 1);
-  return { rail, tag, q, vanilla, sort, page };
+  return { rail, tag, platform, q, vanilla, sort, page };
 }
 
 function browseListingsRail(rail: string | null) {
@@ -58,6 +66,7 @@ function appendBrowsePaginationLinks(
   input: {
     rail: string | null;
     tag: string | null;
+    platform: string | null;
     q: string | null;
     vanilla: boolean;
     sort: string | null;
@@ -75,6 +84,7 @@ function appendBrowsePaginationLinks(
   const linkBase = {
     rail: input.rail,
     tag: input.tag,
+    platform: input.platform,
     q: input.q,
     vanilla: input.vanilla,
     sort: catalogSort,
@@ -102,14 +112,19 @@ export async function generateMetadata({
   searchParams: SearchParams;
 }): Promise<Metadata> {
   const sp = await searchParams;
-  const { rail, tag, q, vanilla, sort, page } = browseFiltersFromSearchParams(sp);
+  const { rail, tag, platform, q, vanilla, sort, page } = browseFiltersFromSearchParams(sp);
   const catalogSort = browseCatalogSort(sort);
   const tagSlug = tag?.trim().toLowerCase() || null;
-  const tagOnlyHub = Boolean(tagSlug && !rail && !q && !vanilla && !catalogSort);
+  const platformSlug = normalizeBrowsePlatformSlug(platform);
+  const tagOnlyHub = Boolean(tagSlug && !platformSlug && !rail && !q && !vanilla && !catalogSort);
+  const platformOnlyHub = Boolean(
+    platformSlug && !tagSlug && !rail && !q && !vanilla && !catalogSort,
+  );
 
   const path = browseCatalogPath({
     rail,
     tag,
+    platform: platformSlug,
     q,
     vanilla,
     sort: catalogSort,
@@ -119,23 +134,29 @@ export async function generateMetadata({
   const browse = await getBrowseListings({
     rail: browseListingsRail(rail),
     tag,
+    platform: platformSlug,
     q,
     vanilla,
     sort: catalogSort,
     page,
   });
 
-  if (tagOnlyHub && tagSlug && page === 1) {
-    const label = browse.tags.find((t) => t.slug === tagSlug)?.label ?? tag;
-    const description = browseTagHubIntro(label ?? tagSlug, browse.total);
+  function hubMetadata(title: string, description: string): Metadata {
     const metadata: Metadata = {
-      title: `${label} · Browse`,
+      title,
       description,
       alternates: { canonical: path },
+      openGraph: {
+        title: `${title} · NSFW Droid`,
+        description,
+        url: path,
+        type: "website",
+      },
     };
     appendBrowsePaginationLinks(metadata, {
       rail,
       tag,
+      platform: platformSlug,
       q,
       vanilla,
       sort,
@@ -145,7 +166,28 @@ export async function generateMetadata({
     return metadata;
   }
 
-  const title = page > 1 ? `Browse · Page ${page}` : "Browse";
+  if (tagOnlyHub && tagSlug && page === 1) {
+    const label = browse.tags.find((t) => t.slug === tagSlug)?.label ?? tag;
+    return hubMetadata(`${label} · Browse`, browseTagHubIntro(label ?? tagSlug, browse.total));
+  }
+
+  if (platformOnlyHub && platformSlug && page === 1) {
+    const meta = browsePlatformHubMeta(platformSlug)!;
+    return hubMetadata(
+      meta.seoTitle,
+      browsePlatformHubIntro(meta.label, platformSlug, browse.total),
+    );
+  }
+
+  if (!tagSlug && !platformSlug && !rail && !q && !vanilla && !catalogSort && page === 1) {
+    return hubPageMetadata(
+      path,
+      "Browse NSFW games",
+      browseCatalogDefaultIntro(),
+    );
+  }
+
+  const title = page > 1 ? `Browse NSFW games · Page ${page}` : "Browse NSFW games";
   const metadata: Metadata = {
     title,
     alternates: { canonical: path },
@@ -153,6 +195,7 @@ export async function generateMetadata({
   appendBrowsePaginationLinks(metadata, {
     rail,
     tag,
+    platform: platformSlug,
     q,
     vanilla,
     sort,
@@ -165,12 +208,14 @@ export async function generateMetadata({
 
 export default async function BrowsePage({ searchParams }: { searchParams: SearchParams }) {
   const sp = await searchParams;
-  const { rail, tag, q, vanilla, sort, page } = browseFiltersFromSearchParams(sp);
+  const { rail, tag, platform, q, vanilla, sort, page } = browseFiltersFromSearchParams(sp);
   const catalogSort = browseCatalogSort(sort);
+  const platformSlug = normalizeBrowsePlatformSlug(platform);
 
   const hasUrlFilters = Boolean(
     (rail === "new" || rail === "hot" || rail === "trending") ||
       tag ||
+      platformSlug ||
       q ||
       vanilla ||
       sort === "new",
@@ -198,6 +243,7 @@ export default async function BrowsePage({ searchParams }: { searchParams: Searc
   const browse = await getBrowseListings({
     rail: browseListingsRail(rail),
     tag,
+    platform: platformSlug,
     q,
     vanilla,
     sort: catalogSort,
@@ -206,13 +252,22 @@ export default async function BrowsePage({ searchParams }: { searchParams: Searc
 
   const listingCount = browse.catalogUnavailable ? 0 : await getPublishedListingCount();
 
-  const tagHubIntro =
-    tag && page === 1 && !browse.catalogUnavailable
-      ? browseTagHubIntro(
-          browse.tags.find((t) => t.slug === tag.trim().toLowerCase())?.label ?? tag,
-          browse.total,
-        )
-      : null;
+  let hubIntro: string | null = null;
+  if (page === 1 && !browse.catalogUnavailable) {
+    if (tag) {
+      hubIntro = browseTagHubIntro(
+        browse.tags.find((t) => t.slug === tag.trim().toLowerCase())?.label ?? tag,
+        browse.total,
+      );
+    } else if (platformSlug) {
+      const meta = browsePlatformHubMeta(platformSlug);
+      if (meta) {
+        hubIntro = browsePlatformHubIntro(meta.label, platformSlug, browse.total);
+      }
+    } else if (!rail && !q && !vanilla && !catalogSort) {
+      hubIntro = browseCatalogDefaultIntro();
+    }
+  }
 
   return (
     <div className="relative min-h-screen bg-[var(--background)] text-[var(--foreground)]">
@@ -227,13 +282,14 @@ export default async function BrowsePage({ searchParams }: { searchParams: Searc
         themeAssets={themeAssets}
         initialRail={rail}
         initialTag={tag}
+        initialPlatform={platformSlug}
         initialVanilla={vanilla}
         initialQ={q}
         initialSort={catalogSort}
         totalListings={browse.total}
         page={page}
         pageSize={BROWSE_PAGE_SIZE}
-        tagHubIntro={tagHubIntro}
+        hubIntro={hubIntro}
       />
     </div>
   );
