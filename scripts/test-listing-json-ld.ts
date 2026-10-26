@@ -21,6 +21,7 @@ function baseListing(overrides: Partial<Listing> = {}): Listing {
     chartBucket: null,
     source: "itch",
     externalId: "ext-1",
+    storeDescription: null,
     ...overrides,
   };
 }
