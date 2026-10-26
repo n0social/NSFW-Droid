@@ -3,8 +3,12 @@ import { getBrowseTagHubsForSitemap } from "@/lib/browse-tag-sitemap";
 import { getPublishedListingsForSitemap } from "@/lib/listing-detail";
 import { gameListingPath } from "@/lib/listing-routes";
 import { siteUrl } from "@/lib/site";
-/** Keep in sync with `CATALOG_PAGE_REVALIDATE_SECONDS` (Next.js requires a literal). */
-export const revalidate = 3600;
+/**
+ * Always build the sitemap from the live catalog at request time.
+ * A build-time snapshot (no DB) is only static routes and can mask the real URL list
+ * or serve stale ISR route-cache entries after deploy.
+ */
+export const dynamic = "force-dynamic";
 
 const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: siteUrl, changeFrequency: "daily", priority: 1 },
