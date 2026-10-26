@@ -52,6 +52,7 @@ chmod +x "$APP_DIR/scripts/catalog-maintenance.sh" \
   "$APP_DIR/scripts/check-ingest-overdue.sh" \
   "$APP_DIR/scripts/post-ingest-hooks.sh" \
   "$APP_DIR/scripts/ensure-nsfwdroid.sh" \
+  "$APP_DIR/scripts/ensure-caddy.sh" \
   "$APP_DIR/scripts/alert-email.sh" \
   "$APP_DIR/scripts/ops-alert-email-test.sh" \
   "$APP_DIR/scripts/maintenance-notice.sh" \
@@ -69,6 +70,11 @@ if [[ -f deploy/cron.d/nsfwdroid-watchdog ]]; then
   cp deploy/cron.d/nsfwdroid-watchdog /etc/cron.d/nsfwdroid-watchdog
   chmod 644 /etc/cron.d/nsfwdroid-watchdog
   touch /var/log/nsfwdroid-watchdog.log
+fi
+if [[ -f deploy/cron.d/nsfwdroid-caddy-watchdog ]]; then
+  cp deploy/cron.d/nsfwdroid-caddy-watchdog /etc/cron.d/nsfwdroid-caddy-watchdog
+  chmod 644 /etc/cron.d/nsfwdroid-caddy-watchdog
+  touch /var/log/nsfwdroid-caddy-watchdog.log
 fi
 if [[ -f deploy/cron.d/nsfwdroid-ingest ]]; then
   cp deploy/cron.d/nsfwdroid-ingest /etc/cron.d/nsfwdroid-ingest
