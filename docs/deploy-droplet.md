@@ -322,26 +322,17 @@ Weekly maintenance sets `data/.weekly-maintenance.lock` so the watchdog does **n
 
 Footer signup + double opt-in are live in the app (`POST /api/newsletter/subscribe`). **Mass send** requires `NEWSLETTER_ENABLED=1` in `/etc/nsfwdroid.env`.
 
-**Production (droplet):** set `NEWSLETTER_TRANSPORT=sendmail` and use Exim on the box (see PR branch `cursor/droplet-mail-25f1` for mail ops). **Alternative:** leave transport unset and use Brevo (`BREVO_API_KEY` + authenticated domain).
+**Production (droplet):** `NEWSLETTER_TRANSPORT=sendmail` (default) — Exim on the box signs outbound mail. Runbook: [newsletter-exim-runbook.md](newsletter-exim-runbook.md).
 
 | Variable | Purpose |
 | --- | --- |
 | `NEWSLETTER_ENABLED` | `1` allows `scripts/send-weekly-newsletter.ts` to mail active subscribers |
-| `NEWSLETTER_TRANSPORT` | `sendmail` on the droplet (Exim); omit for Brevo API |
+| `NEWSLETTER_TRANSPORT` | `sendmail` (default, Exim on droplet) |
 | `NEWSLETTER_PUBLIC_BASE_URL` | Confirm/unsubscribe links (default `NEXT_PUBLIC_SITE_URL`) |
-| `BREVO_API_KEY` | Brevo API key when not using sendmail; or [Brevo](https://app.brevo.com) Transactional Email API key |
 | `ALERT_EMAIL_FROM` or `NEWSLETTER_FROM` | From address (quoted in `/etc/nsfwdroid.env`). Optional `NEWSLETTER_FROM_NAME` (default **NSFW Droid**) |
-| `SESSION_SECRET` or `NEWSLETTER_TOKEN_SECRET` | HMAC key for **signed links in email** (weekly one-click unsubscribe, not SMTP auth). Confirm links use a random DB token; weekly mail signs `subscriberId` so you can unsubscribe without storing plaintext tokens. **Independent of transport:** `NEWSLETTER_TRANSPORT=sendmail` (Exim) still needs this secret. **Production:** one of these must be set — `/api/health` warns and mass send aborts if the dev fallback would be used |
+| `SESSION_SECRET` or `NEWSLETTER_TOKEN_SECRET` | HMAC key for **signed links in email** (weekly one-click unsubscribe, not SMTP auth). Confirm links use a random DB token; weekly mail signs `subscriberId` so you can unsubscribe without storing plaintext tokens. **Production:** one of these must be set — `/api/health` warns and mass send aborts if the dev fallback would be used |
 
-**Brevo DNS (NameSilo):** In Brevo → **Senders, Domains & Dedicated IPs** → **Domains** → add `nsfwdroid.com`. Brevo shows records to publish:
-
-| Record | Host | Purpose |
-| --- | --- | --- |
-| TXT | `@` (root) | Domain verification (`brevo-code:…`) — merge with existing TXT if NameSilo only allows one SPF/TXT row (combine SPF strings) |
-| TXT | `@` | SPF: `v=spf1 include:spf.brevo.com ~all` (merge with any existing SPF; only one SPF TXT per domain) |
-| TXT | `mail._domainkey` | DKIM (value from Brevo dashboard) |
-
-If you previously pointed `send.nsfwdroid.com` at Forge for another ESP, that does not satisfy Brevo; you can leave Forge in place for other mail. Wait until Brevo shows the domain as **Authenticated**, then run:
+**Exim DKIM DNS:** On the droplet, `./scripts/print-exim-dkim-dns.sh` prints the TXT for `nsfwdroid._domainkey.nsfwdroid.com` (or your `DKIM_SELECTOR` / domain). SPF on `@` should include the droplet IP. Verify:
 
 ```bash
 tsx scripts/check-newsletter-dns.ts
@@ -427,7 +418,7 @@ Or manually: `./scripts/alert-email.sh --key "manual-test-$(date -u +%s)" --subj
 | --- | --- |
 | Transport | Ops alerts and newsletter both use **Exim sendmail** on the droplet by default. Align DNS (SPF/DKIM/DMARC) for **nsfwdroid.com** so Gmail accepts mail from the droplet IP or relay. |
 | From alignment | Keep `ALERT_EMAIL_FROM` on **nsfwdroid.com** (e.g. `NSFW Droid <alerts@nsfwdroid.com>`). |
-| Exim → Gmail | Mail from a VPS IP without aligned DNS often lands in **Spam** or is deferred. After the first delivery, open Gmail **Spam** once and “Report not spam” for `ALERT_EMAIL_FROM`. For stubborn deliverability, set `ALERT_EMAIL_TRANSPORT=smtp` with authenticated SMTP instead of raw sendmail. |
+| Exim → Gmail | Publish Exim DKIM (`print-exim-dkim-dns.sh`) and confirm SPF includes the droplet IP. Without DKIM in DNS, Gmail often files mail as **Spam**. After the first delivery, open Gmail **Spam** once and “Report not spam” for `ALERT_EMAIL_FROM`. Optional: `ALERT_EMAIL_TRANSPORT=smtp` with `SMTP_*` (e.g. Gmail App Password). |
 | Reply-To / List-Unsubscribe | Transactional ops alerts do not need `List-Unsubscribe`. Optional `Reply-To` to the same `alerts@…` address if bounces confuse filters. |
 | Recipient | Set `ALERT_EMAIL_TO` to the mailbox you read on your phone. `ALERT_EMAIL` is an alias for the same variable. |
 

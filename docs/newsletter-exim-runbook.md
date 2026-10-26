@@ -1,6 +1,17 @@
 # Newsletter & Exim — zero-touch ops runbook
 
-Sendmail-first on the droplet (`NEWSLETTER_TRANSPORT=sendmail`). Brevo paths remain when transport is Brevo.
+Sendmail-first on the droplet (`NEWSLETTER_TRANSPORT=sendmail`). Ops alerts use the same Exim path (`ALERT_EMAIL_TRANSPORT=sendmail`).
+
+## Gmail inbox (not spam) without a third-party API
+
+Exim on the droplet **already DKIM-signs** outbound mail (`DKIM_SELECTOR=nsfwdroid`). Gmail often files messages as spam when the **public key is missing in DNS**.
+
+1. On the droplet: `./scripts/print-exim-dkim-dns.sh`
+2. Add the printed **TXT** at `nsfwdroid._domainkey.nsfwdroid.com` in Cloudflare (DNS only).
+3. Confirm SPF includes the droplet: `dig +short TXT nsfwdroid.com` should contain `ip4:159.203.136.220`.
+4. Re-run `./scripts/ops-alert-email-test.sh` and check **Primary** (may take up to an hour for DNS).
+
+Optional: route ops mail through your mailbox provider with `ALERT_EMAIL_TRANSPORT=smtp` and `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` (e.g. Gmail App Password) if you prefer not to publish DKIM.
 
 ## Health
 

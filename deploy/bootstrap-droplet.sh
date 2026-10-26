@@ -55,6 +55,7 @@ chmod +x "$APP_DIR/scripts/catalog-maintenance.sh" \
   "$APP_DIR/scripts/ensure-caddy.sh" \
   "$APP_DIR/scripts/alert-email.sh" \
   "$APP_DIR/scripts/ops-alert-email-test.sh" \
+  "$APP_DIR/scripts/print-exim-dkim-dns.sh" \
   "$APP_DIR/scripts/maintenance-notice.sh" \
   "$APP_DIR/scripts/weekly-maintenance.sh" \
   "$APP_DIR/scripts/weekly-maintenance-inner.sh" \

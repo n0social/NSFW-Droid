@@ -1,7 +1,7 @@
 import { siteUrl } from "@/lib/site";
 
 export const DEFAULT_NEWSLETTER_FROM_NAME = "NSFW Droid";
-/** Fallback when no From env is set (local dev only — Brevo requires a verified domain in production). */
+/** Fallback when no From env is set (local dev only). */
 const NEWSLETTER_DEV_FALLBACK_FROM = "newsletter@example.com";
 
 /** Parses `Display Name <addr@domain>` or a bare email address. */
@@ -61,18 +61,16 @@ export function isNewsletterMassSendEnabled(): boolean {
   return process.env.NEWSLETTER_ENABLED === "1";
 }
 
-/** Droplet Exim uses sendmail. Anything else stays on Brevo. */
+/** Production uses droplet Exim (`sendmail`). Legacy `brevo` is ignored — use sendmail or SMTP relay. */
 export function newsletterTransport(): "sendmail" | "brevo" {
   const transport = process.env.NEWSLETTER_TRANSPORT?.trim().toLowerCase();
-  if (transport === "sendmail") return "sendmail";
-  return "brevo";
+  if (transport === "brevo") return "brevo";
+  return "sendmail";
 }
 
-/** True when `sendNewsletterEmail` can send (Brevo key or local sendmail transport). */
+/** True when `sendNewsletterEmail` can send (sendmail on droplet; legacy Brevo only if explicitly configured). */
 export function isNewsletterEmailDeliveryConfigured(): boolean {
-  if (newsletterTransport() === "sendmail") {
-    return true;
-  }
+  if (newsletterTransport() === "sendmail") return true;
   return Boolean(process.env.BREVO_API_KEY?.trim());
 }
 

@@ -140,12 +140,12 @@ Stub implementation: `scripts/weekly-newsletter-pick.ts` (JSON to stdout for cro
 | --- | --- | --- |
 | 1. Rankings query | `scripts/weekly-newsletter-pick.ts` | Run manually: `tsx scripts/weekly-newsletter-pick.ts` |
 | 2. HTML template | `emails/weekly-top-six.tsx` (React Email) **or** `emails/weekly-top-six.html` | React Email needs `react-email` + `@react-email/components` dependency when implemented |
-| 3. Send batch | `scripts/send-weekly-newsletter.ts` | Brevo Transactional API; gated on `NEWSLETTER_ENABLED=1` |
+| 3. Send batch | `scripts/send-weekly-newsletter.ts` | Exim `sendmail`; gated on `NEWSLETTER_ENABLED=1` |
 | 4. Cron | Droplet `cron` or post–`weekly-maintenance-inner.sh` | After ingest; log to `/var/log/nsfwdroid-newsletter.log` |
-| 5. Subscribe API | `POST /api/newsletter/subscribe` | Double opt-in email via Brevo |
+| 5. Subscribe API | `POST /api/newsletter/subscribe` | Double opt-in email via Exim `sendmail` |
 | 6. Unsubscribe | Signed HMAC link + `List-Unsubscribe` | One-click per CAN-SPAM |
 
-**Brevo / from-address:** `BREVO_API_KEY`, `NEWSLETTER_FROM` or `ALERT_EMAIL_FROM` (domain authenticated in Brevo). See [deploy-droplet.md](deploy-droplet.md) and [.env.example](../.env.example).
+**Mail / from-address:** `NEWSLETTER_TRANSPORT=sendmail`, `NEWSLETTER_FROM` or `ALERT_EMAIL_FROM`, Exim DKIM DNS. See [newsletter-exim-runbook.md](newsletter-exim-runbook.md), [deploy-droplet.md](deploy-droplet.md), and [.env.example](../.env.example).
 
 **Env flags (Phase 1):**
 
