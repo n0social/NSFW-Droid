@@ -33,6 +33,11 @@ for path in "/browse" "/game/"; do
   fi
 done
 
+if ! grep -qi '^User-agent:[[:space:]]*Googlebot' "$TMP"; then
+  echo "FAIL: robots.txt missing User-agent: Googlebot block (deploy src/app/robots.ts change)" >&2
+  exit 1
+fi
+
 if grep -q 'BEGIN Cloudflare Managed content' "$TMP"; then
   echo "warn: Cloudflare Managed robots.txt block is prepended (review in CF dashboard; Googlebot not in AI-agent disallow list)"
 fi

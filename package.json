@@ -44,6 +44,7 @@
     "db:studio": "drizzle-kit studio",
     "creators:verify-blender-assets": "tsx scripts/verify-creator-assets-links.ts",
     "test:seo-utility": "tsx scripts/test-seo-utility-robots.ts",
+    "test:site-json-ld": "tsx scripts/test-site-json-ld.ts",
     "test:seo-canonical-host": "tsx scripts/test-seo-canonical-host.ts",
     "test:ads-popunder-config": "tsx scripts/test-ads-popunder-config.ts",
     "test:listing-play-popunder-eligibility": "tsx scripts/test-listing-play-popunder-eligibility.ts",

@@ -9,6 +9,7 @@ import { resolveThemeForRequest } from "@/lib/themes/preferences";
 import { themeDecorUrls } from "@/lib/themes/asset-url";
 import { resolveLayoutDecorForTheme } from "@/lib/themes/layout-decor";
 import { getRecentVideos, hasEnabledVideoFeeds } from "@/lib/video-feeds";
+import { buildSiteWebSiteJsonLd } from "@/lib/site-json-ld";
 import { siteName } from "@/lib/site";
 
 /** Keep in sync with `CATALOG_PAGE_REVALIDATE_SECONDS` (Next.js requires a literal). */
@@ -37,8 +38,14 @@ export default async function HomePage() {
   const recentVideos =
     hasEnabledVideoFeeds() ? (await getRecentVideos(8)).items : [];
 
+  const siteJsonLd = buildSiteWebSiteJsonLd();
+
   return (
     <div className="relative min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd) }}
+      />
       <Storefront
         layoutDecor={layoutDecor}
         ageVerified={ageVerified}

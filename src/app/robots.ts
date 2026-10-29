@@ -1,41 +1,24 @@
 import type { MetadataRoute } from "next";
+import { catalogRobotsAllow, catalogRobotsDisallow } from "@/lib/robots-paths";
 import { siteUrl } from "@/lib/site";
+
+const catalogRules = {
+  allow: [...catalogRobotsAllow],
+  disallow: [...catalogRobotsDisallow],
+};
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: {
-      userAgent: "*",
-      allow: [
-        "/",
-        "/browse",
-        "/browse/",
-        "/new",
-        "/videos",
-        "/creators",
-        "/creators/",
-        "/links",
-        "/submit",
-        "/terms",
-        "/privacy",
-        "/affiliate",
-        "/dmca",
-        "/game/",
-      ],
-      disallow: [
-        "/admin",
-        "/admin/",
-        "/api/",
-        "/account/",
-        "/sign-in",
-        "/sign-up",
-        "/settings",
-        "/settings/",
-        "/newsletter",
-        "/newsletter/",
-        "/underage",
-        "/underage/",
-      ],
-    },
+    rules: [
+      {
+        userAgent: "Googlebot",
+        ...catalogRules,
+      },
+      {
+        userAgent: "*",
+        ...catalogRules,
+      },
+    ],
     sitemap: `${siteUrl}/sitemap.xml`,
   };
 }
