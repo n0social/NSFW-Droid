@@ -20,6 +20,7 @@ These jobs are installed from `deploy/cron.d/` via `scripts/install-droplet-cron
 | **Tue 02:00 UTC** | `nsfwdroid-maintenance-notice` | `scripts/maintenance-notice.sh` | Amber **banner** (site still up); `maintenanceNotice` on `/api/health` | Optional 1h warning before weekly window |
 | **Tue 03:00–04:00 UTC** | `nsfwdroid-weekly-maintenance` | `scripts/weekly-maintenance.sh` → `weekly-maintenance-inner.sh` | **Maintenance page** while `nsfwdroid` stopped (Caddy 502/503/504 path) | Start, failure, and success emails (daily keys) |
 | **Fri 21:00 America/New_York** | `nsfwdroid-weekly-newsletter` | `catalog-maintenance.sh` → `send-weekly-newsletter.ts` | Brief stop/start for PGlite | No ops mail (member newsletter only) |
+| **Daily 07:15 UTC** | `nsfwdroid-gsc-sync` | `scripts/gsc-sync.ts` | None (reads GSC API, writes cache file) | No (see `/admin/search`; requires `GSC_SERVICE_ACCOUNT_JSON`) |
 
 ### Human-scheduled changes (DNS, deploy, maintenance)
 

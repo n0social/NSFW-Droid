@@ -2,7 +2,7 @@
 
 Operational guide for **NSFW Droid** search visibility. The app serves crawlable catalog HTML at **`https://www.nsfwdroid.com`**; GSC **Performance** (clicks/impressions) often lags live traffic by **48–72 hours** and can look “flat” after sitemap or robots fixes while Google reprocesses URLs.
 
-No Search Console API or service account is required for normal operations.
+No Search Console API is required for normal owner operations (sitemap, URL inspection). To mirror **Performance** metrics inside **`/admin/search`**, configure the API per [search-console-api.md](search-console-api.md).
 
 ---
 

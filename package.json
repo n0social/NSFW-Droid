@@ -54,7 +54,8 @@
     "test:weekly-featured-rotation": "tsx scripts/test-weekly-featured-rotation.ts",
     "test:featured-hero-env": "tsx scripts/test-featured-listing-slugs.ts",
     "test:featured-override": "tsx scripts/test-featured-override.ts",
-    "test:catalog-week": "tsx scripts/test-catalog-week.ts"
+    "test:catalog-week": "tsx scripts/test-catalog-week.ts",
+    "test:gsc": "tsx scripts/test-gsc-config.ts && tsx scripts/test-gsc-cache.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.10",

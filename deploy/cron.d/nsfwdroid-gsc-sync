@@ -1,0 +1,4 @@
+# Daily Search Console cache for admin /admin/search (07:15 UTC)
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+15 7 * * * root set -a && . /etc/nsfwdroid.env && set +a && cd /var/www/nsfwdroid && npx --yes tsx scripts/gsc-sync.ts >> /var/log/nsfwdroid-gsc-sync.log 2>&1

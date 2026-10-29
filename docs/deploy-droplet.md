@@ -123,6 +123,7 @@ NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER_MOBILE=
 - **Google Analytics:** use the Firebase web app **measurementId** (`G-…`) in `NEXT_PUBLIC_GA_MEASUREMENT_ID` (see [firebase-setup.md](firebase-setup.md)). Rebuild (`npm run build`), restart `nsfwdroid`.
 - First-party rails still use `analytics_event` in Postgres/PGlite; GA is for marketing and funnel views.
 - **Favorites** need full Firebase client env vars **and** `FIREBASE_SERVICE_ACCOUNT_JSON` + `SESSION_SECRET` on the droplet. Without them, hearts are hidden (`isFirebaseConfigured()`). Set all keys in `/etc/nsfwdroid.env`, then `systemctl restart nsfwdroid`.
+- **Search (GSC) in admin** (`/admin/search`): optional `GSC_SERVICE_ACCOUNT_JSON` + GSC property user invite; daily `scripts/gsc-sync.ts` via `deploy/cron.d/nsfwdroid-gsc-sync`. See [search-console-api.md](search-console-api.md). No rebuild required for env-only GSC keys.
 
 ---
 

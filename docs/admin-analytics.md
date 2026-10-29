@@ -22,6 +22,7 @@ Each browser gets `analytics_sid` (httpOnly) so unique-browser counts are not th
 
 - **Visitors only** (default): play-click SQL + tagged-row exclusion.
 - **All events**: raw `outbound_click` rows (includes crawler GETs and old noise). Use for debugging only.
+- **Search (GSC)** (`/admin/search`): Google Search Performance via API when configured — see [search-console-api.md](search-console-api.md). Not the same as play-click totals on the dashboard.
 
 ## Testing without polluting stats
 
