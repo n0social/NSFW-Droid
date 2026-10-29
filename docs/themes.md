@@ -57,7 +57,7 @@ Default (non-holiday) colors are compiled from `src/lib/themes/default-theme.ts`
 | `data/themes/<id>/*.svg` | Extra assets via `/api/theme/asset/<id>/<filename>` |
 | `src/lib/themes/` | Registry, `resolveActiveTheme()`, cookie preference |
 | `src/lib/user-session.ts` | `isSignedIn()` via httpOnly session cookie (Firebase) |
-| `src/components/theme/ThemeProvider.tsx` | Signed-in-only opt-out banner (theme name + `/api/theme/icon/<id>`) |
+| `src/components/theme/ThemeProvider.tsx` | Optional holiday opt-out UI (account page; not shown on storefront) |
 | `POST /api/theme/override` | `{ "preference": "default" \| "auto" }` → `theme_override` httpOnly cookie |
 
 Production can add `data/themes/new-holiday/` on the droplet without redeploying JS: drop the package files, restart `nsfwdroid` if the process caches the registry (in-memory cache clears on restart).
@@ -98,7 +98,7 @@ Storefront chrome (`SiteHeader`, home page shell, blur chip) reads these where p
 
 ## Signed-in UI
 
-`ThemeProvider` shows **Remove holiday theme** only when `isSignedIn()` is true (Firebase session cookie). When a holiday is active, the banner shows the theme name and a small icon from `/api/theme/icon/<id>`. The override API still works for any visitor via the `theme_override` cookie. Account page duplicates the opt-out for signed-in users.
+Holiday theme opt-out for signed-in users lives on the **Account** page (`/account`). The override API still works for any visitor via the `theme_override` cookie.
 
 ## Validation checklist
 

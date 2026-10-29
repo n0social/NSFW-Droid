@@ -17,6 +17,12 @@ const PLATFORM_BRACKET = new Set([
   "free",
 ]);
 
+/** SEO / a11y alt text for listing cover images (cards, detail hero, OG). */
+export function listingCoverImageAlt(displayTitle: string): string {
+  const trimmed = displayTitle.trim();
+  return trimmed || "Game cover";
+}
+
 /** itch browse titles embed price/platform tags in brackets; strip for card/hero display only. */
 export function displayListingTitle(storedTitle: string): string {
   let out = storedTitle.replace(BRACKET_SEGMENT_RE, (full, inner: string) => {

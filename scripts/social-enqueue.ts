@@ -2,6 +2,7 @@ import "dotenv/config";
 import { closeCatalogDb, getDb } from "../src/db";
 import { isSocialEnqueueEnabled } from "../src/lib/social/config";
 import { enqueueSocialForNewListings } from "../src/lib/social/enqueue";
+import { appendSocialLog } from "../src/lib/social/log";
 
 async function main() {
   if (!isSocialEnqueueEnabled()) {
@@ -12,7 +13,9 @@ async function main() {
   const db = await getDb();
   try {
     const result = await enqueueSocialForNewListings(db);
-    console.log(JSON.stringify({ ok: true, ...result }));
+    const payload = { ok: true, ...result };
+    appendSocialLog({ event: "enqueue", ...payload });
+    console.log(JSON.stringify(payload));
   } finally {
     await closeCatalogDb();
   }

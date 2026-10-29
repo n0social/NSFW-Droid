@@ -1,5 +1,7 @@
+import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { Storefront } from "@/components/Storefront";
+import { hubPageMetadata } from "@/lib/hub-page-metadata";
 import { isAgeVerifiedRequest } from "@/lib/age-verified-server";
 import { BLUR_COVERS_COOKIE, parseBlurCovers } from "@/lib/cookies";
 import { getListingsForStorefront, getPublishedListingCount } from "@/lib/listings";
@@ -7,8 +9,16 @@ import { resolveThemeForRequest } from "@/lib/themes/preferences";
 import { themeDecorUrls } from "@/lib/themes/asset-url";
 import { resolveLayoutDecorForTheme } from "@/lib/themes/layout-decor";
 import { getRecentVideos, hasEnabledVideoFeeds } from "@/lib/video-feeds";
+import { siteName } from "@/lib/site";
 
-export const dynamic = "force-dynamic";
+/** Keep in sync with `CATALOG_PAGE_REVALIDATE_SECONDS` (Next.js requires a literal). */
+export const revalidate = 3600;
+
+export const metadata: Metadata = hubPageMetadata(
+  "/",
+  { absolute: `${siteName} — curated adult game catalog` },
+  "Discover trending and newly listed NSFW games on itch.io, Steam, Nutaku, and official stores. Rankings, featured picks, and outbound links only — purchases on storefronts.",
+);
 
 export default async function HomePage() {
   const jar = await cookies();
@@ -34,13 +44,14 @@ export default async function HomePage() {
         ageVerified={ageVerified}
         blurCovers={blurCovers}
         topGrossing={storefront.topGrossing}
-        featured={storefront.featured}
+        featuredHeroPick={storefront.featuredHeroPick}
         newReleases={storefront.newReleases}
         recentVideos={recentVideos}
         rankingsFromAnalytics={storefront.rankingsFromAnalytics}
         all={storefront.all}
         listingCount={listingCount}
         catalogUnavailable={storefront.catalogUnavailable}
+        featuredHeroSubtitle={storefront.featuredHeroSubtitle}
         themeAssets={themeAssets}
       />
     </div>

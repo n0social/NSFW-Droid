@@ -1,8 +1,13 @@
 import type { MetadataRoute } from "next";
+import { getBrowseTagHubsForSitemap } from "@/lib/browse-tag-sitemap";
 import { getPublishedListingsForSitemap } from "@/lib/listing-detail";
 import { gameListingPath } from "@/lib/listing-routes";
 import { siteUrl } from "@/lib/site";
-
+/**
+ * Always build the sitemap from the live catalog at request time.
+ * A build-time snapshot (no DB) is only static routes and can mask the real URL list
+ * or serve stale ISR route-cache entries after deploy.
+ */
 export const dynamic = "force-dynamic";
 
 const STATIC_ROUTES: MetadataRoute.Sitemap = [
@@ -23,7 +28,11 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const rows = await getPublishedListingsForSitemap();
+  const [rows, tagHubs] = await Promise.all([
+    getPublishedListingsForSitemap(),
+    getBrowseTagHubsForSitemap(),
+  ]);
+
   const gameEntries: MetadataRoute.Sitemap = rows.map((row) => ({
     url: `${siteUrl}${gameListingPath(row.slug)}`,
     lastModified: row.updatedAt,
@@ -31,5 +40,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...STATIC_ROUTES, ...gameEntries];
+  const tagHubEntries: MetadataRoute.Sitemap = tagHubs.map((hub) => ({
+    url: `${siteUrl}/browse?tag=${encodeURIComponent(hub.slug)}`,
+    lastModified: hub.updatedAt,
+    changeFrequency: "weekly",
+    priority: 0.62,
+  }));
+
+  return [...STATIC_ROUTES, ...tagHubEntries, ...gameEntries];
 }

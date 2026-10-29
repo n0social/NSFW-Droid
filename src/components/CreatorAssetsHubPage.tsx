@@ -20,6 +20,7 @@ import {
   type SfmTutorialMediaType,
 } from "@/lib/creator-assets-sfm-tutorials-curated";
 import { CREATOR_ASSETS_SECTIONS } from "@/lib/creator-assets-hub";
+import { OutboundPopunderLink } from "@/components/OutboundPopunderLink";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
@@ -39,14 +40,23 @@ const TUTORIAL_TYPE_BADGE: Record<SfmTutorialMediaType, string> = {
   "forum thread": "Forum",
 };
 
-function TutorialOutboundCard({ item, index }: { item: CuratedSfmTutorial; index: number }) {
+function TutorialOutboundCard({
+  item,
+  index,
+  ageVerified,
+}: {
+  item: CuratedSfmTutorial;
+  index: number;
+  ageVerified: boolean;
+}) {
   const gradient = CARD_GRADIENTS[index % CARD_GRADIENTS.length];
   return (
     <article
       className="flex h-full flex-col rounded-2xl border border-[var(--theme-primary)]/25 bg-[var(--theme-surface)]/70 shadow-[0_8px_24px_rgba(0,0,0,0.35)]"
     >
-      <a
+      <OutboundPopunderLink
         href={item.href}
+        ageVerified={ageVerified}
         target="_blank"
         rel="noopener noreferrer"
         className="group flex flex-1 flex-col p-4 sm:p-5"
@@ -65,7 +75,7 @@ function TutorialOutboundCard({ item, index }: { item: CuratedSfmTutorial; index
         <p className="mt-4 text-[10px] font-bold uppercase tracking-wide text-[#FF4D8D]">
           External tutorial →
         </p>
-      </a>
+      </OutboundPopunderLink>
     </article>
   );
 }
@@ -83,7 +93,15 @@ type CuratedOutboundLink = {
   licenseNote?: string;
 };
 
-function CuratedOutboundCard({ item, index }: { item: CuratedOutboundLink; index: number }) {
+function CuratedOutboundCard({
+  item,
+  index,
+  ageVerified,
+}: {
+  item: CuratedOutboundLink;
+  index: number;
+  ageVerified: boolean;
+}) {
   const initial = item.name.trim().charAt(0).toUpperCase();
   const gradient = CARD_GRADIENTS[index % CARD_GRADIENTS.length];
 
@@ -91,8 +109,9 @@ function CuratedOutboundCard({ item, index }: { item: CuratedOutboundLink; index
     <article
       className="flex h-full flex-col rounded-2xl border border-[var(--theme-primary)]/25 bg-[var(--theme-surface)]/70 shadow-[0_8px_24px_rgba(0,0,0,0.35)]"
     >
-      <a
+      <OutboundPopunderLink
         href={item.href}
+        ageVerified={ageVerified}
         target="_blank"
         rel="noopener noreferrer"
         className="group flex flex-1 flex-col p-4 sm:p-5"
@@ -121,7 +140,7 @@ function CuratedOutboundCard({ item, index }: { item: CuratedOutboundLink; index
         <p className="mt-4 text-[10px] font-bold uppercase tracking-wide text-[#FF4D8D]">
           External download →
         </p>
-      </a>
+      </OutboundPopunderLink>
     </article>
   );
 }
@@ -209,7 +228,7 @@ export function CreatorAssetsHubPage({
                   <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {items.map((item, index) => (
                       <li key={item.id}>
-                        <CuratedOutboundCard item={item} index={index} />
+                        <CuratedOutboundCard item={item} index={index} ageVerified={ageVerified} />
                       </li>
                     ))}
                   </ul>
@@ -250,7 +269,7 @@ export function CreatorAssetsHubPage({
                   <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {items.map((item, index) => (
                       <li key={item.id}>
-                        <TutorialOutboundCard item={item} index={index} />
+                        <TutorialOutboundCard item={item} index={index} ageVerified={ageVerified} />
                       </li>
                     ))}
                   </ul>
@@ -282,7 +301,7 @@ export function CreatorAssetsHubPage({
                   <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {items.map((item: CuratedCreatorAssetsBlenderLink, index: number) => (
                       <li key={item.id}>
-                        <CuratedOutboundCard item={item} index={index} />
+                        <CuratedOutboundCard item={item} index={index} ageVerified={ageVerified} />
                       </li>
                     ))}
                   </ul>

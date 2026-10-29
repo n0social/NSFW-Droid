@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
 import { CreatorSfmTutorialsPage } from "@/components/CreatorSfmTutorialsPage";
+import { hubPageMetadata } from "@/lib/hub-page-metadata";
 import { isAgeVerifiedRequest } from "@/lib/age-verified-server";
 import { getPublishedListingCount } from "@/lib/listings";
 import { resolveThemeForRequest } from "@/lib/themes/preferences";
@@ -8,11 +8,11 @@ import { resolveLayoutDecorForTheme } from "@/lib/themes/layout-decor";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "NSFW SFM tutorials",
-  description:
-    "Curated outbound tutorials for adult Source Filmmaker: install, rigging, lighting, SmutBase/SFMLab, and S2FM.",
-};
+export const metadata = hubPageMetadata(
+  "/creators/tutorials",
+  "NSFW SFM tutorials",
+  "Curated outbound tutorials for adult Source Filmmaker: install, rigging, lighting, SmutBase/SFMLab, and S2FM.",
+);
 
 export default async function CreatorSfmTutorialsRoutePage() {
   const ageVerified = await isAgeVerifiedRequest();

@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
 import { CreatorAssetsHubPage } from "@/components/CreatorAssetsHubPage";
+import { hubPageMetadata } from "@/lib/hub-page-metadata";
 import { isAgeVerifiedRequest } from "@/lib/age-verified-server";
 import { getPublishedListingCount } from "@/lib/listings";
 import { resolveThemeForRequest } from "@/lib/themes/preferences";
@@ -8,11 +8,11 @@ import { resolveLayoutDecorForTheme } from "@/lib/themes/layout-decor";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Creator assets",
-  description:
-    "Curated outbound links to NSFW sound effects, moan libraries, and SFMLab audio for adult game and SFM creators.",
-};
+export const metadata = hubPageMetadata(
+  "/creators/assets",
+  "Creator assets",
+  "Curated outbound links to NSFW sound effects, moan libraries, and SFMLab audio for adult game and SFM creators.",
+);
 
 export default async function CreatorAssetsRoutePage() {
   const ageVerified = await isAgeVerifiedRequest();

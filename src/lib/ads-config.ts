@@ -51,6 +51,56 @@ export function exoclickLiveReady(): boolean {
   return Boolean(script && banner);
 }
 
+/** Desktop / web popunder zone (`idzone` in ExoClick popunder adConfig). */
+export function exoclickPopunderZoneId(): string | undefined {
+  const id = process.env.NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER?.trim();
+  return id || undefined;
+}
+
+/** Mobile popunder zone (separate ExoClick zone for phone traffic). */
+export function exoclickPopunderZoneIdMobile(): string | undefined {
+  const id = process.env.NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER_MOBILE?.trim();
+  return id || undefined;
+}
+
+/**
+ * Path or absolute URL to the popunder loader (paste dashboard snippet into
+ * `public/exoclick-popunder.js` on the droplet, or host elsewhere).
+ */
+export function exoclickPopunderScriptSrc(): string | undefined {
+  const raw = process.env.NEXT_PUBLIC_EXOCLICK_POPUNDER_SCRIPT_SRC?.trim();
+  if (raw) return raw;
+  if (exoclickPopunderZoneId() || exoclickPopunderZoneIdMobile()) return "/exoclick-popunder.js";
+  return undefined;
+}
+
+export function exoclickPopunderLiveReady(): boolean {
+  if (!isAdsEnabled()) return false;
+  const hasZone = exoclickPopunderZoneId() || exoclickPopunderZoneIdMobile();
+  return Boolean(hasZone && exoclickPopunderScriptSrc());
+}
+
+/**
+ * Optional client localStorage cap between popunder iframe fires.
+ * **0** (default) = attempt monetization on every eligible outbound click.
+ * Set e.g. `30` to throttle iframe hops (visible UX is still one store tab per click).
+ */
+export function exoclickPopunderFrequencyMinutes(): number {
+  const raw = process.env.NEXT_PUBLIC_EXOCLICK_POPUNDER_FREQUENCY_MINUTES?.trim();
+  if (!raw) return 0;
+  const n = Number.parseInt(raw, 10);
+  if (!Number.isFinite(n) || n < 1) return 0;
+  return Math.min(n, 24 * 60);
+}
+
+/** Play-click popunder: same gates as footer ads (age + no ad-free tier). */
+export function shouldShowPlayPopunder(ageVerified: boolean): boolean {
+  if (!exoclickPopunderLiveReady()) return false;
+  if (!ageVerified) return false;
+  if (hasAdFreeSubscription()) return false;
+  return true;
+}
+
 type ExoClickWindow = Window & {
   AdProvider?: Array<{ serve?: Record<string, never> }>;
 };

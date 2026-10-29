@@ -14,7 +14,9 @@ import {
   attachAnalyticsSession,
   createAnalyticsSessionId,
 } from "@/lib/analytics-session";
-import { AGE_VERIFIED_COOKIE } from "@/lib/cookies";
+import { AGE_VERIFIED_COOKIE, parseAgeVerified } from "@/lib/cookies";
+import { shouldServeExoclickRedirectInterstitial } from "@/lib/exoclick-go-interstitial";
+import { scheduleExoclickPopunderSyndicationHit } from "@/lib/exoclick-popunder-server";
 import { isValidOutboundUrl, resolveOutboundLink } from "@/lib/outbound-link";
 import { cookies } from "next/headers";
 
@@ -43,7 +45,7 @@ export async function GET(
     const ageCookie = jar.get(AGE_VERIFIED_COOKIE)?.value;
     const referrer = request.headers.get("referer");
     const siteHost = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-    const ageVerified = ageCookie === "1";
+    const ageVerified = parseAgeVerified(ageCookie);
     const record = shouldRecordOutboundClick({
       requestUrl: request.url,
       siteHost,
@@ -54,7 +56,13 @@ export async function GET(
       adminSession: await isAdminSession(),
     });
 
+    if (shouldServeExoclickRedirectInterstitial(ageVerified, row)) {
+      scheduleExoclickPopunderSyndicationHit(request.headers.get("user-agent"));
+    }
+
     const redirect = NextResponse.redirect(url, 302);
+    redirect.headers.set("Referrer-Policy", "no-referrer");
+
     if (!record) return redirect;
 
     const existing = analyticsSessionIdFromCookie(jar.get(ANALYTICS_SESSION_COOKIE)?.value);

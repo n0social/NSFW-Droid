@@ -1,7 +1,15 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { confirmSubscriberByToken } from "@/lib/newsletter/subscriber";
-import { newsletterPublicBaseUrl } from "@/lib/newsletter/config";
+import {
+  isNewsletterEmailDeliveryConfigured,
+  newsletterPublicBaseUrl,
+  newsletterTransport,
+} from "@/lib/newsletter/config";
+import {
+  diagnoseEmailSendFailure,
+  formatEmailFailureForLog,
+} from "@/lib/newsletter/email-diagnostics";
 import { fetchWeeklyNewsletterPicks } from "@/lib/newsletter/picks";
 import { sendWeeklyNewsletterToSubscriber } from "@/lib/newsletter/send-weekly-to-subscriber";
 import { hashNewsletterToken } from "@/lib/newsletter/tokens";
@@ -21,7 +29,7 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${base}/newsletter?error=invalid_token`);
   }
 
-  if (result === "confirmed" && process.env.BREVO_API_KEY?.trim()) {
+  if (result === "confirmed" && isNewsletterEmailDeliveryConfigured()) {
     const tokenHash = hashNewsletterToken(token);
     const db = await getDb();
     const [row] = await db
@@ -38,7 +46,9 @@ export async function GET(request: Request) {
           pickResult.picks,
         );
         if (!send.ok) {
-          console.error("[newsletter/confirm] welcome weekly send failed:", send.error);
+          const diagnostic =
+            send.diagnostic ?? diagnoseEmailSendFailure(send.error, newsletterTransport());
+          console.error(formatEmailFailureForLog("newsletter/confirm", send.error, diagnostic));
         } else {
           console.log(
             `[newsletter/confirm] sent welcome weekly to ${row.email} messageId=${send.messageId}`,

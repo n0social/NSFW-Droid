@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { CoverBlurPreference } from "@/components/settings/CoverBlurPreference";
+import { ResetAgeGateControl } from "@/components/settings/ResetAgeGateControl";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { isAgeVerifiedRequest } from "@/lib/age-verified-server";
 import { BLUR_COVERS_COOKIE, parseBlurCovers } from "@/lib/cookies";
@@ -33,6 +34,7 @@ export default async function SettingsPage() {
           </h2>
           <div className="mt-3">
             <CoverBlurPreference ageVerified={ageVerified} blurCovers={blurCovers} />
+            <ResetAgeGateControl />
           </div>
         </section>
 

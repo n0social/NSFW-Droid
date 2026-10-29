@@ -15,18 +15,20 @@ import {
   listingFirstSeenAtExpr,
   newListingPublishedSinceCondition,
 } from "@/lib/new-listings";
-import { getFeaturedListings } from "@/lib/featured-listings";
+import { getFeaturedHeroPick } from "@/lib/featured-listings";
 
 const emptyStorefront = {
   topGrossing: [] as Listing[],
   newReleases: [] as Listing[],
-  featured: [] as Listing[],
+  featuredHeroPick: null as Listing | null,
   all: [] as Listing[],
   rankingsFromAnalytics: false,
 };
 
 export type StorefrontListings = typeof emptyStorefront & {
   catalogUnavailable?: boolean;
+  /** When set, homepage hero uses this instead of the default featured line. */
+  featuredHeroSubtitle?: string | null;
 };
 
 export async function getListingsForStorefront(): Promise<StorefrontListings> {
@@ -84,12 +86,13 @@ export async function getListingsForStorefront(): Promise<StorefrontListings> {
               .orderBy(desc(listingFirstSeenAtExpr()))
               .limit(RAIL_TRENDING_LIMIT);
 
-      const featured = await getFeaturedListings(db);
+      const featuredHero = await getFeaturedHeroPick(db);
 
       return {
         topGrossing,
         newReleases,
-        featured,
+        featuredHeroPick: featuredHero.listing,
+        featuredHeroSubtitle: featuredHero.heroSubtitle,
         all,
         rankingsFromAnalytics: trendingRaw.length > 0,
       };

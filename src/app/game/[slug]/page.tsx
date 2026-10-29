@@ -10,15 +10,15 @@ import {
   getTagsForListingDetail,
   listingMetaDescription,
 } from "@/lib/listing-detail";
-import { buildListingJsonLd } from "@/lib/listing-json-ld";
+import { buildGamePageJsonLd } from "@/lib/listing-json-ld";
 import { gameListingPath } from "@/lib/listing-routes";
 import { getPublishedListingCount } from "@/lib/listings";
-import { displayListingTitle } from "@/lib/listing-display";
+import { displayListingTitle, listingCoverImageAlt } from "@/lib/listing-display";
 import { siteName } from "@/lib/site";
 import { resolveThemeForRequest } from "@/lib/themes/preferences";
 import { themeDecorUrls } from "@/lib/themes/asset-url";
-
-export const dynamic = "force-dynamic";
+/** Keep in sync with `CATALOG_PAGE_REVALIDATE_SECONDS` in `src/lib/catalog-revalidate.ts` (Next.js requires a literal). */
+export const revalidate = 3600;
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const description = listingMetaDescription(listing, tags.map((t) => t.label));
   const path = gameListingPath(listing.slug);
   const cover = listing.coverImageUrl?.trim();
-  const images = cover ? [{ url: cover, alt: title }] : undefined;
+  const images = cover ? [{ url: cover, alt: listingCoverImageAlt(title) }] : undefined;
 
   return {
     title,
@@ -70,7 +70,7 @@ export default async function GameListingPage({ params }: PageProps) {
   const tags = await getTagsForListingDetail(listing.id);
   const tagLabels = tags.map((t) => t.label);
   const description = listingMetaDescription(listing, tagLabels);
-  const jsonLd = buildListingJsonLd(listing, description);
+  const jsonLd = buildGamePageJsonLd(listing, description, tags);
   const similarGames = await getSimilarListings(listing.id);
   const listingCount = await getPublishedListingCount();
   const { active } = await resolveThemeForRequest();

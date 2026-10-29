@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Ops alert email with deduplication (default: same key max once per 30 minutes).
+# Delivery: local Exim sendmail (droplet default), optional SMTP via curl.
 # Sources /etc/nsfwdroid.env when present. Requires ALERT_EMAIL_TO to send.
 set -euo pipefail
 
@@ -39,9 +40,9 @@ if [[ -f "$ENV_FILE" ]]; then
   set +a
 fi
 
-TO="${ALERT_EMAIL_TO:-}"
+TO="${ALERT_EMAIL_TO:-${ALERT_EMAIL:-}}"
 if [[ -z "$TO" ]]; then
-  echo "[alert-email] ALERT_EMAIL_TO unset — skipping: $SUBJECT" >&2
+  echo "[alert-email] ALERT_EMAIL_TO (or ALERT_EMAIL) unset — skipping: $SUBJECT" >&2
   exit 0
 fi
 
@@ -66,25 +67,39 @@ $BODY
 ---
 NSFW Droid ops alert (key=$KEY)"
 
+sendmail_bin() {
+  if [[ -n "${SENDMAIL_PATH:-}" && -x "${SENDMAIL_PATH}" ]]; then
+    echo "$SENDMAIL_PATH"
+    return 0
+  fi
+  if command -v sendmail >/dev/null 2>&1; then
+    command -v sendmail
+    return 0
+  fi
+  if [[ -x /usr/sbin/sendmail ]]; then
+    echo /usr/sbin/sendmail
+    return 0
+  fi
+  return 1
+}
+
+transport_lc=$(echo "${ALERT_EMAIL_TRANSPORT:-sendmail}" | tr '[:upper:]' '[:lower:]')
 sent=false
 
-if [[ -n "${RESEND_API_KEY:-}" ]]; then
-  payload=$(node -e 'const o={from:process.argv[1],to:[process.argv[2]],subject:process.argv[3],text:process.argv[4]};process.stdout.write(JSON.stringify(o))' \
-    "$FROM" "$TO" "$SUBJECT" "$FULL_BODY")
-  resend_body=$(mktemp)
-  resend_code=$(curl -sS --max-time 30 -o "$resend_body" -w "%{http_code}" -X POST "https://api.resend.com/emails" \
-    -H "Authorization: Bearer $RESEND_API_KEY" \
-    -H "Content-Type: application/json" \
-    -d "$payload")
-  if [[ "$resend_code" == "200" ]]; then
-    sent=true
-  else
-    echo "[alert-email] Resend HTTP $resend_code: $(tr -d '\n' <"$resend_body" | head -c 400)" >&2
-    rm -f "$resend_body"
-    # Do not fall back to sendmail/SMTP when Resend rejects the from domain (403) or other API errors.
-    exit 1
-  fi
-  rm -f "$resend_body"
+try_sendmail() {
+  local bin
+  bin=$(sendmail_bin) || return 1
+  {
+    echo "To: $TO"
+    echo "From: $FROM"
+    echo "Subject: $SUBJECT"
+    echo
+    echo "$FULL_BODY"
+  } | "$bin" -t -oi
+}
+
+if [[ "$transport_lc" != "smtp" ]]; then
+  try_sendmail && sent=true
 fi
 
 if [[ "$sent" == false && -n "${SMTP_HOST:-}" ]]; then
@@ -109,18 +124,12 @@ $FULL_BODY"; then
   fi
 fi
 
-if [[ "$sent" == false ]] && command -v sendmail >/dev/null; then
-  {
-    echo "To: $TO"
-    echo "From: $FROM"
-    echo "Subject: $SUBJECT"
-    echo
-    echo "$FULL_BODY"
-  } | sendmail -t -oi && sent=true
+if [[ "$sent" == false && "$transport_lc" == "smtp" ]]; then
+  try_sendmail && sent=true
 fi
 
 if [[ "$sent" == false ]]; then
-  echo "[alert-email] no mail transport configured (set RESEND_API_KEY or SMTP_HOST)" >&2
+  echo "[alert-email] no mail transport configured (install Exim/sendmail or set SMTP_HOST; ALERT_EMAIL_TRANSPORT=sendmail|smtp)" >&2
   exit 1
 fi
 

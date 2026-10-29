@@ -7,7 +7,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="${NSFWDROID_APP_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 ENV_FILE="${NSFWDROID_ENV_FILE:-/etc/nsfwdroid.env}"
 
-if [[ -f "$ENV_FILE" ]]; then
+# Cron drops to www-data after root has already loaded this file. www-data cannot
+# read the root-only env file; keep the inherited environment in that case.
+if [[ -r "$ENV_FILE" ]]; then
   set -a
   # shellcheck disable=SC1090
   source "$ENV_FILE"
@@ -31,7 +33,8 @@ if [[ -z "$body" ]]; then
   body="Last $THRESHOLD ingest_all run(s) had zero new candidates. See admin ingest runs and nsfwdroid-ingest.log."
 fi
 
+host_short=$(hostname -s 2>/dev/null || hostname)
 "$SCRIPT_DIR/alert-email.sh" \
   --key "ingest-zero-new-${THRESHOLD}" \
-  --subject "NSFW Droid: ingest added 0 new candidates for ${THRESHOLD} run(s)" \
+  --subject "NSFW Droid: ingest stale — 0 new candidates for ${THRESHOLD} run(s) on ${host_short}" \
   --body "$body"

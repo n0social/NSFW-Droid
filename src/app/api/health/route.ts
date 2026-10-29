@@ -3,24 +3,53 @@ import { sql } from "drizzle-orm";
 import { getDb, isCatalogDbHealthy } from "@/db";
 import { getCatalogLastIngestAt } from "@/lib/catalog-ingest-status";
 import { getMaintenanceNotice } from "@/lib/maintenance-notice";
-import { getPublishedListingCount } from "@/lib/listings";
+import { getCatalogCountSnapshot } from "@/lib/catalog-counts";
+import {
+  isNewsletterEmailDeliveryConfigured,
+  isNewsletterMassSendEnabled,
+  newsletterSigningSecretProductionIssue,
+  newsletterTransport,
+} from "@/lib/newsletter/config";
+import { getSocialHealthSnapshot } from "@/lib/social/outbox-health";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const maintenanceNotice = await getMaintenanceNotice();
+  const newsletterSigningWarning = newsletterSigningSecretProductionIssue();
+  const newsletterHealth = {
+    signingSecretConfigured: !newsletterSigningWarning,
+    ...(newsletterSigningWarning ? { warning: newsletterSigningWarning } : {}),
+    transport: newsletterTransport(),
+    massSendEnabled: isNewsletterMassSendEnabled(),
+    deliveryConfigured: isNewsletterEmailDeliveryConfigured(),
+  };
   try {
     const db = await getDb();
     await db.execute(sql`select 1`);
-    const listingCount = await getPublishedListingCount();
+    const counts = await getCatalogCountSnapshot();
     const catalogLastIngestAt = await getCatalogLastIngestAt();
+    const social = await getSocialHealthSnapshot(db);
 
     return NextResponse.json(
       {
         status: "ok",
-        catalog: { healthy: true, listingCount },
+        catalog: {
+          healthy: true,
+          listingCount: counts.displayedCount,
+          displayedCount: counts.displayedCount,
+          listingsTotal: counts.listingsTotal,
+          staleListings: counts.staleListings,
+          brokenLinkListings: counts.brokenLinkListings,
+          candidatesTotal: counts.candidatesTotal,
+          candidatesPending: counts.candidatesPending,
+          browsePageSize: counts.browsePageSize,
+          browsePageCount: counts.browsePageCount,
+        },
         catalogLastIngestAt: catalogLastIngestAt?.toISOString() ?? null,
         maintenanceNotice,
+        newsletter: newsletterHealth,
+        ...(social ? { social } : {}),
       },
       { status: 200 },
     );
@@ -38,6 +67,7 @@ export async function GET() {
         },
         catalogLastIngestAt: null,
         maintenanceNotice,
+        newsletter: newsletterHealth,
       },
       { status: 503 },
     );

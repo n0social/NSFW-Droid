@@ -1,10 +1,28 @@
+import { fetchSafeOutboundUrl } from "@/lib/outbound-fetch";
 import { siteUrl } from "@/lib/site";
 import { formatMastodonStatus, type SocialPostPayload } from "@/lib/social/compose";
 import { resolveListingCoverUrl } from "@/lib/social/cover-url";
 import { mastodonVisibility } from "@/lib/social/config";
+import { appendSocialLog } from "@/lib/social/log";
 
 const COVER_FETCH_TIMEOUT_MS = 30_000;
 const COVER_MAX_BYTES = 8 * 1024 * 1024;
+const MEDIA_UPLOAD_MAX_ATTEMPTS = 4;
+const MEDIA_UPLOAD_BACKOFF_MS = [2_000, 5_000, 12_000];
+
+/** Mastodon instance errors that are often transient during ingest cron. */
+export function isRetryableMastodonMediaError(message: string): boolean {
+  return /^mastodon_media_(429|500|502|503|504):/.test(message);
+}
+
+/** Post text-only when the cover URL itself is unsafe; otherwise fail the outbox row. */
+export function shouldPostWithoutCoverOnError(message: string): boolean {
+  return message.includes("cover_fetch_blocked");
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function coverFetchUserAgent(): string {
   const base = siteUrl.replace(/\/$/, "");
@@ -43,10 +61,9 @@ export async function uploadMastodonMedia(
   description?: string,
 ): Promise<string> {
   const resolved = resolveListingCoverUrl(imageUrl) ?? imageUrl;
-  const imageRes = await fetch(resolved, {
+  const imageRes = await fetchSafeOutboundUrl(resolved, {
     headers: { "User-Agent": coverFetchUserAgent(), Accept: "image/*,*/*;q=0.8" },
     signal: AbortSignal.timeout(COVER_FETCH_TIMEOUT_MS),
-    redirect: "follow",
   });
   if (!imageRes.ok) {
     throw new Error(`cover_fetch_failed:${imageRes.status}`);
@@ -58,18 +75,30 @@ export async function uploadMastodonMedia(
   const blob = new Blob([buf], {
     type: imageRes.headers.get("content-type") ?? "image/jpeg",
   });
-  const form = new FormData();
-  form.append("file", blob, filenameForCover(imageRes.headers.get("content-type")));
-  if (description) form.append("description", description.slice(0, 420));
+  let lastError: Error | undefined;
+  for (let attempt = 0; attempt < MEDIA_UPLOAD_MAX_ATTEMPTS; attempt++) {
+    const form = new FormData();
+    form.append("file", blob, filenameForCover(imageRes.headers.get("content-type")));
+    if (description) form.append("description", description.slice(0, 420));
 
-  const res = await mastodonFetch("/api/v1/media", { method: "POST", body: form });
-  if (!res.ok) {
+    const res = await mastodonFetch("/api/v1/media", { method: "POST", body: form });
+    if (res.ok) {
+      const json = (await res.json()) as { id?: string };
+      if (!json.id) throw new Error("mastodon_media_missing_id");
+      return json.id;
+    }
+
     const body = await res.text();
-    throw new Error(`mastodon_media_${res.status}:${body.slice(0, 200)}`);
+    const err = new Error(`mastodon_media_${res.status}:${body.slice(0, 200)}`);
+    lastError = err;
+    const retryable = isRetryableMastodonMediaError(err.message);
+    if (!retryable || attempt >= MEDIA_UPLOAD_MAX_ATTEMPTS - 1) {
+      throw err;
+    }
+    await sleep(MEDIA_UPLOAD_BACKOFF_MS[attempt] ?? 15_000);
   }
-  const json = (await res.json()) as { id?: string };
-  if (!json.id) throw new Error("mastodon_media_missing_id");
-  return json.id;
+
+  throw lastError ?? new Error("mastodon_media_unknown");
 }
 
 export type MastodonPostResult = {
@@ -96,12 +125,17 @@ export async function postMastodonStatus(
       );
       mediaIds.push(mediaId);
     } catch (err) {
-      console.warn(
-        JSON.stringify({
-          warn: "mastodon_cover_skipped",
-          message: err instanceof Error ? err.message : String(err),
-        }),
-      );
+      const message = err instanceof Error ? err.message : String(err);
+      const logEntry = {
+        warn: "mastodon_cover_skipped",
+        slug: payload.slug,
+        message,
+      };
+      appendSocialLog(logEntry);
+      console.warn(JSON.stringify(logEntry));
+      if (!shouldPostWithoutCoverOnError(message) && options?.attachCover && coverUrl) {
+        throw err instanceof Error ? err : new Error(message);
+      }
     }
   }
 

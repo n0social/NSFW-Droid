@@ -28,6 +28,93 @@ export function isValidOutboundUrl(url: string): boolean {
   }
 }
 
+/** Hostnames that must never be fetched by the app (cloud metadata, loopback names). */
+const BLOCKED_FETCH_HOSTNAMES = new Set([
+  "localhost",
+  "metadata.google.internal",
+  "metadata.goog",
+]);
+
+export type OutboundFetchBlockReason =
+  | "invalid_url"
+  | "protocol"
+  | "credentials"
+  | "blocked_hostname"
+  | "private_ip";
+
+function normalizeFetchHostname(hostname: string): string {
+  const h = hostname.trim().toLowerCase();
+  if (h.startsWith("[") && h.endsWith("]")) {
+    return h.slice(1, -1);
+  }
+  return h;
+}
+
+/** True when the host is a literal IP in a private, link-local, or metadata range. */
+export function isPrivateOrMetadataIp(ip: string): boolean {
+  const trimmed = ip.trim();
+  if (!trimmed) return true;
+
+  const v4Match = trimmed.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (v4Match) {
+    const octets = v4Match.slice(1).map((n) => Number(n));
+    if (octets.some((n) => n > 255)) return true;
+    const [a, b] = octets;
+    if (a === 127) return true;
+    if (a === 10) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+    if (a === 169 && b === 254) return true;
+    if (a === 0) return true;
+    if (a === 100 && b >= 64 && b <= 127) return true;
+    if (a >= 224) return true;
+    return false;
+  }
+
+  const lower = trimmed.toLowerCase();
+  if (lower === "::1" || lower === "0:0:0:0:0:0:0:1") return true;
+  if (lower.startsWith("fe80:") || /^fe[89ab][0-9a-f]:/.test(lower)) return true;
+  if (/^f[cd][0-9a-f]{2}:/.test(lower) || lower.startsWith("fc") || lower.startsWith("fd")) return true;
+  const v4Mapped = lower.match(/^::ffff:(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (v4Mapped) {
+    return isPrivateOrMetadataIp(v4Mapped.slice(1).join("."));
+  }
+  return false;
+}
+
+function outboundFetchHostnameBlockReason(hostname: string): OutboundFetchBlockReason | null {
+  const host = normalizeFetchHostname(hostname);
+  if (!host) return "blocked_hostname";
+  if (BLOCKED_FETCH_HOSTNAMES.has(host)) return "blocked_hostname";
+  if (host === "169.254.169.254" || host.endsWith(".internal")) return "blocked_hostname";
+  if (isPrivateOrMetadataIp(host)) return "private_ip";
+  return null;
+}
+
+/**
+ * Static SSRF checks for server-side fetches (protocol, credentials, host/IP literals).
+ * DNS resolution is validated separately in {@link fetchSafeOutboundUrl}.
+ */
+export function outboundFetchBlockReason(url: string): OutboundFetchBlockReason | null {
+  const trimmed = url.trim();
+  if (!trimmed) return "invalid_url";
+  let u: URL;
+  try {
+    u = new URL(trimmed);
+  } catch {
+    return "invalid_url";
+  }
+  if (u.protocol !== "http:" && u.protocol !== "https:") return "protocol";
+  if (u.username || u.password) return "credentials";
+  const hostReason = outboundFetchHostnameBlockReason(u.hostname);
+  if (hostReason) return hostReason;
+  return null;
+}
+
+export function isSafeOutboundFetchUrl(url: string): boolean {
+  return outboundFetchBlockReason(url) === null;
+}
+
 /** Normalize a store URL to a comparable target (steam app id or itch game path). */
 export function parseStoreTarget(url: string): StoreTarget | null {
   const trimmed = url.trim();
@@ -136,6 +223,41 @@ export function resolveOutboundLink(listing: Pick<Listing, "affiliateUrl" | "off
     return { url: affiliate, linkKind: "affiliate" };
   }
   return { url: official, linkKind: "official" };
+}
+
+/** True for store.steampowered.com, steamcommunity.com, and parsed Steam app URLs. */
+export function isSteamOutboundUrl(url: string): boolean {
+  const trimmed = url.trim();
+  if (!trimmed) return false;
+  try {
+    const host = new URL(trimmed).hostname.toLowerCase();
+    if (host === "store.steampowered.com" || host.endsWith(".steampowered.com")) return true;
+    if (host === "steamcommunity.com" || host.endsWith(".steamcommunity.com")) return true;
+  } catch {
+    return false;
+  }
+  return parseStoreTarget(trimmed)?.kind === "steam";
+}
+
+/**
+ * Popunder on outbound clicks (videos, assets, play) — never on Steam URLs.
+ */
+export function urlEligibleForOutboundPopunder(url: string): boolean {
+  if (!isValidOutboundUrl(url)) return false;
+  if (isSteamOutboundUrl(url)) return false;
+  return true;
+}
+
+/**
+ * Play-click popunder is allowed for itch, Nutaku, and other non-Steam storefronts.
+ * Steam is excluded (partner trust / perceived security risk).
+ */
+export function listingEligibleForPlayPopunder(
+  listing: Pick<Listing, "source" | "officialUrl" | "affiliateUrl">,
+): boolean {
+  if (listing.source === "steam") return false;
+  const { url } = resolveOutboundLink(listing);
+  return urlEligibleForOutboundPopunder(url);
 }
 
 export function listingHasAffiliateLink(

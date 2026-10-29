@@ -1,9 +1,14 @@
 import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { listings, listingTags, tags, type Listing, type Tag } from "@/db/schema";
-import { publicCatalogLinkStatus, publicCatalogListingRow } from "@/lib/catalog-visibility";
+import {
+  publicCatalogCoverOrOverride,
+  publicCatalogLinkStatus,
+  publicCatalogListingRow,
+} from "@/lib/catalog-visibility";
 import { safeCatalogQuery } from "@/lib/db-safe";
 import { displayListingTitle } from "@/lib/listing-display";
 import { filterTagsForBrowseDisplay } from "@/lib/tag-filter";
+import { isListingSlugSafeForPublicUrl } from "@/lib/listing-routes";
 
 export async function getPublishedListingBySlug(slug: string): Promise<Listing | null> {
   const trimmed = slug.trim();
@@ -13,7 +18,13 @@ export async function getPublishedListingBySlug(slug: string): Promise<Listing |
     const [row] = await db
       .select()
       .from(listings)
-      .where(and(eq(listings.slug, trimmed), publicCatalogListingRow()))
+      .where(
+        and(
+          eq(listings.slug, trimmed),
+          publicCatalogListingRow(),
+          publicCatalogCoverOrOverride(),
+        ),
+      )
       .limit(1);
     return row ?? null;
   });
@@ -75,7 +86,7 @@ export async function getPublishedListingsForSitemap(): Promise<ListingSitemapRo
       .from(listings)
       .where(publicCatalogLinkStatus());
   });
-  return result.data;
+  return result.data.filter((row) => isListingSlugSafeForPublicUrl(row.slug));
 }
 
 function storeLabel(source: Listing["source"]): string {

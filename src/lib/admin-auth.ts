@@ -5,6 +5,18 @@ export const ADMIN_COOKIE = "admin_session";
 
 const SESSION_HOURS = 8;
 
+/**
+ * HMAC key for `admin_session` cookies. Prefer `ADMIN_SESSION_SECRET` so password
+ * rotation does not invalidate active sessions. Until it is set, falls back to
+ * `ADMIN_PASSWORD` (legacy deployments).
+ */
+export function adminSessionSigningSecret(): string | null {
+  const dedicated = process.env.ADMIN_SESSION_SECRET?.trim();
+  if (dedicated) return dedicated;
+  const legacy = process.env.ADMIN_PASSWORD?.trim();
+  return legacy || null;
+}
+
 export function verifyAdminPassword(password: string): boolean {
   const expected = process.env.ADMIN_PASSWORD;
   if (!expected || !password) return false;
@@ -14,15 +26,15 @@ export function verifyAdminPassword(password: string): boolean {
 }
 
 export function createAdminSessionToken(): string {
-  const secret = process.env.ADMIN_PASSWORD;
+  const secret = adminSessionSigningSecret();
   if (!secret) return "";
   const id = randomBytes(24).toString("base64url");
   const sig = createHmac("sha256", secret).update(id).digest("base64url");
   return `${id}.${sig}`;
 }
 
-function verifyAdminSessionToken(token: string): boolean {
-  const secret = process.env.ADMIN_PASSWORD;
+export function verifyAdminSessionToken(token: string): boolean {
+  const secret = adminSessionSigningSecret();
   if (!secret || !token) return false;
   const dot = token.indexOf(".");
   if (dot <= 0) return false;

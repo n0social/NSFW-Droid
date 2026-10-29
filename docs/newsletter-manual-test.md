@@ -5,7 +5,8 @@ See [reward_program.md](reward_program.md) for product spec.
 ## Prerequisites
 
 - `npm run db:migrate` (creates `newsletter_subscriber`)
-- `BREVO_API_KEY` in env (local `.env` or droplet `/etc/nsfwdroid.env`)
+- `SESSION_SECRET` or `NEWSLETTER_TOKEN_SECRET` in production (HMAC for weekly unsubscribe links; not used for Exim/sendmail authentication)
+- `BREVO_API_KEY` in env when not using sendmail (local `.env` or droplet `/etc/nsfwdroid.env`); on the droplet use `NEWSLETTER_TRANSPORT=sendmail` instead
 - **From / sender name:** Confirm and weekly mail use `sendBrevoEmail`, which builds the Brevo `sender` from env (set the same address in Brevo → Senders).
   - **Production:** In [Brevo → Senders, Domains & Dedicated IPs → Domains](https://app.brevo.com/senders/domain), authenticate **nsfwdroid.com** (SPF, DKIM, and brevo-code TXT in NameSilo — see [deploy-droplet.md](deploy-droplet.md)). Then set on the droplet, e.g. `NEWSLETTER_FROM=NSFW Droid <newsletter@nsfwdroid.com>` or `ALERT_EMAIL_FROM=newsletter@nsfwdroid.com` (shared with ops alerts if you use one address). The app defaults the display name to **NSFW Droid** (`NEWSLETTER_FROM_NAME` overrides).
 

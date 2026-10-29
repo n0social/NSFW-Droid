@@ -8,7 +8,8 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useFavoritesContext } from "@/components/favorites/FavoritesProvider";
 import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
 import { ThemeAssetImage } from "@/components/theme/ThemeAssetImage";
-import { displayListingTitle } from "@/lib/listing-display";
+import { displayListingTitle, listingCoverImageAlt } from "@/lib/listing-display";
+import { OutboundPlayLink } from "@/components/OutboundPlayLink";
 import { listingHasAffiliateLink } from "@/lib/outbound-link";
 
 const gradients = [
@@ -162,7 +163,7 @@ export function GameCard({
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={coverUrl!}
-              alt=""
+              alt={listingCoverImageAlt(displayTitle)}
               className={`absolute inset-0 h-full w-full object-cover transition-[filter] duration-300 ${blur ? "blur-xl scale-105" : ""}`}
               loading="lazy"
               decoding="async"
@@ -214,14 +215,16 @@ export function GameCard({
           )}
         </div>
       </Link>
-      <a
+      <OutboundPlayLink
+        listing={game}
         href={`/api/go/${game.id}`}
         onClick={(e) => e.stopPropagation()}
+        ageVerified={ageVerified ?? false}
         className="absolute bottom-2 right-2 z-20 rounded-full bg-[#C026D3] px-2.5 py-1 text-[9px] font-black text-[#FFF1F7] shadow-md hover:bg-[#FF4D8D]"
         aria-label={`Play ${displayTitle} on store`}
       >
         Play
-      </a>
+      </OutboundPlayLink>
     </div>
   );
 }

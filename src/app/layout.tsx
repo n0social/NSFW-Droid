@@ -6,13 +6,11 @@ import { FavoritesProvider } from "@/components/favorites/FavoritesProvider";
 import { FirebaseProvider } from "@/components/FirebaseProvider";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { isFirebaseAnalyticsEnabled } from "@/lib/firebase/config";
-import { ThemeProvider } from "@/components/theme/ThemeProvider";
-import { siteName, siteUrl } from "@/lib/site";
+import { defaultOgImagePath, siteName, siteUrl } from "@/lib/site";
 import { themeToCssVariables } from "@/lib/themes/css-vars";
 import { resolveThemeForRequest } from "@/lib/themes/preferences";
 import { CookieNoticeBar } from "@/components/site/CookieNoticeBar";
 import { MaintenanceNoticeBanner } from "@/components/site/MaintenanceNoticeBanner";
-import { isSignedIn } from "@/lib/user-session";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,6 +36,20 @@ export const metadata: Metadata = {
     url: siteUrl,
     siteName,
     type: "website",
+    images: [
+      {
+        url: defaultOgImagePath,
+        width: 1200,
+        height: 630,
+        alt: `${siteName} — 18+ game catalog`,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteName,
+    description: "18+ game catalog with age gate and curated listings.",
+    images: [defaultOgImagePath],
   },
   manifest: "/manifest.webmanifest",
   appleWebApp: {
@@ -69,8 +81,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { active, scheduled } = await resolveThemeForRequest();
-  const signedIn = await isSignedIn();
+  const { active } = await resolveThemeForRequest();
   const themeStyle = themeToCssVariables(active.colors);
   const useFirebaseAnalytics = isFirebaseAnalyticsEnabled();
 
@@ -82,12 +93,6 @@ export default async function RootLayout({
         <FirebaseProvider>
         <AuthProvider>
           <FavoritesProvider>
-          <ThemeProvider
-            activeThemeId={active.id}
-            activeThemeName={active.name}
-            scheduledThemeId={scheduled.id}
-            isSignedIn={signedIn}
-          />
           {children}
           <CookieNoticeBar />
           </FavoritesProvider>

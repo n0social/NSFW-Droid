@@ -22,7 +22,12 @@ export function SiteFooter({ ageVerified, showFooterAds = true }: Props) {
       <div className="mx-auto max-w-7xl px-4 pt-6 pb-2 md:px-6 lg:px-8">
         <NewsletterSignup />
         {footerAdsLive && (
-          <AdSlot placement="footer-banner" ageVerified={ageVerified} />
+          <div className="mb-3 text-center">
+            <p className="text-[10px] font-semibold leading-snug text-[#E9D5FF]/70 sm:text-[11px]">
+              All Steam links are ad-free in order to keep account privacy for our viewers.
+            </p>
+            <AdSlot placement="footer-banner" ageVerified={ageVerified} />
+          </div>
         )}
         <PwaInstallPrompt ageVerified={ageVerified} />
       </div>

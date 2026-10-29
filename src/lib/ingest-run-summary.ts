@@ -38,7 +38,14 @@ export function formatIngestRunSummary(summary: unknown): string {
         pending?: number;
       }
     | undefined;
-  const autoPublished = s.autoPublished as { published?: number } | number | undefined;
+  const autoPublished = s.autoPublished as
+    | {
+        published?: number;
+        publishFailed?: number;
+        publishErrors?: { title?: string }[];
+      }
+    | number
+    | undefined;
 
   const parts: string[] = [];
 
@@ -70,6 +77,11 @@ export function formatIngestRunSummary(summary: unknown): string {
     parts.push(`auto-published ${autoPublished}`);
   } else if (autoPublished && typeof autoPublished === "object" && autoPublished.published != null) {
     parts.push(`auto-published ${autoPublished.published}`);
+    if (autoPublished.publishFailed && autoPublished.publishFailed > 0) {
+      parts.push(`publish failed ${autoPublished.publishFailed}`);
+      const sample = autoPublished.publishErrors?.[0]?.title;
+      if (sample) parts.push(`e.g. ${sample}`);
+    }
   }
 
   if (catalog?.listings != null) parts.push(`${catalog.listings} listings`);

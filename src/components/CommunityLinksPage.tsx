@@ -7,6 +7,7 @@ import {
   communityLinksByCategory,
   type CuratedCommunityLink,
 } from "@/lib/community-links-curated";
+import { OutboundPopunderLink } from "@/components/OutboundPopunderLink";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
@@ -26,7 +27,15 @@ const CARD_GRADIENTS = [
   "linear-gradient(160deg, #1a3a4a 0%, #7c3aed 40%, #14061C 100%)",
 ];
 
-function LinkCard({ item, index }: { item: CuratedCommunityLink; index: number }) {
+function LinkCard({
+  item,
+  index,
+  ageVerified,
+}: {
+  item: CuratedCommunityLink;
+  index: number;
+  ageVerified: boolean;
+}) {
   const initial = item.name.trim().charAt(0).toUpperCase();
   const gradient = CARD_GRADIENTS[index % CARD_GRADIENTS.length];
 
@@ -34,8 +43,9 @@ function LinkCard({ item, index }: { item: CuratedCommunityLink; index: number }
     <article
       className="flex h-full flex-col rounded-2xl border border-[var(--theme-primary)]/25 bg-[var(--theme-surface)]/70 shadow-[0_8px_24px_rgba(0,0,0,0.35)]"
     >
-      <a
+      <OutboundPopunderLink
         href={item.href}
+        ageVerified={ageVerified}
         target="_blank"
         rel="noopener noreferrer"
         className="group flex flex-1 flex-col p-4 sm:p-5"
@@ -59,7 +69,7 @@ function LinkCard({ item, index }: { item: CuratedCommunityLink; index: number }
         <p className="mt-4 text-[10px] font-bold uppercase tracking-wide text-[#FF4D8D]">
           External site →
         </p>
-      </a>
+      </OutboundPopunderLink>
     </article>
   );
 }
@@ -120,7 +130,7 @@ export function CommunityLinksPage({
                   <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {items.map((item, i) => (
                       <li key={item.id}>
-                        <LinkCard item={item} index={i} />
+                        <LinkCard item={item} index={i} ageVerified={ageVerified} />
                       </li>
                     ))}
                   </ul>

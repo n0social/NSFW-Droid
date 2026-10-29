@@ -37,8 +37,9 @@ Then click **Verify** in the ExoClick site settings. If you rotate the token in 
 2. **Add your site** — use `https://www.nsfwdroid.com` (and apex if you serve it). Category: adult / games or entertainment as offered.
 3. **Complete site verification** — ensure the meta tag above is live, then verify in ExoClick (step may appear before or with zone approval).
 4. **Wait for approval** — new adult sites are often reviewed manually; traffic and content policy must match their terms.
-5. **Create zones** (at least one banner; optional native for browse):
+5. **Create zones** (banner + optional play-click popunder; optional native for browse):
    - **Banner** (728×90, 300×250, or responsive banner) → site-wide placement `footer-banner` (centered above legal links in `SiteFooter`).
+   - **Popunder** (play-click) → see [Play-click popunder](#play-click-popunder) below.
    - **Native / recommendation** (in-feed, optional) → browse placement `browse-inline`.
 6. **Copy integration values** from each zone’s code snippet (see checklist at end of this doc).
 7. **Paste into `/etc/nsfwdroid.env`** on the droplet (never commit):
@@ -46,8 +47,11 @@ Then click **Verify** in the ExoClick site settings. If you rotate the token in 
    NEXT_PUBLIC_ADS_ENABLED=0          # flip to 1 only after legal + age vendor OK
    NEXT_PUBLIC_EXOCLICK_ZONE_ID_BANNER=1234567
    NEXT_PUBLIC_EXOCLICK_ZONE_ID_NATIVE=7654321
+   NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER=5554444
    NEXT_PUBLIC_EXOCLICK_AD_SCRIPT_URL=https://a.magsrv.com/ad-provider.js
    NEXT_PUBLIC_EXOCLICK_INS_CLASS=eas6a97888e2   # example — use yours from dashboard
+   # Optional override; default is /exoclick-popunder.js (paste dashboard snippet into that file)
+   # NEXT_PUBLIC_EXOCLICK_POPUNDER_SCRIPT_SRC=/exoclick-popunder.js
    ```
 8. **Rebuild and restart** — Next.js inlines `NEXT_PUBLIC_*` at build time:
    ```bash
@@ -94,3 +98,45 @@ When a zone is approved, open **Zones → your zone → Integration / code**. Co
 You do **not** need a server-side ExoClick API key for basic web zones.
 
 Keep a screenshot or note of zone names ↔ placements for your own runbook.
+
+## Play-click popunder
+
+Opens an ExoClick ad in a **background tab** when a visitor clicks **Play** / **Play on store** on **non-Steam** listings (itch.io, Nutaku, other partners). **Steam** Play buttons never fire a popunder. Normal `/api/go/…` redirect still runs in the same tab.
+
+Implementation: client click handler (`exoclick-play-popunder-client.ts`) opens ExoClick `v1/link.php` on the user gesture (works after SPA navigation; no global “all links” trigger).
+
+### What to create in ExoClick
+
+1. **Publishers → Sites →** your site → **Add zone**.
+2. Format: **Popunder** (not banner).
+3. Suggested name: `NSFW Droid — play outbound`.
+4. **Trigger method:** *Clicking on links with a specific class (Google Compliant)*.
+5. **Trigger class:** `nsfwdroid-play-outbound` (must match exactly — this is what Play buttons use in code).
+6. **New Tab:** ON (Chrome already uses tabs; this helps other browsers).
+7. **Chrome enabled:** ON (or OFF if you only want non-Chrome — not recommended).
+8. **Capping / frequency:** start conservative (e.g. **1** popunder per **24 hours** per user) so repeat Play clicks are not spammy.
+9. **Fallback to popup:** optional; OFF keeps the experience closer to “extra tab you close.”
+10. Code format: **Inline + Remote Script (Recommended)**.
+11. Create **two** popunder zones in ExoClick (web **6062592** + mobile **6062594**). The site fires the popunder iframe on **each** eligible outbound click by default. Optional client throttle: `NEXT_PUBLIC_EXOCLICK_POPUNDER_FREQUENCY_MINUTES` (e.g. `30`; omit or `0` = per click).
+
+**Important:** ExoClick’s default snippet often uses `trigger_method: 3` (every `<a>` on the page). That would pop on nav, tags, and legal links. This project uses **`trigger_method: 2`** and **`nsfwdroid-play-outbound`** so only **Play** CTAs fire the zone. Set the same trigger class in the ExoClick zone settings.
+
+### Droplet env
+
+| Copy this | Into env |
+| --- | --- |
+| Desktop popunder **Zone ID** | `NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER` (production: **6062592**) |
+| Mobile popunder **Zone ID** | `NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER_MOBILE` (production: **6062594**) |
+| (Optional) custom script URL | `NEXT_PUBLIC_EXOCLICK_POPUNDER_SCRIPT_SRC` — default `/exoclick-popunder.js` |
+| Popunder iframe throttle (minutes) | `NEXT_PUBLIC_EXOCLICK_POPUNDER_FREQUENCY_MINUTES` — unset/**0** = every click; e.g. **30** to cap |
+
+Rebuild after setting `NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER` (same as other `NEXT_PUBLIC_*` vars).
+
+### Verify
+
+1. Age gate → 18+ confirmed.
+2. `NEXT_PUBLIC_ADS_ENABLED=1` and popunder zone ID set; `public/exoclick-popunder.js` is the real dashboard snippet (not the placeholder).
+3. Open a listing → **Play on store** → store tab loads; ad tab may open behind (depends on browser / blockers).
+4. ExoClick stats → zone impressions/clicks within a few minutes.
+
+Popunder loads on pages that render `SiteFooter` (same age gate as banner ads). Play links on cards and hero use class `nsfwdroid-play-outbound` only when popunder is configured.

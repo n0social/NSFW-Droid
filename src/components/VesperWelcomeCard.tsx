@@ -3,7 +3,9 @@
 import Image from "next/image";
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
 
-const STORAGE_KEY = "vesper_welcome_dismissed";
+import { VESPER_WELCOME_STORAGE_KEY } from "@/lib/welcome-card";
+
+const STORAGE_KEY = VESPER_WELCOME_STORAGE_KEY;
 
 const CONFETTI_PIECES: {
   left: string;

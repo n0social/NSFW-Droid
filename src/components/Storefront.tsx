@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import type { Listing } from "@/db/schema";
 import { GameCard } from "./GameCard";
 import { AgeGate } from "./AgeGate";
@@ -24,13 +25,14 @@ type Props = {
   themeAssets?: ThemeDecorFiles | null;
   layoutDecor?: ResolvedLayoutDecorItem[];
   topGrossing: Listing[];
-  featured: Listing[];
+  featuredHeroPick: Listing | null;
   newReleases: Listing[];
   recentVideos?: VideoFeedItem[];
   all: Listing[];
   listingCount: number;
   rankingsFromAnalytics?: boolean;
   catalogUnavailable?: boolean;
+  featuredHeroSubtitle?: string | null;
 };
 
 function matchesChip(game: Listing, chip: ChipId) {
@@ -44,7 +46,7 @@ export function Storefront({
   ageVerified,
   blurCovers,
   topGrossing,
-  featured = [],
+  featuredHeroPick = null,
   newReleases,
   recentVideos = [],
   all,
@@ -53,8 +55,14 @@ export function Storefront({
   catalogUnavailable = false,
   themeAssets = null,
   layoutDecor = [],
+  featuredHeroSubtitle = null,
 }: Props) {
+  const pathname = usePathname();
   const [chip, setChip] = useState<ChipId>("all");
+
+  useEffect(() => {
+    if (pathname === "/") setChip("all");
+  }, [pathname]);
 
   const effectiveBlur = effectiveCoverBlur(ageVerified, blurCovers);
 
@@ -66,12 +74,10 @@ export function Storefront({
     () => newReleases.filter((g) => matchesChip(g, chip)),
     [newReleases, chip],
   );
-  const filteredFeatured = useMemo(
-    () => featured.filter((g) => matchesChip(g, chip)),
-    [featured, chip],
-  );
-
-  const heroFeatured = filteredFeatured[0] ?? all[0] ?? null;
+  const heroFeatured = useMemo(() => {
+    if (!featuredHeroPick) return null;
+    return matchesChip(featuredHeroPick, chip) ? featuredHeroPick : null;
+  }, [featuredHeroPick, chip]);
 
   const hotTitle = "Newest additions";
   const newTitle = rankingsFromAnalytics ? "Trending now" : "New releases";
@@ -94,7 +100,7 @@ export function Storefront({
         />
 
         <main
-          id="browse"
+          id="storefront"
           className="mx-auto min-w-0 max-w-7xl px-4 pb-4 pt-4 md:px-6 lg:px-8"
         >
           {catalogUnavailable && (
@@ -107,7 +113,14 @@ export function Storefront({
             </div>
           )}
 
-          <HeroCarousel featured={heroFeatured} blur={effectiveBlur} layoutDecor={layoutDecor} />
+          <HeroCarousel
+            featured={heroFeatured}
+            blur={effectiveBlur}
+            ageVerified={ageVerified}
+            layoutDecor={layoutDecor}
+            badgeLabel={featuredHeroSubtitle ? "Featured pick" : undefined}
+            subtitle={featuredHeroSubtitle ?? undefined}
+          />
           <ChipRow active={chip} onChange={setChip} />
 
           <hr
@@ -131,35 +144,6 @@ export function Storefront({
             </div>
           ) : (
             <>
-              {filteredFeatured.length > 0 && (
-                <section className="mb-8">
-                  <div className="mb-3 flex items-center justify-between gap-2">
-                    <h2 className="flex items-center gap-2 text-sm font-black text-[#FFF1F7]">
-                      {themeAssets && (
-                        <ThemeAssetImage
-                          src={themeAssets.rail}
-                          alt=""
-                          className="h-5 w-10 shrink-0"
-                        />
-                      )}
-                      Featured
-                    </h2>
-                  </div>
-                  <div className="rail-scroll -mx-4 flex gap-3 overflow-x-auto overscroll-x-contain px-4 pb-2 scroll-smooth snap-x snap-mandatory touch-pan-x md:mx-0 md:px-0">
-                    {filteredFeatured.map((g, i) => (
-                      <GameCard
-                        key={g.id}
-                        game={g}
-                        index={i}
-                        blur={effectiveBlur}
-                        ageVerified={ageVerified}
-                        themeAssets={themeAssets}
-                      />
-                    ))}
-                  </div>
-                </section>
-              )}
-
               {filteredHot.length > 0 && (
                 <section className="mb-8">
                   <div className="mb-3 flex items-center justify-between gap-2">
@@ -261,6 +245,7 @@ export function Storefront({
                         video={video}
                         index={i}
                         blur={effectiveBlur}
+                        ageVerified={ageVerified}
                         layout="rail"
                       />
                     ))}

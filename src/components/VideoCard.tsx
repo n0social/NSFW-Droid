@@ -1,6 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { OutboundPopunderLink } from "@/components/OutboundPopunderLink";
 import type { VideoFeedItem } from "@/lib/video-feeds";
+import { posterUrlFromVideoEnclosure } from "@/lib/video-thumbnail";
 
 const gradients = [
   "linear-gradient(145deg, #4a1d6a 0%, #C026D3 45%, #14061C 100%)",
@@ -12,6 +15,7 @@ type Props = {
   video: VideoFeedItem;
   index: number;
   blur: boolean;
+  ageVerified: boolean;
   layout?: "rail" | "grid";
 };
 
@@ -36,12 +40,31 @@ function formatDate(iso: string | null): string {
   }
 }
 
-export function VideoCard({ video, index, blur, layout = "grid" }: Props) {
+function fallbackThumbCandidates(video: VideoFeedItem): string[] {
+  const out: string[] = [];
+  const primary = video.thumbnailUrl?.trim();
+  if (primary) {
+    out.push(primary);
+    if (/\.mp4(\?|#|$)/i.test(primary)) {
+      const jpg = posterUrlFromVideoEnclosure(primary);
+      if (jpg && !out.includes(jpg)) out.push(jpg);
+    }
+  }
+  return out;
+}
+
+export function VideoCard({ video, index, blur, ageVerified, layout = "grid" }: Props) {
   const w = layout === "rail" ? "w-[min(42vw,168px)] md:w-[160px] shrink-0 snap-start" : "w-full";
   const h =
     layout === "rail" ? "h-[min(50vw,180px)] md:h-[160px]" : "aspect-video w-full";
-  const thumb = video.thumbnailUrl?.trim() || null;
+  const candidates = fallbackThumbCandidates(video);
+  const [thumbIndex, setThumbIndex] = useState(0);
+  const thumb = candidates[thumbIndex] ?? null;
   const gradient = gradients[index % gradients.length];
+
+  useEffect(() => {
+    setThumbIndex(0);
+  }, [video.id, video.thumbnailUrl]);
 
   const dateLabel = formatDate(video.publishedAt);
 
@@ -49,8 +72,9 @@ export function VideoCard({ video, index, blur, layout = "grid" }: Props) {
     <article
       className={`${w} overflow-hidden rounded-2xl bg-[#241033] shadow-[0_10px_28px_rgba(0,0,0,0.45)]`}
     >
-      <a
+      <OutboundPopunderLink
         href={video.link}
+        ageVerified={ageVerified}
         target="_blank"
         rel="noopener noreferrer"
         className="group block"
@@ -69,6 +93,11 @@ export function VideoCard({ video, index, blur, layout = "grid" }: Props) {
               loading="lazy"
               decoding="async"
               referrerPolicy="no-referrer"
+              onError={() => {
+                if (thumbIndex + 1 < candidates.length) {
+                  setThumbIndex(thumbIndex + 1);
+                }
+              }}
             />
           )}
           <div className="absolute inset-0 z-[1] flex items-end p-3">
@@ -97,7 +126,7 @@ export function VideoCard({ video, index, blur, layout = "grid" }: Props) {
             </span>
           )}
         </div>
-      </a>
+      </OutboundPopunderLink>
     </article>
   );
 }

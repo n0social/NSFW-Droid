@@ -6,9 +6,10 @@ import type { Listing, Tag } from "@/db/schema";
 import { AgeGate } from "@/components/AgeGate";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
-import { displayListingTitle } from "@/lib/listing-display";
+import { displayListingTitle, listingCoverImageAlt } from "@/lib/listing-display";
 import { listingHasAffiliateLink } from "@/lib/outbound-link";
 import { GameCard } from "@/components/GameCard";
+import { OutboundPlayLink } from "@/components/OutboundPlayLink";
 import { ListingReportPanel } from "@/components/ListingReportPanel";
 import { gameListingPath } from "@/lib/listing-routes";
 import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
@@ -91,10 +92,10 @@ export function GameDetailPage({
 
         <main className="mx-auto min-w-0 max-w-7xl px-4 py-6 md:px-6">
           <Link
-            href="/browse"
+            href="/"
             className="pointer-events-auto inline-flex min-h-[44px] items-center text-xs font-bold text-[#FF4D8D] hover:underline"
           >
-            ← Browse catalog
+            ← Back to home
           </Link>
 
           <article className="pointer-events-auto mx-auto mt-4 max-w-3xl overflow-hidden rounded-2xl border border-[var(--theme-primary)]/30 bg-[#241033] shadow-[0_16px_40px_rgba(0,0,0,0.45)]">
@@ -106,7 +107,7 @@ export function GameDetailPage({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={coverUrl!}
-                  alt=""
+                  alt={listingCoverImageAlt(displayTitle)}
                   className={`absolute inset-0 h-full w-full object-cover transition-[filter] duration-300 ${effectiveBlur ? "scale-105 blur-xl" : ""}`}
                   onError={() => setCoverFailed(true)}
                 />
@@ -177,20 +178,24 @@ export function GameDetailPage({
                   >
                     Play on store (link check failed)
                   </button>
-                  <a
+                  <OutboundPlayLink
+                    listing={listing}
                     href={playHref}
+                    ageVerified={ageVerified}
                     className="inline-flex text-[11px] font-bold text-amber-200 underline hover:text-[#FF4D8D]"
                   >
                     Try store link anyway — may not work
-                  </a>
+                  </OutboundPlayLink>
                 </div>
               ) : (
-                <a
+                <OutboundPlayLink
+                  listing={listing}
                   href={playHref}
+                  ageVerified={ageVerified}
                   className="flex min-h-[48px] w-full items-center justify-center rounded-full bg-[#C026D3] px-6 py-3 text-sm font-black text-[#FFF1F7] shadow-lg hover:bg-[#FF4D8D] sm:w-auto sm:inline-flex"
                 >
                   Play on store →
-                </a>
+                </OutboundPlayLink>
               )}
 
               <ListingReportPanel

@@ -4,24 +4,51 @@
 **Droplet public IP:** `159.203.136.220`  
 **Your key on droplet:** `icollar-droplet` (for you from your laptop).
 
-**Cloud agent deploy key (add to droplet once):** public key in `deploy/nsfwdroid-deploy.pub`:
+**Cloud agent deploy key:** current public key is `deploy/cursor-cloud-agent-nsfwdroid.pub` (`cursor-cloud-agent-nsfwdroid`). Legacy key: `deploy/nsfwdroid-deploy.pub`.
 
-```text
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMdIdQkh4DkAO9/giumJnatx9T2k0zkEmF/NuxKEPVmS nsfwdroid-cloud-agent-deploy
-```
-
-While logged in as **root** with your existing key, append it:
+**Current production:** Cloud Agents default to **`NSFWDROID_DEPLOY_SSH_USER=root`** until you run the non-root setup below. While logged in as **root** with your existing key, append the agent public key:
 
 ```bash
 mkdir -p ~/.ssh && chmod 700 ~/.ssh
-grep -q 'nsfwdroid-cloud-agent-deploy' ~/.ssh/authorized_keys 2>/dev/null || \
-  echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMdIdQkh4DkAO9/giumJnatx9T2k0zkEmF/NuxKEPVmS nsfwdroid-cloud-agent-deploy' >> ~/.ssh/authorized_keys
+grep -q 'cursor-cloud-agent-nsfwdroid' ~/.ssh/authorized_keys 2>/dev/null || \
+  echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEss7C+90lWa6IjJLq+gBRSSzUZrT5Kx/6ZU9WDAkcIK cursor-cloud-agent-nsfwdroid' >> ~/.ssh/authorized_keys
 chmod 600 ~/.ssh/authorized_keys
 ```
 
-Or: DigitalOcean → **Settings → Security → SSH keys** → Add, then **Droplet → Access → Add SSH key** (or recreate with both keys).
+**Preferred (after migration):** dedicated Linux user `nsfwdroid-deploy` (not root). Cloud Agents SSH as that user, extract tarballs under `/var/www/nsfwdroid`, and use **passwordless sudo only** for `systemctl restart nsfwdroid` and cron install — via `/usr/local/sbin/nsfwdroid-deploy-release.sh` and `nsfwdroid-install-droplet-cron.sh`.
 
-After that, the Cursor cloud agent can `ssh root@159.203.136.220` and run bootstrap. The **private** key never leaves the agent VM and is **not** in git.
+On the droplet as **root** (laptop SSH), after the app tree is at `/var/www/nsfwdroid`:
+
+```bash
+cd /var/www/nsfwdroid
+chmod +x deploy/setup-droplet-deploy-user.sh
+./deploy/setup-droplet-deploy-user.sh
+```
+
+That creates `nsfwdroid-deploy`, fixes app-dir ownership (`nsfwdroid-deploy:www-data`, `data/` stays `www-data`), installs sudoers + `/usr/local/sbin` helpers, and appends a **restricted** `authorized_keys` line (`restrict,port-forwarding`, no forwarding) for the agent key.
+
+Rotate or create keys on a Cloud Agent: `./scripts/cloud-agent-ssh-keygen.sh` (updates `deploy/cursor-cloud-agent-nsfwdroid.pub` and prints the constrained `authorized_keys` line). Store the matching **private** key as runtime secret `CURSOR_CLOUD_AGENT_NSFWDROID_PRIVATE_KEY`. Verify with `./scripts/cloud-agent-ssh-setup.sh`; releases use `./scripts/cloud-agent-deploy-droplet.sh` (§4b).
+
+The **private** key never leaves the agent VM and is **not** in git.
+
+### Migrating from root-based Cloud Agent SSH
+
+If the agent key is still only in **`/root/.ssh/authorized_keys`** (older setup), root deploy keeps working until you migrate:
+
+1. Pull this repo on the droplet and run `./deploy/setup-droplet-deploy-user.sh` as above.
+2. From a Cloud Agent, unset `NSFWDROID_DEPLOY_SSH_USER` (or set `NSFWDROID_DEPLOY_SSH_USER=nsfwdroid-deploy`), run `./scripts/cloud-agent-ssh-setup.sh` and a test deploy.
+3. When satisfied, **remove** the `cursor-cloud-agent-nsfwdroid` line from `/root/.ssh/authorized_keys` (human SSH via `icollar-droplet` stays on root).
+
+Until step 2 passes, Cloud Agent scripts default to **`NSFWDROID_DEPLOY_SSH_USER=root`** so root-based deploy keeps working.
+
+Manual `authorized_keys` line (same as `scripts/cloud-agent-authorized-keys-line.sh`):
+
+```bash
+./scripts/cloud-agent-authorized-keys-line.sh deploy/cursor-cloud-agent-nsfwdroid.pub
+# Append output to /home/nsfwdroid-deploy/.ssh/authorized_keys (mode 600, owner nsfwdroid-deploy).
+```
+
+Or: DigitalOcean → **Settings → Security → SSH keys** → Add, then **Droplet → Access → Add SSH key** (human access only; Cloud Agent still uses the deploy user + repo key).
 
 ---
 
@@ -32,7 +59,7 @@ After that, the Cursor cloud agent can `ssh root@159.203.136.220` and run bootst
 | `@` (apex) | A | `159.203.136.220` |
 | `www` | A | `159.203.136.220` |
 
-Optional: CNAME `www` → apex if your DNS provider prefers it. Caddy in `deploy/Caddyfile` requests certificates for both `www.nsfwdroid.com` and `nsfwdroid.com`.
+Optional: CNAME `www` → apex if your DNS provider prefers it. Caddy in `deploy/Caddyfile` requests certificates for both hosts; **apex 301s to `www`** (canonical `NEXT_PUBLIC_SITE_URL`).
 
 Propagation can take up to an hour.
 
@@ -72,6 +99,7 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 # FIREBASE_SERVICE_ACCOUNT_JSON=   # minified service account JSON (one line)
 # SESSION_SECRET=
 ADMIN_PASSWORD=choose-a-long-secret
+# ADMIN_SESSION_SECRET=   # optional; openssl rand -base64 32 — signs admin_session (falls back to ADMIN_PASSWORD if unset)
 # Auto-publish TOS-clear ingest (default on when NODE_ENV=production). Use 0 for all-manual review.
 AUTO_PUBLISH=1
 # Legacy local demo flag (also enables auto-publish in dev)
@@ -85,6 +113,8 @@ CATALOG_NSFW_ONLY=1
 NEXT_PUBLIC_ADS_ENABLED=0
 NEXT_PUBLIC_EXOCLICK_ZONE_ID_BANNER=
 NEXT_PUBLIC_EXOCLICK_ZONE_ID_NATIVE=
+NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER=
+NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER_MOBILE=
 # NEXT_PUBLIC_EXOCLICK_AD_SCRIPT_URL=https://a.magsrv.com/ad-provider.js
 # NEXT_PUBLIC_EXOCLICK_INS_CLASS=
 # Optional: AFFILIATE_EXPORT_PATH=/var/www/nsfwdroid/data/affiliate-export.json
@@ -173,7 +203,7 @@ Verify after maintenance:
 
 ```bash
 curl -sf http://localhost:3000/api/health | jq .
-# expect status 200 and listingCount > 0
+# expect status 200; catalog.listingCount (alias displayedCount) matches browse total
 curl -sI https://www.nsfwdroid.com/api/health
 ```
 
@@ -192,6 +222,21 @@ touch /var/log/nsfwdroid-watchdog.log && chown root:root /var/log/nsfwdroid-watc
 ```
 
 Logs: `/var/log/nsfwdroid-watchdog.log`. Script: `scripts/ensure-nsfwdroid.sh`.
+
+### Caddy watchdog cron (recommended)
+
+Restarts the **Caddy** reverse proxy if `systemctl is-active caddy` fails (TLS, apex→www, maintenance.html on upstream 502):
+
+```bash
+cp deploy/cron.d/nsfwdroid-caddy-watchdog /etc/cron.d/nsfwdroid-caddy-watchdog
+chmod 644 /etc/cron.d/nsfwdroid-caddy-watchdog
+touch /var/log/nsfwdroid-caddy-watchdog.log
+chmod +x scripts/ensure-caddy.sh
+```
+
+Or install all cron jobs: `./scripts/install-droplet-cron.sh`.
+
+Logs: `/var/log/nsfwdroid-caddy-watchdog.log`. Script: `scripts/ensure-caddy.sh`.
 
 ### Catalog ingest cron (3× daily)
 
@@ -226,6 +271,7 @@ All scheduled times below are **UTC** (droplet default). This is **separate** fr
 | **Tue 02:00** | `nsfwdroid-maintenance-notice` | Writes `data/maintenance-notice.json` → **amber site banner** until 04:00; optional **ops email** (1h warning) |
 | **Tue 03:00** | `nsfwdroid-weekly-maintenance` | Stops `nsfwdroid` → visitors see Caddy **`maintenance.html`** (502/503/504 path); runs `weekly-maintenance-inner.sh` via `catalog-maintenance.sh`; **hard `/api/health` checks** after start; service back when checks pass, **no later than 04:00 UTC** |
 | **Daily 06:00, 14:00, 22:00** | `nsfwdroid-ingest` | Unchanged — migrate → recycle → `ingest-all` |
+| **Fri 21:00 US Eastern** | `nsfwdroid-weekly-newsletter` | Weekly member newsletter (`send-weekly-newsletter.ts`) when `NEWSLETTER_ENABLED=1` |
 
 **Design:** Site is intentionally **down** (service stopped) for the weekly job. Work may finish in under an hour; the script still runs the full checklist and polls health before declaring success. If work runs long, the parent script sends **SIGTERM** at **04:00 UTC** so `catalog-maintenance.sh`’s exit trap can start `nsfwdroid` again.
 
@@ -260,18 +306,32 @@ curl -s http://localhost:3000/api/health | jq .maintenanceNotice
 
 **Recommendation (implemented):** The 5‑minute watchdog **auto-fixes** common outages (stale PGlite `postmaster.pid`, `systemctl restart`, `reset-failed` + retry) because a short blip should not wait for a human. **Email is rate-limited** (default **30 minutes** per alert key) when restart fails or health is still bad after recovery — that is when you care about sustained **502/503/504** at the edge.
 
+The watchdog uses `scripts/ops-health-probe.sh` so **`status: degraded`** responses (HTTP **503** with `catalog.error`) produce **descriptive** alert bodies, not a generic curl failure.
+
+| Variable | Purpose |
+| --- | --- |
+| `WATCHDOG_RESTART` | `1` (default) restart on failed health; `0` **alert only** (no `systemctl restart`) |
+| `CADDY_WATCHDOG_RESTART` | `1` (default) restart Caddy when inactive; `0` **alert only** |
+| `INGEST_ALERT_ZERO_NEW_RUNS` | After each ingest cron, `check-ingest-stale.sh` emails if the last N `ingest_all` runs added zero candidates (`0`/unset = off) |
+
 Weekly maintenance sets `data/.weekly-maintenance.lock` so the watchdog does **not** fight an intentional stop.
+
+**Exim relay smoke (weekly):** `weekly-maintenance-inner.sh` runs `scripts/ops-exim-relay-smoke-alert.sh` (wraps `exim-relay-smoke.sh`). Failures email with key `exim-relay-smoke-failed`. Log: `/var/log/nsfwdroid-exim-smoke.log`. Set `EXIM_RELAY_SMOKE_WEEKLY=0` to skip.
 
 ### Weekly newsletter (member list)
 
-Footer signup + double opt-in are live in the app (`POST /api/newsletter/subscribe`). **Mass send** requires `NEWSLETTER_ENABLED=1` in `/etc/nsfwdroid.env` (production: on) plus a Brevo-authenticated domain and `BREVO_API_KEY`.
+Footer signup + double opt-in are live in the app (`POST /api/newsletter/subscribe`). **Mass send** requires `NEWSLETTER_ENABLED=1` in `/etc/nsfwdroid.env`.
+
+**Production (droplet):** set `NEWSLETTER_TRANSPORT=sendmail` and use Exim on the box (see PR branch `cursor/droplet-mail-25f1` for mail ops). **Alternative:** leave transport unset and use Brevo (`BREVO_API_KEY` + authenticated domain).
 
 | Variable | Purpose |
 | --- | --- |
 | `NEWSLETTER_ENABLED` | `1` allows `scripts/send-weekly-newsletter.ts` to mail active subscribers |
+| `NEWSLETTER_TRANSPORT` | `sendmail` on the droplet (Exim); omit for Brevo API |
 | `NEWSLETTER_PUBLIC_BASE_URL` | Confirm/unsubscribe links (default `NEXT_PUBLIC_SITE_URL`) |
-| `BREVO_API_KEY` | [Brevo](https://app.brevo.com) Transactional Email API key (SMTP & API → API keys) |
-| `ALERT_EMAIL_FROM` or `NEWSLETTER_FROM` | From address for Brevo. **Production:** authenticate `nsfwdroid.com` in Brevo — use e.g. `ALERT_EMAIL_FROM="NSFW Droid <alerts@nsfwdroid.com>"` and `NEWSLETTER_FROM="NSFW Droid <newsletter@nsfwdroid.com>"` (quoted in `/etc/nsfwdroid.env`). Optional `NEWSLETTER_FROM_NAME` if the address is bare (app default: **NSFW Droid**) |
+| `BREVO_API_KEY` | Brevo API key when not using sendmail; or [Brevo](https://app.brevo.com) Transactional Email API key |
+| `ALERT_EMAIL_FROM` or `NEWSLETTER_FROM` | From address (quoted in `/etc/nsfwdroid.env`). Optional `NEWSLETTER_FROM_NAME` (default **NSFW Droid**) |
+| `SESSION_SECRET` or `NEWSLETTER_TOKEN_SECRET` | HMAC key for **signed links in email** (weekly one-click unsubscribe, not SMTP auth). Confirm links use a random DB token; weekly mail signs `subscriberId` so you can unsubscribe without storing plaintext tokens. **Independent of transport:** `NEWSLETTER_TRANSPORT=sendmail` (Exim) still needs this secret. **Production:** one of these must be set — `/api/health` warns and mass send aborts if the dev fallback would be used |
 
 **Brevo DNS (NameSilo):** In Brevo → **Senders, Domains & Dedicated IPs** → **Domains** → add `nsfwdroid.com`. Brevo shows records to publish:
 
@@ -303,22 +363,28 @@ NEWSLETTER_ENABLED=0 tsx scripts/send-weekly-newsletter.ts --dry-run   # must ab
 NEWSLETTER_ENABLED=1 tsx scripts/send-weekly-newsletter.ts --dry-run   # JSON summary only
 ```
 
-**Cron install:** Copy `deploy/cron.d/nsfwdroid-weekly-newsletter` (schedule **Sunday 12:00 UTC**). The job no-ops unless `NEWSLETTER_ENABLED=1`.
+**Cron install (all jobs):** After syncing `/var/www/nsfwdroid` from git, run as **root**:
 
 ```bash
-cp deploy/cron.d/nsfwdroid-weekly-newsletter /etc/cron.d/nsfwdroid-weekly-newsletter
-chmod 644 /etc/cron.d/nsfwdroid-weekly-newsletter
-touch /var/log/nsfwdroid-newsletter.log
-chown root:root /var/log/nsfwdroid-newsletter.log
+cd /var/www/nsfwdroid && ./scripts/install-droplet-cron.sh
 ```
 
-Runs as **root** via `catalog-maintenance.sh` (brief stop/start of `nsfwdroid` for PGlite). Prefer **Sunday 12:00 UTC** after the Tue weekly maintenance window. The job no-ops unless `NEWSLETTER_ENABLED=1` and `BREVO_API_KEY` are set in `/etc/nsfwdroid.env`.
+That installs every file under `deploy/cron.d/` (ingest 3×/day UTC, watchdog every 5 min, Tue maintenance notice + weekly window, **Fri 21:00 America/New_York** newsletter). See `deploy/cron.d/` for each schedule.
 
-**Homepage featured rail:** set comma-separated slugs in env (order preserved), or set `chart_bucket = featured` + `chart_rank` on listings in admin/DB:
+**Newsletter cron** (`nsfwdroid-weekly-newsletter`) runs `scripts/weekly-newsletter-cron.sh` (preflight + ops alert on failure). No-ops unless `NEWSLETTER_ENABLED=1` and sendmail/Brevo is configured. Log: `/var/log/nsfwdroid-newsletter.log`. Runbook: [newsletter-exim-runbook.md](newsletter-exim-runbook.md).
+
+**Homepage hero featured pick** (no featured rail): each calendar week (Mon–Sun in `NEWSLETTER_WEEKLY_TZ` / America/New_York), the **newest** browse-visible title **first seen during the previous week** is featured; the following Monday the hero switches to that new “previous week.” Rolls over **Monday 00:00** in that zone; homepage ISR may cache up to ~1 hour. Override with the first slug in `FEATURED_LISTING_SLUGS`, else hot-traffic / `chart_bucket = featured` when the prior week had no ingest:
 
 ```bash
-# FEATURED_LISTING_SLUGS=slug-one,slug-two
+# Permanent override (until removed):
+# FEATURED_LISTING_SLUGS=slug-one
+
+# One-week manual pick, then weekly rotation resumes automatically:
+# FEATURED_LISTING_SLUGS=fazbooba-simulator-zbooba-simulator
+# FEATURED_LISTING_SLUGS_UNTIL=auto
 ```
+
+`FEATURED_LISTING_SLUGS_UNTIL=auto` expires at the **next Monday 00:00** in the catalog week timezone. Or set `YYYY-MM-DD` for that midnight. **Restart** `nsfwdroid` after changing these (no rebuild required). Clear both vars after a dated override if you want to force rotation early.
 
 ### Ops email alerts
 
@@ -326,25 +392,46 @@ Configure in `/etc/nsfwdroid.env` (never commit). If `ALERT_EMAIL_TO` is unset, 
 
 | Variable | Purpose |
 | --- | --- |
-| `ALERT_EMAIL_TO` | Recipient (required to send) |
-| `ALERT_EMAIL_FROM` | From address (default `alerts@nsfwdroid.com`). Resend accepts `Name <email>` — production droplet uses `NSFW Droid <alerts@nsfwdroid.com>` (domain verified in Resend) |
-| `RESEND_API_KEY` | Preferred: [Resend](https://resend.com) HTTP API |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | Optional SMTP via `curl` |
+| `ALERT_EMAIL_TO` | Recipient (required to send). `ALERT_EMAIL` is accepted as an alias |
+| `ALERT_EMAIL_FROM` | From address (default `alerts@nsfwdroid.com`). Production uses `NSFW Droid <alerts@nsfwdroid.com>` |
+| `ALERT_EMAIL_TRANSPORT` | `sendmail` (default, Exim on droplet) or `smtp` |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | Optional SMTP via `curl` when `ALERT_EMAIL_TRANSPORT=smtp` or as fallback after sendmail failure |
 | `ALERT_DEDUPE_MINUTES` | Same `--key` max once per N minutes (default `30`) |
 | `ALERT_DEDUPE_DIR` | Dedupe stamps (default `/var/lib/nsfwdroid/alert-dedupe`) |
 
-Fallback: `sendmail` if installed. Script: `scripts/alert-email.sh` (used by watchdog + weekly cron).
+Primary transport: local `sendmail` (Exim on the droplet). Script: `scripts/alert-email.sh` (watchdog, ingest checks, weekly cron failures).
 
 Example:
 
 ```bash
 ALERT_EMAIL_TO=you@example.com
 ALERT_EMAIL_FROM="NSFW Droid <alerts@nsfwdroid.com>"
+ALERT_EMAIL_TRANSPORT=sendmail
 NEWSLETTER_FROM="NSFW Droid <newsletter@nsfwdroid.com>"
-RESEND_API_KEY=re_xxxxxxxx
+NEWSLETTER_TRANSPORT=sendmail
 ```
 
-`scripts/alert-email.sh` uses Resend when `RESEND_API_KEY` is set and **exits on API errors** (e.g. HTTP 403) instead of falling back to `sendmail`.
+`scripts/alert-email.sh` injects mail through local **Exim** (`sendmail`) by default — same loopback path as the member newsletter when `NEWSLETTER_TRANSPORT=sendmail`. Remove legacy `RESEND_API_KEY` from `/etc/nsfwdroid.env` if present; it is no longer read by ops alerts.
+
+**Test routing (droplet):**
+
+```bash
+cd /var/www/nsfwdroid && ./scripts/ops-alert-email-test.sh
+```
+
+Or manually: `./scripts/alert-email.sh --key "manual-test-$(date -u +%s)" --subject "[NSFW Droid TEST] …" --body "…"`. Check the inbox (and Gmail **Spam** once) for `ALERT_EMAIL_TO`.
+
+**Gmail deliverability (ops alerts):**
+
+| Topic | Guidance |
+| --- | --- |
+| Transport | Ops alerts and newsletter both use **Exim sendmail** on the droplet by default. Align DNS (SPF/DKIM/DMARC) for **nsfwdroid.com** so Gmail accepts mail from the droplet IP or relay. |
+| From alignment | Keep `ALERT_EMAIL_FROM` on **nsfwdroid.com** (e.g. `NSFW Droid <alerts@nsfwdroid.com>`). |
+| Exim → Gmail | Mail from a VPS IP without aligned DNS often lands in **Spam** or is deferred. After the first delivery, open Gmail **Spam** once and “Report not spam” for `ALERT_EMAIL_FROM`. For stubborn deliverability, set `ALERT_EMAIL_TRANSPORT=smtp` with authenticated SMTP instead of raw sendmail. |
+| Reply-To / List-Unsubscribe | Transactional ops alerts do not need `List-Unsubscribe`. Optional `Reply-To` to the same `alerts@…` address if bounces confuse filters. |
+| Recipient | Set `ALERT_EMAIL_TO` to the mailbox you read on your phone. `ALERT_EMAIL` is an alias for the same variable. |
+
+All callers (`ensure-nsfwdroid.sh`, ingest checks, `weekly-maintenance.sh`, `weekly-newsletter-cron.sh` failure paths, etc.) invoke `scripts/alert-email.sh`, which reads **only** `ALERT_EMAIL_TO` / `ALERT_EMAIL` for the recipient.
 
 ---
 
@@ -358,4 +445,26 @@ Storefront chrome matches `docs/design-layout.md` (header, 21:9 hero, chip row, 
 
 - Rotate any API key ever pasted in chat.
 - Restrict SSH to your IP in DigitalOcean Cloud Firewall when possible.
-- Keep `ADMIN_PASSWORD` only in `/etc/nsfwdroid.env`.
+- Keep `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` only in `/etc/nsfwdroid.env` (never commit). Use a dedicated `ADMIN_SESSION_SECRET` so password rotation does not invalidate moderator sessions.
+- **Cloudflare** (optional edge): [cloudflare.md](cloudflare.md). App sets baseline security headers in middleware; POST APIs use IP rate limits (see `src/lib/rate-limit.ts`).
+
+### Exim (local `sendmail`, not an open relay)
+
+Newsletter and ops mail on the droplet use **Exim** on **loopback only** (`127.0.0.1:25` / `::1:25`), installed via `deploy/setup-local-mail.sh` (see branch `cursor/droplet-mail-25f1`). The app runs as **`www-data`** and injects mail with `/usr/sbin/sendmail` when `NEWSLETTER_TRANSPORT=sendmail`.
+
+**Relay smoke test (read-only):**
+
+```bash
+# On the droplet (root):
+chmod +x scripts/exim-relay-smoke.sh
+./scripts/exim-relay-smoke.sh
+
+# From a Cloud Agent VM (after ./scripts/cloud-agent-ssh-setup.sh when that script is on your branch):
+./scripts/cloud-agent-exim-relay-smoke.sh
+```
+
+The script checks `exim4` is active, `dc_relay_nets` is empty, SMTP listens on loopback only, a **simulated remote client** (`exim -bh 203.0.113.50`) gets **`550 relay not permitted`**, and **`www-data`** can still **route** outbound mail (`exim -bt` → `dnslookup`). It does **not** send real messages.
+
+**Production verification (2026-10-21, read-only):** Cloud Agent SSH to `159.203.136.220` succeeded. Exim **4.98.2**; `dc_local_interfaces='127.0.0.1 ; ::1'`; `dc_relay_nets=''`; `MAIN_TRUSTED_USERS = www-data` in `/etc/exim4/exim4.conf.localmacros`. Public **TCP/25** on the droplet IP was **not** reachable (listener bound to loopback only). Remote relay probe rejected; `www-data` routing to external domains via `dnslookup` works as intended for newsletter sendmail.
+
+**Note:** Connections from **127.0.0.1** may still relay outbound mail (default Debian `relay_from_hosts` for local submission). That is expected for `sendmail` on the box; it is not exposed to the internet because port 25 is not on the public interface. Re-run the smoke script after any Exim or firewall change.

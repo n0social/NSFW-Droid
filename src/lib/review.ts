@@ -3,10 +3,15 @@ import { getDb } from "@/db";
 import { candidates, listings, type Candidate } from "@/db/schema";
 import { copyCandidateTagsToListing } from "@/lib/catalog-tags";
 import {
+  candidateMatchesCoverOptionalOverride,
+  getCoverOptionalListingsSync,
+} from "@/lib/cover-optional-listings";
+import {
   artworkSourceForCover,
   extractCoverImageUrl,
 } from "@/lib/listing-cover";
 import { slugify } from "@/lib/slug";
+import { allocateUniqueListingSlug } from "@/lib/listing-slug";
 import { resolveListingAffiliateUrl } from "@/lib/listing-affiliate";
 
 export async function approveCandidate(
@@ -69,9 +74,36 @@ export async function approveCandidate(
     return existingListing;
   }
 
-  const slug = slugify(c.title, c.externalId);
+  const { slug, initialSlug, disambiguated, steps } = await allocateUniqueListingSlug(
+    db,
+    c.title,
+    c.externalId,
+    c.source,
+  );
+
+  if (disambiguated) {
+    const payload =
+      c.rawPayload && typeof c.rawPayload === "object"
+        ? { ...(c.rawPayload as Record<string, unknown>) }
+        : {};
+    payload.slugPublish = {
+      initialSlug,
+      slug,
+      steps,
+      at: new Date().toISOString(),
+    };
+    await db
+      .update(candidates)
+      .set({ rawPayload: payload })
+      .where(eq(candidates.id, candidateId));
+  }
 
   const coverImageUrl = extractCoverImageUrl(c.source, c.rawPayload);
+  const coverOptional = candidateMatchesCoverOptionalOverride(
+    c,
+    getCoverOptionalListingsSync(),
+  );
+  if (!coverImageUrl?.trim() && !coverOptional) return null;
 
   const [listing] = await db
     .insert(listings)

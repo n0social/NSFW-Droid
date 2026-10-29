@@ -8,6 +8,7 @@ import {
   type CuratedSfmTutorial,
   type SfmTutorialMediaType,
 } from "@/lib/creator-assets-sfm-tutorials-curated";
+import { OutboundPopunderLink } from "@/components/OutboundPopunderLink";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
@@ -27,13 +28,14 @@ const TYPE_BADGE: Record<SfmTutorialMediaType, string> = {
   "forum thread": "Forum",
 };
 
-function TutorialCard({ item }: { item: CuratedSfmTutorial }) {
+function TutorialCard({ item, ageVerified }: { item: CuratedSfmTutorial; ageVerified: boolean }) {
   return (
     <article
       className="flex h-full flex-col rounded-2xl border border-[var(--theme-primary)]/25 bg-[var(--theme-surface)]/70 shadow-[0_8px_24px_rgba(0,0,0,0.35)]"
     >
-      <a
+      <OutboundPopunderLink
         href={item.href}
+        ageVerified={ageVerified}
         target="_blank"
         rel="noopener noreferrer"
         className="group flex flex-1 flex-col p-4 sm:p-5"
@@ -48,7 +50,7 @@ function TutorialCard({ item }: { item: CuratedSfmTutorial }) {
         <p className="mt-4 text-[10px] font-bold uppercase tracking-wide text-[#FF4D8D]">
           External tutorial →
         </p>
-      </a>
+      </OutboundPopunderLink>
     </article>
   );
 }
@@ -87,7 +89,7 @@ export function CreatorSfmTutorialsPage({
                 <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {items.map((item) => (
                     <li key={item.id}>
-                      <TutorialCard item={item} />
+                      <TutorialCard item={item} ageVerified={ageVerified} />
                     </li>
                   ))}
                 </ul>

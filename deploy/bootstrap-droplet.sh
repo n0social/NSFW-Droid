@@ -37,6 +37,7 @@ NODE_ENV=production
 NEXT_PUBLIC_SITE_URL=https://www.nsfwdroid.com
 NEXT_PUBLIC_GA_MEASUREMENT_ID=
 ADMIN_PASSWORD=
+# ADMIN_SESSION_SECRET=
 AUTO_PUBLISH=1
 EOF
   chmod 600 "$ENV_FILE"
@@ -48,11 +49,17 @@ chown -R www-data:www-data "$APP_DIR/data" 2>/dev/null || mkdir -p "$APP_DIR/dat
 chmod +x "$APP_DIR/scripts/catalog-maintenance.sh" \
   "$APP_DIR/scripts/catalog-ingest-cron.sh" \
   "$APP_DIR/scripts/check-ingest-stale.sh" \
+  "$APP_DIR/scripts/check-ingest-overdue.sh" \
+  "$APP_DIR/scripts/post-ingest-hooks.sh" \
   "$APP_DIR/scripts/ensure-nsfwdroid.sh" \
+  "$APP_DIR/scripts/ensure-caddy.sh" \
   "$APP_DIR/scripts/alert-email.sh" \
+  "$APP_DIR/scripts/ops-alert-email-test.sh" \
   "$APP_DIR/scripts/maintenance-notice.sh" \
   "$APP_DIR/scripts/weekly-maintenance.sh" \
-  "$APP_DIR/scripts/weekly-maintenance-inner.sh" 2>/dev/null || true
+  "$APP_DIR/scripts/weekly-maintenance-inner.sh" \
+  "$APP_DIR/scripts/exim-relay-smoke.sh" \
+  "$APP_DIR/scripts/ops-exim-relay-smoke-alert.sh" 2>/dev/null || true
 mkdir -p /var/lib/nsfwdroid/alert-dedupe
 
 cp deploy/nsfwdroid.service /etc/systemd/system/nsfwdroid.service
@@ -63,6 +70,11 @@ if [[ -f deploy/cron.d/nsfwdroid-watchdog ]]; then
   cp deploy/cron.d/nsfwdroid-watchdog /etc/cron.d/nsfwdroid-watchdog
   chmod 644 /etc/cron.d/nsfwdroid-watchdog
   touch /var/log/nsfwdroid-watchdog.log
+fi
+if [[ -f deploy/cron.d/nsfwdroid-caddy-watchdog ]]; then
+  cp deploy/cron.d/nsfwdroid-caddy-watchdog /etc/cron.d/nsfwdroid-caddy-watchdog
+  chmod 644 /etc/cron.d/nsfwdroid-caddy-watchdog
+  touch /var/log/nsfwdroid-caddy-watchdog.log
 fi
 if [[ -f deploy/cron.d/nsfwdroid-ingest ]]; then
   cp deploy/cron.d/nsfwdroid-ingest /etc/cron.d/nsfwdroid-ingest

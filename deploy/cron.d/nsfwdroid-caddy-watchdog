@@ -1,0 +1,3 @@
+# Copy to /etc/cron.d/nsfwdroid-caddy-watchdog on the droplet (chmod 644).
+# Restarts Caddy if the reverse-proxy unit is down.
+*/5 * * * * root /var/www/nsfwdroid/scripts/ensure-caddy.sh

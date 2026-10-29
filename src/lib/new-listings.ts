@@ -34,6 +34,11 @@ export function newListingPublishedSinceCondition(now = new Date()) {
   return sql`${listingFirstSeenAtExpr()} >= ${cutoff}`;
 }
 
+/** Listing first appeared in [start, end) (catalog ingest / first-seen time). */
+export function listingFirstSeenInRangeCondition(start: Date, end: Date) {
+  return sql`${listingFirstSeenAtExpr()} >= ${start} AND ${listingFirstSeenAtExpr()} < ${end}`;
+}
+
 const emptyNewPage = {
   hero: [] as Listing[],
   more: [] as Listing[],

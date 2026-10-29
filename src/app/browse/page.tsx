@@ -1,6 +1,8 @@
+import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { BrowseCatalog } from "@/components/BrowseCatalog";
+import { browseCatalogPath } from "@/lib/browse-catalog-path";
 import { isAgeVerifiedRequest } from "@/lib/age-verified-server";
 import { BLUR_COVERS_COOKIE, parseBlurCovers } from "@/lib/cookies";
 import { BROWSE_PAGE_SIZE } from "@/lib/browse-constants";
@@ -15,9 +17,11 @@ import {
   browsePrefsToQueryString,
 } from "@/lib/browse-preferences";
 import { getUserProfile, parseUserPreferences } from "@/lib/user-profile";
+import { browseTagHubIntro } from "@/lib/browse-tag-intro";
 import { getSessionUserId } from "@/lib/user-session";
 
-export const dynamic = "force-dynamic";
+/** Keep in sync with `CATALOG_PAGE_REVALIDATE_SECONDS` (Next.js requires a literal). */
+export const revalidate = 3600;
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -26,8 +30,7 @@ function paramOne(value: string | string[] | undefined): string | null {
   return value ?? null;
 }
 
-export default async function BrowsePage({ searchParams }: { searchParams: SearchParams }) {
-  const sp = await searchParams;
+function browseFiltersFromSearchParams(sp: Record<string, string | string[] | undefined>) {
   const rail = paramOne(sp.rail);
   const tag = paramOne(sp.tag);
   const q = paramOne(sp.q);
@@ -35,6 +38,135 @@ export default async function BrowsePage({ searchParams }: { searchParams: Searc
   const sort = paramOne(sp.sort);
   const pageRaw = paramOne(sp.page);
   const page = Math.max(1, parseInt(pageRaw ?? "1", 10) || 1);
+  return { rail, tag, q, vanilla, sort, page };
+}
+
+function browseListingsRail(rail: string | null) {
+  return rail === "new" || rail === "hot" || rail === "trending"
+    ? rail === "hot"
+      ? "new"
+      : rail
+    : null;
+}
+
+function browseCatalogSort(sort: string | null) {
+  return sort === "new" ? "new" : null;
+}
+
+function appendBrowsePaginationLinks(
+  metadata: Metadata,
+  input: {
+    rail: string | null;
+    tag: string | null;
+    q: string | null;
+    vanilla: boolean;
+    sort: string | null;
+    page: number;
+    total: number;
+  },
+): void {
+  const catalogSort = browseCatalogSort(input.sort);
+  const railBlocksPagination =
+    input.rail === "new" || input.rail === "hot" || input.rail === "trending";
+  if (railBlocksPagination || input.total <= 0) return;
+
+  const totalPages = Math.max(1, Math.ceil(input.total / BROWSE_PAGE_SIZE));
+  const paginationLinks: { rel: string; url: string }[] = [];
+  const linkBase = {
+    rail: input.rail,
+    tag: input.tag,
+    q: input.q,
+    vanilla: input.vanilla,
+    sort: catalogSort,
+  };
+  if (input.page > 1) {
+    paginationLinks.push({
+      rel: "prev",
+      url: browseCatalogPath({ ...linkBase, page: input.page - 1 }),
+    });
+  }
+  if (input.page < totalPages) {
+    paginationLinks.push({
+      rel: "next",
+      url: browseCatalogPath({ ...linkBase, page: input.page + 1 }),
+    });
+  }
+  if (paginationLinks.length > 0) {
+    metadata.icons = { other: paginationLinks };
+  }
+}
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}): Promise<Metadata> {
+  const sp = await searchParams;
+  const { rail, tag, q, vanilla, sort, page } = browseFiltersFromSearchParams(sp);
+  const catalogSort = browseCatalogSort(sort);
+  const tagSlug = tag?.trim().toLowerCase() || null;
+  const tagOnlyHub = Boolean(tagSlug && !rail && !q && !vanilla && !catalogSort);
+
+  const path = browseCatalogPath({
+    rail,
+    tag,
+    q,
+    vanilla,
+    sort: catalogSort,
+    page,
+  });
+
+  const browse = await getBrowseListings({
+    rail: browseListingsRail(rail),
+    tag,
+    q,
+    vanilla,
+    sort: catalogSort,
+    page,
+  });
+
+  if (tagOnlyHub && tagSlug && page === 1) {
+    const label = browse.tags.find((t) => t.slug === tagSlug)?.label ?? tag;
+    const description = browseTagHubIntro(label ?? tagSlug, browse.total);
+    const metadata: Metadata = {
+      title: `${label} · Browse`,
+      description,
+      alternates: { canonical: path },
+    };
+    appendBrowsePaginationLinks(metadata, {
+      rail,
+      tag,
+      q,
+      vanilla,
+      sort,
+      page,
+      total: browse.total,
+    });
+    return metadata;
+  }
+
+  const title = page > 1 ? `Browse · Page ${page}` : "Browse";
+  const metadata: Metadata = {
+    title,
+    alternates: { canonical: path },
+  };
+  appendBrowsePaginationLinks(metadata, {
+    rail,
+    tag,
+    q,
+    vanilla,
+    sort,
+    page,
+    total: browse.total,
+  });
+
+  return metadata;
+}
+
+export default async function BrowsePage({ searchParams }: { searchParams: SearchParams }) {
+  const sp = await searchParams;
+  const { rail, tag, q, vanilla, sort, page } = browseFiltersFromSearchParams(sp);
+  const catalogSort = browseCatalogSort(sort);
 
   const hasUrlFilters = Boolean(
     (rail === "new" || rail === "hot" || rail === "trending") ||
@@ -64,20 +196,23 @@ export default async function BrowsePage({ searchParams }: { searchParams: Searc
   const layoutDecor = resolveLayoutDecorForTheme(active);
 
   const browse = await getBrowseListings({
-    rail:
-      rail === "new" || rail === "hot" || rail === "trending"
-        ? rail === "hot"
-          ? "new"
-          : rail
-        : null,
+    rail: browseListingsRail(rail),
     tag,
     q,
     vanilla,
-    sort: sort === "new" ? "new" : null,
+    sort: catalogSort,
     page,
   });
 
   const listingCount = browse.catalogUnavailable ? 0 : await getPublishedListingCount();
+
+  const tagHubIntro =
+    tag && page === 1 && !browse.catalogUnavailable
+      ? browseTagHubIntro(
+          browse.tags.find((t) => t.slug === tag.trim().toLowerCase())?.label ?? tag,
+          browse.total,
+        )
+      : null;
 
   return (
     <div className="relative min-h-screen bg-[var(--background)] text-[var(--foreground)]">
@@ -94,10 +229,11 @@ export default async function BrowsePage({ searchParams }: { searchParams: Searc
         initialTag={tag}
         initialVanilla={vanilla}
         initialQ={q}
-        initialSort={sort === "new" ? "new" : null}
+        initialSort={catalogSort}
         totalListings={browse.total}
         page={page}
         pageSize={BROWSE_PAGE_SIZE}
+        tagHubIntro={tagHubIntro}
       />
     </div>
   );

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { XMLParser } from "fast-xml-parser";
 import { unstable_cache } from "next/cache";
+import { posterUrlFromVideoEnclosure } from "@/lib/video-thumbnail";
 
 const FETCH_USER_AGENT =
   "NSFW-Droid-Catalog/0.1 (link catalog; +https://github.com/n0social/NSFW-Droid)";
@@ -117,6 +118,15 @@ function readAttr(node: unknown, key: string): string {
   return typeof plain === "string" ? plain.trim() : "";
 }
 
+function firstImageInHtml(html: string): string | null {
+  const decoded = decodeHtmlEntities(html);
+  const m = decoded.match(/<img[^>]+src=["'](https?:\/\/[^"']+)["']/i);
+  if (!m) return null;
+  const url = m[1].trim();
+  if (/\.(jpg|jpeg|png|webp)(\?|$)/i.test(url)) return url;
+  return null;
+}
+
 function extractThumbnail(item: Record<string, unknown>): string | null {
   const topThumb = item["media:thumbnail"];
   for (const t of asArray(topThumb)) {
@@ -146,6 +156,16 @@ function extractThumbnail(item: Record<string, unknown>): string | null {
     const url = decodeHtmlEntities(readAttr(enc, "url"));
     const type = readAttr(enc, "type").toLowerCase();
     if (url.startsWith("http") && type.startsWith("image/")) return url;
+    if (url.startsWith("http") && type.startsWith("video/")) {
+      const poster = posterUrlFromVideoEnclosure(url);
+      if (poster) return poster;
+    }
+  }
+
+  const description = String(item.description ?? "");
+  if (description) {
+    const fromDesc = firstImageInHtml(description);
+    if (fromDesc) return fromDesc;
   }
 
   return null;
@@ -292,6 +312,11 @@ const ENTRY_TITLE_RE =
 const POSTER_RE = /poster="([^"]+)"/i;
 const UPLOAD_THUMB_RE =
   /https:\/\/sfmcompile\.club\/wp-content\/uploads\/[^"\s]+\.(?:jpg|jpeg|png|webp)/i;
+const UPLOAD_MP4_RE = /https:\/\/sfmcompile\.club\/wp-content\/uploads\/[^"\s]+\.mp4/i;
+const WP_POST_IMAGE_RE =
+  /<img[^>]*class="[^"]*wp-post-image[^"]*"[^>]*src="([^"]+)"/i;
+const LAZY_IMG_RE =
+  /data-src="(https:\/\/[^"]+\.(?:jpg|jpeg|png|webp)[^"]*)"/i;
 
 function listingPageUrl(base: string, page: number): string {
   if (page <= 1) return base;
@@ -321,8 +346,17 @@ function parsePopularListingHtml(html: string, listing: VideoTopListingConfig): 
     if (!title || !link.startsWith("http")) continue;
     if (/\/category\/|\/tag\/|\/page\/|top-10-animations/i.test(link)) continue;
 
-    const poster = block.match(POSTER_RE)?.[1] ?? block.match(UPLOAD_THUMB_RE)?.[0] ?? null;
-    const thumb = poster ? decodeHtmlEntities(poster).trim() : null;
+    const poster =
+      block.match(POSTER_RE)?.[1] ??
+      block.match(UPLOAD_THUMB_RE)?.[0] ??
+      block.match(WP_POST_IMAGE_RE)?.[1] ??
+      block.match(LAZY_IMG_RE)?.[1] ??
+      null;
+    let thumb = poster ? decodeHtmlEntities(poster).trim() : null;
+    if (!thumb?.startsWith("http")) {
+      const mp4 = block.match(UPLOAD_MP4_RE)?.[0];
+      if (mp4) thumb = posterUrlFromVideoEnclosure(mp4);
+    }
 
     out.push({
       id: `${listing.sourceId}:popular:${link}`,
