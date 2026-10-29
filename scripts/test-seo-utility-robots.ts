@@ -16,6 +16,16 @@ const REQUIRED_DISALLOW = [
   "/underage/",
 ];
 
+const REQUIRED_ALLOW = [
+  "/",
+  "/browse",
+  "/new",
+  "/videos",
+  "/creators",
+  "/links",
+  "/game/",
+];
+
 const rules = robots().rules;
 if (!rules || Array.isArray(rules)) {
   console.error("robots(): expected a single rules object");
@@ -23,9 +33,16 @@ if (!rules || Array.isArray(rules)) {
 }
 
 const disallow = rules.disallow ?? [];
-const missing = REQUIRED_DISALLOW.filter((path) => !disallow.includes(path));
-if (missing.length > 0) {
-  console.error("robots() missing disallow:", missing);
+const missingDisallow = REQUIRED_DISALLOW.filter((path) => !disallow.includes(path));
+if (missingDisallow.length > 0) {
+  console.error("robots() missing disallow:", missingDisallow);
+  process.exit(1);
+}
+
+const allow = rules.allow ?? [];
+const missingAllow = REQUIRED_ALLOW.filter((path) => !allow.includes(path));
+if (missingAllow.length > 0) {
+  console.error("robots() missing allow:", missingAllow);
   process.exit(1);
 }
 

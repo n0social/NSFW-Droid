@@ -53,7 +53,7 @@ Same pattern as home/browse: `AgeGate` until `age_verified` cookie; covers blurr
 ## Sitemap & robots
 
 - `app/sitemap.ts` — static site URLs, browse-safe **`/browse?tag={slug}`** tag hubs (at least one published title; `lastModified` from latest tagged listing), plus all published `/game/...` entries (`lastModified` from `listing.updated_at`).
-- `app/robots.ts` — allows `/` and `/game/`; disallows `/admin/`, `/api/`, `/account/`, auth/settings/newsletter/underage utility paths.
+- `app/robots.ts` — explicitly allows catalog and legal paths (`/`, `/browse`, `/new`, `/videos`, `/creators`, `/links`, `/game/`, etc.); disallows `/admin/`, `/api/`, `/account/`, auth/settings/newsletter/underage utility paths. Production `robots.txt` may prepend **Cloudflare Managed** AI-crawler rules; `Googlebot` is not in that disallow list (see `scripts/verify-robots-http.sh`).
 
 ## Canonical host (Search Console)
 
