@@ -11,6 +11,8 @@
 
 Root `src/app/layout.tsx` sets a default **Open Graph** and **Twitter** image (`/og-default.png`, 1200×630) for pages that do not define their own preview image. `metadataBase` resolves it to an absolute URL on shares.
 
+The home page (`src/app/page.tsx`) embeds **`WebSite`** JSON-LD from `src/lib/site-json-ld.ts` for entity clarity in search results.
+
 ## Metadata
 
 Each game page sets:
