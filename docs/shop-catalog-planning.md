@@ -26,8 +26,10 @@ A **standard merch catalog storefront** on the NSFW Droid brand surface: collect
 | Principle | Detail |
 | --- | --- |
 | **Catalog-native chrome** | Same header/footer tokens as `www` (`#14061C`, `#241033`, `#22FF88`). Shop nav pill; optional launch **New** on nav only (not on every card). |
-| **Chibi = marketing standee, not rank** | MapleStory-style **banner-v2** chibis sit **in front of** the product image on cards/rails — not game `#1–#10` badges. |
-| **One primary standee per card** | Priority stack when tags overlap (see [Chibi badge system](#chibi-badge-system)). |
+| **Chibi = marketing standee, not rank** | MapleStory-style **banner-v2** chibis are **optional card overlays** — not game `#1–#10` badges and **not on every SKU**. |
+| **Clean image by default** | Most cards show **product art only**. A standee appears **only** when the badge resolver returns a key (sale, new, clearance, etc.). |
+| **Right-side standee** | When shown, anchor **bottom-right** of the image box (~**30–40%** width); product photo stays primary **left/center**. |
+| **One primary standee per card** | Priority stack when multiple tags overlap (see [Chibi badge system](#chibi-badge-system)). |
 | **Fulfillment truth on PDP** | Physical → shipping block; digital → instant download copy; bundles → split fulfillment note. |
 | **Preview honesty** | Current `/shop` is **noindex preview** with mock data in `src/lib/shop/home-products.ts` — not production commerce until sign-off + backend epic. |
 
@@ -35,30 +37,77 @@ A **standard merch catalog storefront** on the NSFW Droid brand surface: collect
 
 ## Chibi badge system
 
+### When a standee appears (card grid / rails)
+
+| Rule | Detail |
+| --- | --- |
+| **Default** | **No chibi** — product thumbnail fills the image area (fulfillment pills may still show top-left). |
+| **Tagged SKUs only** | Standee renders when [badge resolution](#badge-resolution-pseudo) yields a non-null key: on sale, new, clearance, limited, or owner-forced badge — **not** because the SKU lives in a “New arrivals” rail (rail membership ≠ badge; only SKUs that pass the `new` rule get the standee). |
+| **Placement** | **One** standee, **right-aligned** on the image (see [Visual spec](#visual-spec--chibi-standee-on-product-card)). |
+| **Excluded** | **Best seller** never gets a chibi (text pill only). Plain catalog SKUs with no promo tags stay clean. |
+
 ### Asset inventory (banner-v2 set)
 
 All live under `public/shop/` (see [Approved merch art map](shop-storefront-blueprint.md#approved-merch-art-map)). Keys in code: `src/lib/shop/assets.ts`.
 
 | Badge key | Banner text on art | File basename |
 | --- | --- | --- |
-| `sale` | **SALE** | `nsfw-droid-shop-vesper-chibi-sale-big-bust-v1-banner-v2.jpg` |
-| `percent_off` | **-30%** (or strikethrough promos) | `nsfw-droid-shop-vesper-chibi-sale-big-bust-v2-banner-v2.jpg` |
-| `deal` | **DEAL** | `nsfw-droid-shop-vesper-chibi-deal-big-bust-banner-v2.jpg` |
-| `clearance` | **CLEARANCE** | `nsfw-droid-shop-vesper-chibi-clearance-big-bust-banner-v2.jpg` |
-| `new` | **NEW** | `nsfw-droid-shop-vesper-chibi-new-item-big-bust-banner-v2.jpg` |
-| `limited` | **LIMITED** | `nsfw-droid-shop-vesper-chibi-limited-big-bust-banner-v2.jpg` |
+| `sale` | **SALE** (static on JPG) | `nsfw-droid-shop-vesper-chibi-sale-big-bust-v1-banner-v2.jpg` |
+| `percent_off` | **-30%** sample on JPG *(reference pose)* | `nsfw-droid-shop-vesper-chibi-sale-big-bust-v2-banner-v2.jpg` |
+| `deal` | **DEAL** (static on JPG) | `nsfw-droid-shop-vesper-chibi-deal-big-bust-banner-v2.jpg` |
+| `clearance` | **CLEARANCE** (static on JPG) | `nsfw-droid-shop-vesper-chibi-clearance-big-bust-banner-v2.jpg` |
+| `new` | **NEW** (static on JPG) | `nsfw-droid-shop-vesper-chibi-new-item-big-bust-banner-v2.jpg` |
+| `limited` | **LIMITED** (static on JPG) | `nsfw-droid-shop-vesper-chibi-limited-big-bust-banner-v2.jpg` |
 
 **Art rules:** Black panel + purple `#C026D3` border, white type — **no green/red** sale banners on chips (storefront-wide).
+
+The **v2 percent chibi** is a **pose + flag prop** reference. On **product cards**, the numeric discount must **not** assume every sale is 30% — see [On-sale standee + dynamic discount flag](#on-sale-standee--dynamic-discount-flag).
+
+### Static label vs dynamic discount (implementer map)
+
+| Badge key | Label on card | Source |
+| --- | --- | --- |
+| `new` | **NEW** | Static text baked in chibi JPG |
+| `clearance` | **CLEARANCE** | Static JPG |
+| `limited` | **LIMITED** | Static JPG |
+| `deal` | **DEAL** | Static JPG *(grid card only when `featured: true`; home **featured deal module** uses full DEAL art separately)* |
+| `sale` | **SALE** | Static JPG *(generic sale, discount &lt; 15% or no % promo)* |
+| `percent_off` | **`-{N}%`** | **Dynamic** — computed from `compareAtPrice` and `price` (see below); chibi body from v2 asset, **flag text overlaid or composited** |
+
+### On-sale standee + dynamic discount flag
+
+**Trigger:** `compareAtPrice` &gt; `price` and badge resolver selects `percent_off` (discount ≥ **15%**) or, for smaller discounts, `sale` with optional small **%-only** pill on PDP — standee uses **SALE** v1 JPG without a dynamic flag.
+
+**Layout (on-sale / `percent_off`):**
+
+1. **Chibi asset:** Prefer **`percent_off`** banner-v2 (chibi holds flag prop). Fallback: **`sale`** v1 if owner chooses single sale chibi for all discounts (see owner decision).
+2. **Dynamic flag text:**  
+   `N = round((compareAtPrice - price) / compareAtPrice * 100)` → display **`-{N}%`** (e.g. 12.4 → **-12%**; document rounding in resolver tests).
+3. **Rendering (Phase C0 — pick one for MVP):**
+   - **CSS overlay (recommended MVP):** Standee `Image` + absolutely positioned flag layer over the banner/flag region of the JPG (`font` matches white condensed type on black panel; purple border inherited from art). Hide or mask the baked **-30%** pixels in art via overlay rectangle if needed.
+   - **Future art template:** Export chibi with **blank flag zone**; server or edge compositor draws `-{N}%` into the flag (same typography rules). Defer until post-launch if CSS overlay ships first.
+
+**PDP:** Strikethrough `compareAtPrice` + current `price` remain on the price row; chibi on PDP optional — card behavior is canonical for standee rules.
+
+### Owner decision — sale chibi strategy *(sign-off before C0)*
+
+| Option | Cards | Pros / cons |
+| --- | --- | --- |
+| **A — Dynamic flag (recommended)** | One **percent_off** chibi pose for all ≥15% sales; **`-{N}%`** always computed. **SALE** v1 for &lt;15% or non-% promos. | Accurate promos; one pose to maintain. Requires overlay/compositing spec above. |
+| **B — Static JPG only** | Map each SKU to nearest pre-rendered **-30%** (or other) art. | Simple `<img>` only; **wrong %** when discount ≠ 30%. |
+| **C — Hybrid** | Static labels (NEW, CLEARANCE, LIMITED, DEAL) from JPG; **only** percent sales use Option A dynamic flag. | Matches current asset set; owner must confirm Option A for percent path. |
+
+**Default for planning:** **Option C** (static marketing labels on art; dynamic flag for **`percent_off`** only). Owner confirms or overrides in sign-off.
 
 ### Semantic mapping (data → chibi)
 
 | Storefront meaning | Badge key | When it applies |
 | --- | --- | --- |
-| **Featured item** (curated hero / featured deal module) | `deal` | Owner flag `featured: true` **or** SKU in `featuredDealSlug`; max one hero module on home. |
+| **Featured item** (curated hero / featured deal module) | `deal` | Owner flag `featured: true` **or** SKU in `featuredDealSlug`; max one hero module on home. Grid card standee **only** if that SKU is featured — not every discounted item. |
 | **New arrivals** | `new` | `publishedAt` within **45 days** **or** manual `badge: "new"` until date. |
 | **Clearance / outlet** | `clearance` | `collection: clearance` **or** `compareAtPrice` with `clearance: true` (sunset SKUs). |
-| **Percent-off promo** | `percent_off` | `compareAtPrice` set and discount ≥ **15%** (show strikethrough on PDP). |
-| **Generic on sale** | `sale` | Any `compareAtPrice` &lt; **15%** discount **or** sitewide sale flag without specific %. |
+| **Percent-off promo** | `percent_off` | `compareAtPrice` set and discount ≥ **15%**; card shows chibi + **dynamic `-{N}%`** flag (not fixed -30% art text). |
+| **Generic on sale** | `sale` | Any `compareAtPrice` with discount **&lt; 15%** **or** sitewide sale flag without a computed % on the card. |
 | **Limited drop** | `limited` | Manual `limitedDrop: true` **or** occult/future scarcity line; optional max qty in copy only (no live inventory). |
 | **Best seller** | *(no 7th chibi)* | See [Best seller rules](#best-seller-rules) — **text pill only** on card; rail uses typography header. |
 
@@ -83,16 +132,16 @@ All live under `public/shop/` (see [Approved merch art map](shop-storefront-blue
 
 ### Priority stack (multiple badges)
 
-Evaluate in order; **first match wins** for the **standee** slot:
+Evaluate in order; **first match wins** for the **single standee** slot. If no row matches, **no standee** (clean image).
 
 1. `clearance`  
 2. `limited`  
-3. `percent_off`  
-4. `sale`  
+3. `percent_off` *(chibi + dynamic `-{N}%` flag)*  
+4. `sale` *(SALE static banner on art)*  
 5. `new`  
-6. `deal` *(only if `featured: true` on card — not every DEAL-tagged sale)*  
+6. `deal` *(grid card only when `featured: true` — not a substitute for `sale` / `percent_off`)*  
 
-**Secondary pills** (non-chibi, top-left stack below standee or right side on desktop):
+**Secondary pills** (non-chibi, **top-left** stack — do not compete with right standee):
 
 - Fulfillment: `Instant download` · `Ships worldwide` · `Bundle`  
 - `Best seller` (text only)  
@@ -106,27 +155,32 @@ Evaluate in order; **first match wins** for the **standee** slot:
 
 ### Placement
 
+**Principle:** Product photography stays the hero **left/center**; the standee is a **right-edge marketing prop** (feet/base anchored bottom-right), not a centered overlay on the whole card.
+
 ```text
 ┌─────────────────────────────┐
-│ [pill: Ships worldwide]     │  ← existing pill, z-index 2, top-left
+│ [pill: Ships worldwide]     │  ← fulfillment pill, z-index 2, top-left
 │                             │
-│     ┌──────┐                │
-│     │CHIBI │  ← standee     │  bottom-left, in front of product art
-│     │stand │                │
-│     └──────┘                │
-│         [ product mock 1:1 ]│
+│   [ product mock 1:1        │  primary art — left / center
+│     primary left/center ]   │
+│                      ┌──────┤
+│                      │CHIBI │  ← standee: right-aligned, bottom-right
+│                      │-22% │  ← dynamic flag text when percent_off
+│                      └──────┘
 └─────────────────────────────┘
+     (no chibi on untagged SKUs — image area is full-bleed product only)
 ```
 
 | Property | Desktop | Mobile (≤640px) |
 | --- | --- | --- |
-| **Anchor** | `absolute`; `left: 0`; `bottom: 0` | Same |
-| **Width** | **38%** of card image box width | **42%** (slightly larger for legibility) |
-| **Height** | `auto`; `aspect-ratio` from chibi JPG (~portrait bust + banner) | Same |
-| **Object fit** | `contain`; transparent padding OK | Same |
-| **Z-index** | Standee **3**; product image **0**; fulfillment pill **2**; card border hover **unchanged** |
+| **Anchor** | `absolute`; `right: 0`; `bottom: 0` | Same |
+| **Width** | **32–38%** of card image box width (~**30–40%** target) | **34–40%** (slightly wider for legibility) |
+| **Height** | `auto`; `aspect-ratio` from chibi JPG (~portrait bust + banner/flag) | Same |
+| **Object fit** | `contain`; align standee to **right** edge; transparent padding OK | Same |
+| **Dynamic flag** | When `percent_off`, flag layer sits on chibi flag/banner zone; `pointer-events: none` | Same |
+| **Z-index** | Standee stack **3**; product image **0**; fulfillment pill **2**; card border hover **unchanged** |
 | **Overflow** | Card image `overflow: hidden`; standee may **bleed 4px** below crop for “shelf” effect — optional polish |
-| **Pointer** | `pointer-events: none` on standee (click goes to PDP) | Same |
+| **Pointer** | `pointer-events: none` on standee + flag overlay (click goes to PDP) | Same |
 
 ### Rail / featured module
 
@@ -327,7 +381,7 @@ Static catalog can live in `data/shop/catalog.json` or typed TS modules until Ph
 
 | Field | Purpose |
 | --- | --- |
-| `badge` | Resolved key: `sale` \| `percent_off` \| `deal` \| `clearance` \| `new` \| `limited` \| null — UI maps to chibi asset |
+| `badge` | Resolved key: `sale` \| `percent_off` \| `deal` \| `clearance` \| `new` \| `limited` \| **null** (no standee). UI maps key → chibi asset; `percent_off` also drives **dynamic `-{N}%`** flag from prices. |
 | `badgeOverride` | Owner force badge (ignores auto rules except clearance priority) |
 | `bestSellerRank` | Integer for rails; null = not in best sellers |
 | `podSkuMap` | Provider variant IDs per option combo |
@@ -339,12 +393,13 @@ Static catalog can live in `data/shop/catalog.json` or typed TS modules until Ph
 ```text
 if clearance → clearance
 else if limitedDrop → limited
-else if compareAtPrice && discount >= 15% → percent_off
+else if compareAtPrice && discount >= 15% → percent_off  // card: right standee + dynamic "-{N}%"
 else if compareAtPrice → sale
 else if within 45d publishedAt → new
 else if featured → deal
-else → null
-bestSellerRank → text pill only
+else → null  // no chibi; clean product image
+bestSellerRank → text pill only (never a standee)
+N = round((compareAtPrice - price) / compareAtPrice * 100) when percent_off
 ```
 
 ---
@@ -356,7 +411,7 @@ bestSellerRank → text pill only
 ### Phase C0 — Catalog data + badges (no checkout)
 
 - [ ] Add `data/shop/catalog.json` (or TS) with full launch + expanded matrix rows  
-- [ ] Extend `ShopProductCard` with standee overlay + badge resolver  
+- [ ] Extend `ShopProductCard` with **conditional** right-aligned standee + badge resolver + dynamic `%` flag for `percent_off`  
 - [ ] Wire home rails (new, best sellers, digital, conditional clearance) from catalog  
 - [ ] Map all six chibis in `assets.ts` → badge keys  
 - [ ] Unit tests for badge priority + best seller pill vs NEW chibi  
@@ -392,3 +447,4 @@ bestSellerRank → text pill only
 | Date | Change |
 | --- | --- |
 | 2026-10-30 | Initial catalog planning spec (chibi system, matrix, IA, PDP, data sketch, phases) |
+| 2026-10-30 | Chibi placement: tagged SKUs only, **right-aligned** standee; **dynamic `-{N}%`** flag for percent sales; owner decision on static vs composited sale art |

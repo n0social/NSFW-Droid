@@ -4,7 +4,7 @@
 **Date:** 30 October 2026  
 **Status:** Design mock only — no live checkout, cart API, inventory, or `shop.nsfwdroid.com` DNS in production yet.
 
-> **Planning phase (Oct 2026):** Catalog storefront behavior — chibi badges, product taxonomy, rails, PDP variants, and JSON catalog shape — is specified in **[shop-catalog-planning.md](shop-catalog-planning.md)**. Implement that doc after owner sign-off; this blueprint remains the “what exists in repo / assets / gaps” index.
+> **Planning phase (Oct 2026):** Catalog storefront behavior — chibi badges, product taxonomy, rails, PDP variants, and JSON catalog shape — is specified in **[shop-catalog-planning.md](shop-catalog-planning.md)**. Implement that doc after owner sign-off; this blueprint remains the “what exists in repo / assets / gaps” index. **Chibi standees:** only on badge-tagged SKUs (not every card), **right-aligned** on the product image with **dynamic `-{N}%`** on the flag for percent-off sales — see catalog planning § Chibi badge system.
 
 **Related docs:** [shop-catalog-planning.md](shop-catalog-planning.md) (catalog IA + badges + matrix), `docs/shop-design-concepts.md` (IA, SKUs, automated checkout target), `docs/shop-layout-mockups.md` (dev preview + canvas link).
 
@@ -264,8 +264,8 @@ Black panel + purple `#C026D3` border, white type — **no green/red** promo chi
 
 | Banner text | Primary artifact path | Storefront placement |
 | --- | --- | --- |
-| **SALE** | `assets/nsfw-droid-shop-vesper-chibi-sale-big-bust-v1-banner-v2.jpg` | Sale row overlay; sticker sheet cell |
-| **-30%** | `assets/nsfw-droid-shop-vesper-chibi-sale-big-bust-v2-banner-v2.jpg` | PDP strikethrough row; promo thumbnail |
+| **SALE** | `assets/nsfw-droid-shop-vesper-chibi-sale-big-bust-v1-banner-v2.jpg` | Grid card standee (right edge) when `sale` badge; sticker sheet cell |
+| **-30%** *(pose ref)* | `assets/nsfw-droid-shop-vesper-chibi-sale-big-bust-v2-banner-v2.jpg` | **`percent_off`** card standee + **computed `-{N}%`** overlay on flag (JPG text is not authoritative); PDP strikethrough row |
 | **DEAL** | `assets/nsfw-droid-shop-vesper-chibi-deal-big-bust-banner-v2.jpg` | Featured deal rail; sale row hero chip |
 | **CLEARANCE** | `assets/nsfw-droid-shop-vesper-chibi-clearance-big-bust-banner-v2.jpg` | Clearance collection header; outlet rail |
 | **NEW** | `assets/nsfw-droid-shop-vesper-chibi-new-item-big-bust-banner-v2.jpg` | New-arrivals rail; PDP launch pill |
