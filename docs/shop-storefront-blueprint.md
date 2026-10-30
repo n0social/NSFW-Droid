@@ -203,7 +203,7 @@ Canonical index: **`/opt/cursor/artifacts/shop-design-batch-index.md`**. **Owner
 | PDP / strikethrough promo | `nsfw-droid-shop-vesper-chibi-sale-big-bust-v2-banner-v2.jpg` |
 | NEW / LIMITED / CLEARANCE rails | `*-new-item-*-banner-v2.jpg`, `*-limited-*-banner-v2.jpg`, `*-clearance-*-banner-v2.jpg` |
 | Pin-up / tee / sticker PDP art | e.g. `vesper-pink-hoodie-chin-hands-v3.jpg`, pin-up v2 series, Andri sticker sheet |
-| Manga occult limited SKU (print) | `nsfwdroid-shop-vesper-manga-pale-hands-gold-pyramid-v5.jpg` (**primary**); v4/v6 paths superseded for print per index |
+| Occult manga line (planned SKU) | **Desired** — not launch-blocking; ref JPGs `nsfwdroid-shop-vesper-manga-pale-hands-gold-pyramid-v5.jpg` / `v6.jpg`; production via external SD — [`occult-manga-art-production-guide.md`](/opt/cursor/artifacts/occult-manga-art-production-guide.md) |
 
 **Promo art rules:** MapleStory chibi **banner-v2** set uses **black panel + purple `#C026D3` border**, white type — **no green/red sale banners** on storefront chips (see index “Standard marketing chibi set”).
 
@@ -267,6 +267,18 @@ Black panel + purple `#C026D3` border, white type — **no green/red** promo chi
 | *(alt, prior batch)* | `assets/nsfw-droid-shop-vesper-andri-duo-v3-hips.jpg` | Duo pose ref only |
 
 **Sticker sheet backing (Andri cells):** `assets/nsfw-droid-shop-andri-sticker-sheet.jpg` — grid variants for Sheet A/B PDP thumbs when sticker pack v1 ships.
+
+### Occult manga line (planned SKU) — **desired**
+
+Owner wants this **“really cool dope designs”** limited line (Pale Man–inspired **void palms**, gold forehead tetrahedron, B&W screentone figure, diagonal `#FF1744` stripes). **In-app `GenerateImage` is shelved** after v6 eye-occlusion failures; **not cancelled** — finish via Civitai/local SD using the production guide.
+
+| SKU / use case | Primary artifact path | Storefront placement |
+| --- | --- | --- |
+| Occult manga tee / sticker / poster (planned) | **TBD after external pass** — compose from refs below | Limited-drop rail; PDP hero when art passes QA |
+| Composition + prompt ref (in-app) | `assets/nsfwdroid-shop-vesper-manga-pale-hands-gold-pyramid-v5.jpg` | img2img base; best screentone/stripe/pyramid/laugh in series |
+| Failed occlusion ref (in-app) | `assets/nsfwdroid-shop-vesper-manga-pale-hands-gold-pyramid-v6.jpg` | Do **not** ship — documents squint/eye leak under palms |
+
+**Production playbook:** [`/opt/cursor/artifacts/occult-manga-art-production-guide.md`](/opt/cursor/artifacts/occult-manga-art-production-guide.md) (prompt packs, Civitai LoRAs, inpaint masks, print QA). Research depth: [`manga-screentone-research.md`](/opt/cursor/artifacts/manga-screentone-research.md), [`dark-anime-uchiha-pose-research.md`](/opt/cursor/artifacts/dark-anime-uchiha-pose-research.md). Canonical batch notes: artifact [`shop-design-batch-index.md`](/opt/cursor/artifacts/shop-design-batch-index.md) section **I**.
 
 ---
 
