@@ -193,7 +193,7 @@ Design spec (concepts doc): desktop drawer **~400px**, surface `#241033`, **2px*
 
 ### Real assets (Cloud Agent artifacts — not committed to repo)
 
-Canonical index: **`/opt/cursor/artifacts/shop-design-batch-index.md`**.
+Canonical index: **`/opt/cursor/artifacts/shop-design-batch-index.md`**. **Owner-approved subset and placement:** [Approved merch art map](#approved-merch-art-map) (below).
 
 | Use in storefront | Primary file (under `artifacts/assets/`) |
 | --- | --- |
