@@ -4,7 +4,9 @@
 **Date:** 30 October 2026  
 **Status:** Design mock only — no live checkout, cart API, inventory, or `shop.nsfwdroid.com` DNS in production yet.
 
-**Related docs:** `docs/shop-design-concepts.md` (IA, SKUs, automated checkout target), `docs/shop-layout-mockups.md` (dev preview + canvas link).
+> **Planning phase (Oct 2026):** Catalog storefront behavior — chibi badges, product taxonomy, rails, PDP variants, and JSON catalog shape — is specified in **[shop-catalog-planning.md](shop-catalog-planning.md)**. Implement that doc after owner sign-off; this blueprint remains the “what exists in repo / assets / gaps” index.
+
+**Related docs:** [shop-catalog-planning.md](shop-catalog-planning.md) (catalog IA + badges + matrix), `docs/shop-design-concepts.md` (IA, SKUs, automated checkout target), `docs/shop-layout-mockups.md` (dev preview + canvas link).
 
 ---
 
@@ -353,6 +355,7 @@ Interactive canvas uses **`useHostTheme()`** (same green accent direction, flat 
 | Shop preview (noindex) | `/shop` |
 | Layout mockups canvas | https://cursor.com/canvas/store-71d7e49f-a003-4074-be74-ec6a867c57da/a2d41d50-20f5-429f-8f4c-6865e00a9827 |
 | Design concepts + checkout ops | `docs/shop-design-concepts.md` |
+| **Catalog planning (badges, matrix, PDP)** | `docs/shop-catalog-planning.md` |
 | Layout mockups doc | `docs/shop-layout-mockups.md` |
 | Art batch index | `/opt/cursor/artifacts/shop-design-batch-index.md` |
 

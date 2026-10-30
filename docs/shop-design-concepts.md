@@ -4,6 +4,8 @@
 **Status:** design only — no routes, checkout, or inventory in the app yet. UX wireframes below; **automated fulfillment + checkout ops** are specified in [Automated shop + checkout](#automated-shop--checkout-ops-architecture) (still no implementation).  
 **Goal:** Visual and UX direction so a future merch / digital shop feels like the same product as the game catalog, with **near-zero owner upkeep** once live.
 
+**Catalog storefront detail (rails, chibi badges, product matrix, PDP variants):** [shop-catalog-planning.md](shop-catalog-planning.md). Checkout ops stay in this doc.
+
 **Live UI tokens:** `src/app/globals.css` — background `#14061C`, surface `#241033`, primary `#22FF88`, accent `#39FF14`, text `#FFF1F7`, muted `#86EFAC`.  
 **Mascot:** Vesper hosts the shop (storefront outfit, PG on public previews). Andri / `DroidMark` can appear on tech merch only. See `docs/design-and-mascot.md` and `docs/mascots.md`.
 
