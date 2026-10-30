@@ -16,8 +16,8 @@
 | --- | --- |
 | **Production target** | `https://shop.nsfwdroid.com` — subdomain of `nsfwdroid.com` (no separate domain). |
 | **Catalog stays** | Game listings remain on `https://www.nsfwdroid.com`. Shop is a sibling surface, not a replacement catalog. |
-| **Phase A *(optional alternate)* ** | **Shopify** (or similar) on `shop.nsfwdroid.com` + Printful/Printify **app** — fast launch, header **Shop** link-out. **Not** the locked owner path (30 Oct 2026); see Phase B. |
-| **Phase B *(locked)* ** | **Headless** shop routes in the Next.js app on `www`: `/shop`, `/cart`, `/checkout`, **Stripe Checkout** + **POD REST API** (default **Printful**) from payment webhooks. Spec: [shop-phase-b-stripe-pod.md](shop-phase-b-stripe-pod.md). |
+| **Phase A *(optional alternate)*** | **Shopify** (or similar) on `shop.nsfwdroid.com` + Printful/Printify **app** — fast launch, header **Shop** link-out. **Not** the locked owner path (30 Oct 2026); see Phase B. |
+| **Phase B *(locked)*** | **Headless** shop routes in the Next.js app on `www`: `/shop`, `/cart`, `/checkout`, **Stripe Checkout** + **POD REST API** (default **Printful**) from payment webhooks. Spec: [shop-phase-b-stripe-pod.md](shop-phase-b-stripe-pod.md). |
 | **Today in repo** | **`/shop`** (noindex preview, real approved JPGs) + **`/design/shop`** (noindex dev mock alias). No cart API, no Caddy vhost for `shop.` documented as live. |
 | **SFW subdomain note** | `sfw.nsfwdroid.com` is a **separate** PG catalog concept (`docs/sfw-subdomain-catalog.md`) — not the merch shop host. |
 
