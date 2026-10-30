@@ -340,6 +340,12 @@ Do not use game cover art on merch without developer license.
 
 ---
 
+## Related catalog surface (not shop)
+
+**SFW Android game listings** on a subdomain (`sfw.nsfwdroid.com`) — storefront UX, separate audience from the 18+ catalog. Planning only: [sfw-subdomain-catalog.md](sfw-subdomain-catalog.md).
+
+---
+
 ## Next design steps (no code required yet)
 
 1. **Raster mocks** — 6 SKUs × 3 angles (flat lay, PDP, thumb) under `data/shop/mock/` when art exists.  
