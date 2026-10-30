@@ -123,6 +123,7 @@ NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER_MOBILE=
 - **Google Analytics:** use the Firebase web app **measurementId** (`G-…`) in `NEXT_PUBLIC_GA_MEASUREMENT_ID` (see [firebase-setup.md](firebase-setup.md)). Rebuild (`npm run build`), restart `nsfwdroid`.
 - First-party rails still use `analytics_event` in Postgres/PGlite; GA is for marketing and funnel views.
 - **Favorites** need full Firebase client env vars **and** `FIREBASE_SERVICE_ACCOUNT_JSON` + `SESSION_SECRET` on the droplet. Without them, hearts are hidden (`isFirebaseConfigured()`). Set all keys in `/etc/nsfwdroid.env`, then `systemctl restart nsfwdroid`.
+- **Search (GSC) in admin** (`/admin/search`): optional `GSC_SERVICE_ACCOUNT_JSON` + GSC property user invite; daily `scripts/gsc-sync.ts` via `deploy/cron.d/nsfwdroid-gsc-sync`. See [search-console-api.md](search-console-api.md). No rebuild required for env-only GSC keys.
 
 ---
 
@@ -223,6 +224,21 @@ touch /var/log/nsfwdroid-watchdog.log && chown root:root /var/log/nsfwdroid-watc
 
 Logs: `/var/log/nsfwdroid-watchdog.log`. Script: `scripts/ensure-nsfwdroid.sh`.
 
+### Caddy watchdog cron (recommended)
+
+Restarts the **Caddy** reverse proxy if `systemctl is-active caddy` fails (TLS, apex→www, maintenance.html on upstream 502):
+
+```bash
+cp deploy/cron.d/nsfwdroid-caddy-watchdog /etc/cron.d/nsfwdroid-caddy-watchdog
+chmod 644 /etc/cron.d/nsfwdroid-caddy-watchdog
+touch /var/log/nsfwdroid-caddy-watchdog.log
+chmod +x scripts/ensure-caddy.sh
+```
+
+Or install all cron jobs: `./scripts/install-droplet-cron.sh`.
+
+Logs: `/var/log/nsfwdroid-caddy-watchdog.log`. Script: `scripts/ensure-caddy.sh`.
+
 ### Catalog ingest cron (3× daily)
 
 Use the maintenance wrapper (not raw `systemctl stop` chains). Each run migrates, recycles stale feed-backed listings, then ingests itch + Steam:
@@ -296,6 +312,7 @@ The watchdog uses `scripts/ops-health-probe.sh` so **`status: degraded`** respon
 | Variable | Purpose |
 | --- | --- |
 | `WATCHDOG_RESTART` | `1` (default) restart on failed health; `0` **alert only** (no `systemctl restart`) |
+| `CADDY_WATCHDOG_RESTART` | `1` (default) restart Caddy when inactive; `0` **alert only** |
 | `INGEST_ALERT_ZERO_NEW_RUNS` | After each ingest cron, `check-ingest-stale.sh` emails if the last N `ingest_all` runs added zero candidates (`0`/unset = off) |
 
 Weekly maintenance sets `data/.weekly-maintenance.lock` so the watchdog does **not** fight an intentional stop.

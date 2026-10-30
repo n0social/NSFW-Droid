@@ -15,10 +15,12 @@ These jobs are installed from `deploy/cron.d/` via `scripts/install-droplet-cron
 | Schedule | Cron file | Script / command | Site impact | Ops email |
 | --- | --- | --- | --- | --- |
 | **Every 5 min** | `nsfwdroid-watchdog` | `scripts/ensure-nsfwdroid.sh` | Restarts `nsfwdroid` if unit down or local `/api/health` fails; skips when weekly or catalog maintenance locks exist | On **failed** restart or **health still bad** after restart (deduped) |
+| **Every 5 min** | `nsfwdroid-caddy-watchdog` | `scripts/ensure-caddy.sh` | Restarts **Caddy** if the reverse-proxy unit is inactive | On **failed** restart or still inactive after restart (deduped) |
 | **Daily 06:00, 14:00, 22:00 UTC** | `nsfwdroid-ingest` | `catalog-maintenance.sh` → `catalog-ingest-cron.sh` | Brief stop/start around PGlite work (~minutes) | If `INGEST_ALERT_ZERO_NEW_RUNS` set and last N ingests added 0 candidates |
 | **Tue 02:00 UTC** | `nsfwdroid-maintenance-notice` | `scripts/maintenance-notice.sh` | Amber **banner** (site still up); `maintenanceNotice` on `/api/health` | Optional 1h warning before weekly window |
 | **Tue 03:00–04:00 UTC** | `nsfwdroid-weekly-maintenance` | `scripts/weekly-maintenance.sh` → `weekly-maintenance-inner.sh` | **Maintenance page** while `nsfwdroid` stopped (Caddy 502/503/504 path) | Start, failure, and success emails (daily keys) |
 | **Fri 21:00 America/New_York** | `nsfwdroid-weekly-newsletter` | `catalog-maintenance.sh` → `send-weekly-newsletter.ts` | Brief stop/start for PGlite | No ops mail (member newsletter only) |
+| **Daily 07:15 UTC** | `nsfwdroid-gsc-sync` | `scripts/gsc-sync.ts` | None (reads GSC API, writes cache file) | No (see `/admin/search`; requires `GSC_SERVICE_ACCOUNT_JSON`) |
 
 ### Human-scheduled changes (DNS, deploy, maintenance)
 
@@ -82,9 +84,14 @@ Without these, scripts **log and skip email**; outages may go unnoticed until yo
 
 | Variable | Why |
 | --- | --- |
-| `ALERT_EMAIL_TO` | **Owner inbox** for all ops alerts |
+| `ALERT_EMAIL_TO` | **Owner inbox** for all ops alerts (use an address you read on your phone) |
 | `ALERT_EMAIL_FROM` | From line (e.g. `NSFW Droid <alerts@nsfwdroid.com>`) |
+| `ALERT_EMAIL_TRANSPORT` | `sendmail` (droplet Exim default) or `smtp` with `SMTP_*` |
+| `WATCHDOG_RESTART` | `1` (default) — `ensure-nsfwdroid.sh` restarts the app; `0` = alert only |
+| `CADDY_WATCHDOG_RESTART` | `1` (default) — `ensure-caddy.sh` restarts Caddy; `0` = alert only |
 | Local Exim `sendmail` (default) **or** `SMTP_*` with `ALERT_EMAIL_TRANSPORT=smtp` | Delivery — see [deploy-droplet.md § Ops email alerts](deploy-droplet.md#ops-email-alerts) |
+
+Preflight on the droplet (no secrets printed): `./scripts/verify-droplet-ops-env.sh` then `./scripts/ops-alert-email-test.sh`.
 
 Optional tuning: `ALERT_DEDUPE_MINUTES` (default 30), `INGEST_ALERT_ZERO_NEW_RUNS=3` for stale-ingest warnings.
 
@@ -124,6 +131,7 @@ NSFW Droid does **not** send SMS or push notifications directly. All **automated
 | Source | Typical subject / key |
 | --- | --- |
 | `ensure-nsfwdroid.sh` | Watchdog could not restart; recovery incomplete (`watchdog-*`) |
+| `ensure-caddy.sh` | Caddy inactive; restart failed (`caddy-watchdog-*`) |
 | `weekly-maintenance.sh` | Weekly maintenance started / failed / complete (`weekly-maintenance-*`) |
 | `maintenance-notice.sh` | Optional Tuesday pre-window warning |
 | `check-ingest-stale.sh` | Ingest added zero new candidates N times (`ingest-zero-new-*`) |
@@ -198,6 +206,6 @@ Deploy script stops `nsfwdroid`, extracts tarball + `node_modules`, runs finish 
 | --- | --- |
 | Public | `curl -sI https://www.nsfwdroid.com/api/health` → HTTP 200 |
 | JSON body | `"status":"ok"`, `"healthy":true`, sensible `catalog.listingCount` |
-| Logs | `/var/log/nsfwdroid-ingest.log`, `nsfwdroid-watchdog.log`, `journalctl -u nsfwdroid` |
+| Logs | `/var/log/nsfwdroid-ingest.log`, `nsfwdroid-watchdog.log`, `nsfwdroid-caddy-watchdog.log`, `journalctl -u nsfwdroid`, `journalctl -u caddy` |
 
 When in doubt, start with [deploy-droplet.md](deploy-droplet.md) runbooks (ingest, watchdog, weekly window).

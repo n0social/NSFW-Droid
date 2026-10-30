@@ -11,6 +11,7 @@ type Props = {
 const NAV: { href: string; label: string; exact?: boolean }[] = [
   { href: "/admin", label: "Dashboard", exact: true },
   { href: "/admin/traffic", label: "Traffic" },
+  { href: "/admin/search", label: "Search (GSC)" },
   { href: "/admin/queue", label: "Review queue" },
   { href: "/admin/listings/new", label: "Manual listing" },
 ];

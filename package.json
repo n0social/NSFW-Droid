@@ -45,6 +45,7 @@
     "db:studio": "drizzle-kit studio",
     "creators:verify-blender-assets": "tsx scripts/verify-creator-assets-links.ts",
     "test:seo-utility": "tsx scripts/test-seo-utility-robots.ts",
+    "test:site-json-ld": "tsx scripts/test-site-json-ld.ts",
     "test:seo-canonical-host": "tsx scripts/test-seo-canonical-host.ts",
     "test:ads-popunder-config": "tsx scripts/test-ads-popunder-config.ts",
     "test:listing-play-popunder-eligibility": "tsx scripts/test-listing-play-popunder-eligibility.ts",
@@ -54,7 +55,8 @@
     "test:weekly-featured-rotation": "tsx scripts/test-weekly-featured-rotation.ts",
     "test:featured-hero-env": "tsx scripts/test-featured-listing-slugs.ts",
     "test:featured-override": "tsx scripts/test-featured-override.ts",
-    "test:catalog-week": "tsx scripts/test-catalog-week.ts"
+    "test:catalog-week": "tsx scripts/test-catalog-week.ts",
+    "test:gsc": "tsx scripts/test-gsc-config.ts && tsx scripts/test-gsc-cache.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.10",

@@ -11,6 +11,8 @@
 
 Root `src/app/layout.tsx` sets a default **Open Graph** and **Twitter** image (`/og-default.png`, 1200×630) for pages that do not define their own preview image. `metadataBase` resolves it to an absolute URL on shares.
 
+The home page (`src/app/page.tsx`) embeds **`WebSite`** JSON-LD from `src/lib/site-json-ld.ts` for entity clarity in search results.
+
 ## Metadata
 
 Each game page sets:
@@ -53,7 +55,7 @@ Same pattern as home/browse: `AgeGate` until `age_verified` cookie; covers blurr
 ## Sitemap & robots
 
 - `app/sitemap.ts` — static site URLs, browse-safe **`/browse?tag={slug}`** tag hubs (at least one published title; `lastModified` from latest tagged listing), plus all published `/game/...` entries (`lastModified` from `listing.updated_at`).
-- `app/robots.ts` — allows `/` and `/game/`; disallows `/admin/`, `/api/`, `/account/`, auth/settings/newsletter/underage utility paths.
+- `app/robots.ts` — explicit **`User-agent: Googlebot`** and **`*`** blocks with the same catalog/legal **Allow** list (`/`, `/browse`, `/new`, `/videos`, `/creators`, `/links`, `/game/`, etc.) and **Disallow** for `/admin/`, `/api/`, `/account/`, auth/settings/newsletter/underage. Production `robots.txt` may prepend **Cloudflare Managed** AI-crawler rules; `Googlebot` is not in that disallow list (see `docs/search-console.md` and `scripts/verify-robots-http.sh`).
 
 ## Canonical host (Search Console)
 

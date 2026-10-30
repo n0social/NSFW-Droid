@@ -95,7 +95,8 @@ export function AdminDashboard() {
         value. Card impressions count when a card is half on screen, once per browser per day.
         Ingest does not write either number. Rails still blend raw events with favorites
         (weights in <code className="text-[#F9A8D4]">listings-ranking.ts</code>). Daily chart:{" "}
-        <Link href="/admin/traffic" className="text-[#FF4D8D] underline">Traffic marker</Link>.
+        <Link href="/admin/traffic" className="text-[#FF4D8D] underline">Traffic marker</Link> ·{" "}
+        <Link href="/admin/search" className="text-[#FF4D8D] underline">Search (GSC)</Link>.
       </p>
       <AdminAudienceToggle value={audience} onChange={setAudience} />
 
