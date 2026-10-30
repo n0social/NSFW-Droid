@@ -16,7 +16,7 @@
 | **Catalog stays** | Game listings remain on `https://www.nsfwdroid.com`. Shop is a sibling surface, not a replacement catalog. |
 | **Phase A (launch fast)** | **Shopify** (or similar) on `shop.nsfwdroid.com` + Printful/Printify app. Shopify owns cart, tax, payment, webhooks to POD. Header **Shop** can link out until Phase B ships. |
 | **Phase B (brand-locked)** | **Headless** shop routes in the Next.js app on the same origin as catalog: `/shop`, `/cart`, `/checkout`, Stripe Checkout + POD REST API from payment webhooks. |
-| **Today in repo** | Only **`/design/shop`** (noindex dev mock). No `/shop` app routes, no Caddy vhost for `shop.` documented as live. |
+| **Today in repo** | **`/shop`** (noindex preview, real approved JPGs) + **`/design/shop`** (noindex dev mock alias). No cart API, no Caddy vhost for `shop.` documented as live. |
 | **SFW subdomain note** | `sfw.nsfwdroid.com` is a **separate** PG catalog concept (`docs/sfw-subdomain-catalog.md`) — not the merch shop host. |
 
 ```mermaid
@@ -60,8 +60,9 @@ flowchart LR
 
 | Route / artifact | Exists? | Notes |
 | --- | --- | --- |
-| `/design/shop` | **Yes** | `src/app/design/shop/page.tsx` → `ShopLayoutMockup.tsx`; `robots: noindex` |
-| `/shop` and children | **No** | No `src/app/shop/**` |
+| `/design/shop` | **Yes** | `src/app/design/shop/page.tsx` → `ShopLayoutMockup.tsx`; `robots: noindex` — placeholder hero/grid regression |
+| `/shop` | **Yes (preview)** | `src/app/shop/page.tsx` → shared `src/components/shop/*`; approved art in `public/shop/`; `robots: noindex` until owner enables |
+| `/shop/collections`, `/shop/products`, cart | **No** | Not in this pass |
 | Cart / checkout API | **No** | No webhooks, order DB, or shop env vars wired |
 | Interactive tabbed mock | **Yes (canvas)** | Shop home, Collection, PDP, Cart drawer — see [Layout mockups canvas](https://cursor.com/canvas/store-71d7e49f-a003-4074-be74-ec6a867c57da/a2d41d50-20f5-429f-8f4c-6865e00a9827) |
 | Branch `cursor/shop-layout-mockups-da0e` | **Yes** | Adds mock page, docs, component (merge to `main` enables owner/dev pixel-check) |
@@ -187,15 +188,18 @@ Design spec (concepts doc): desktop drawer **~400px**, surface `#241033`, **2px*
 
 ### Still placeholder in UI mocks
 
-- Hero **Vesper cutout** — dashed box in `/design/shop`; production should use mascot cutouts under `public/mascot/vesper/` (e.g. wave / storefront pose).
-- Product thumbs — **STK / TEE / ZIP** text blocks, not product photography.
-- DEAL chip — text “DEAL / chibi” with inline filename hint in mock copy.
+- **`/design/shop` only:** Hero **Vesper cutout** — dashed box; product thumbs — **STK / TEE / ZIP** text blocks; DEAL chip — text placeholder.
+- **`/shop` preview:** Digital wallpaper SKU thumb still **ZIP** placeholder; collection/PDP/cart routes not built.
 
-### Real assets (Cloud Agent artifacts — not committed to repo)
+### In repo (`public/shop/`)
 
-Canonical index: **`/opt/cursor/artifacts/shop-design-batch-index.md`**. **Owner-approved subset and placement:** [Approved merch art map](#approved-merch-art-map) (below).
+Owner-approved JPGs ingested 30 Oct 2026: 16×9 logo banner, panda hoodie v2, six **banner-v2** chibis, peace duo v2, Andri sticker sheet. Occult manga v5 **not** copied (external SD pass). See [Approved merch art map](#approved-merch-art-map).
 
-| Use in storefront | Primary file (under `artifacts/assets/`) |
+### Real assets (Cloud Agent artifacts — copies also in repo)
+
+Canonical index: **`/opt/cursor/artifacts/shop-design-batch-index.md`**. **Owner-approved subset and placement:** [Approved merch art map](#approved-merch-art-map) (below). On-disk copies: **`/opt/cursor/artifacts/assets/`** and **`public/shop/`** (same basenames).
+
+| Use in storefront | Primary file (under `artifacts/assets/` or `public/shop/`) |
 | --- | --- |
 | Shop hero / OG wide | `nsfw-droid-logo-banner-16x9.jpg` |
 | Featured deal rail / hero chip | `nsfw-droid-shop-vesper-chibi-deal-big-bust-banner-v2.jpg` |
@@ -207,7 +211,17 @@ Canonical index: **`/opt/cursor/artifacts/shop-design-batch-index.md`**. **Owner
 
 **Promo art rules:** MapleStory chibi **banner-v2** set uses **black panel + purple `#C026D3` border**, white type — **no green/red sale banners** on storefront chips (see index “Standard marketing chibi set”).
 
-**Future repo path (planned):** raster mocks at `data/shop/mock/` when art is ingested for build — not populated today.
+**Future repo path (planned):** additional SKUs at `data/shop/mock/` when needed — launch set lives in `public/shop/` today.
+
+---
+
+## Implemented this pass (30 Oct 2026)
+
+- **`public/shop/`** — ten approved JPGs (logo 16×9, panda hoodie v2, six banner-v2 chibis, peace duo v2, Andri sticker sheet).
+- **`/shop`** — production-shaped home: catalog `SiteHeader` + Shop nav link, real hero banner + panda cutout, DEAL chibi rail, product grid with mapped thumbs; metadata **`robots: noindex`**.
+- **`/design/shop`** — dev alias unchanged route; refactored to shared `src/components/shop/*` with placeholder hero/grid.
+- **Shared components:** `ShopHero`, `ShopChipRow`, `ShopFeaturedDeal`, `ShopProductCard`, `ShopHomeMain`, `ShopPage`.
+- **Not in scope:** cart, checkout, Shopify, occult manga art ingest.
 
 ---
 
@@ -336,6 +350,7 @@ Interactive canvas uses **`useHostTheme()`** (same green accent direction, flat 
 | Resource | URL / path |
 | --- | --- |
 | Dev mock | `/design/shop` |
+| Shop preview (noindex) | `/shop` |
 | Layout mockups canvas | https://cursor.com/canvas/store-71d7e49f-a003-4074-be74-ec6a867c57da/a2d41d50-20f5-429f-8f4c-6865e00a9827 |
 | Design concepts + checkout ops | `docs/shop-design-concepts.md` |
 | Layout mockups doc | `docs/shop-layout-mockups.md` |

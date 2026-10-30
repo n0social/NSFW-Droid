@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { CreatorsNavMenu } from "@/components/site/CreatorsNavMenu";
@@ -15,6 +16,8 @@ type Props = {
 };
 
 export function SiteHeader({ listingCount, ageVerified, themeAssets }: Props) {
+  const pathname = usePathname();
+  const shopNavActive = pathname === "/shop" || pathname.startsWith("/shop/");
   const { configured, loading, user, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuId = useId();
@@ -80,6 +83,14 @@ export function SiteHeader({ listingCount, ageVerified, themeAssets }: Props) {
           </Link>
           <Link href="/browse" className="rounded-full px-3 py-2 hover:bg-[var(--theme-surface)]">
             Browse
+          </Link>
+          <Link
+            href="/shop"
+            className={`rounded-full px-3 py-2 hover:bg-[var(--theme-surface)] ${
+              shopNavActive ? "bg-[var(--theme-surface)] text-[var(--foreground)]" : ""
+            }`}
+          >
+            Shop
           </Link>
           <Link href="/videos" className="rounded-full px-3 py-2 hover:bg-[var(--theme-surface)]">
             Videos
@@ -197,6 +208,17 @@ export function SiteHeader({ listingCount, ageVerified, themeAssets }: Props) {
                 className="flex min-h-[44px] w-full items-center rounded-xl px-3 hover:bg-[var(--theme-surface)]"
               >
                 Browse
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/shop"
+                onClick={() => setMenuOpen(false)}
+                className={`flex min-h-[44px] w-full items-center rounded-xl px-3 hover:bg-[var(--theme-surface)] ${
+                  shopNavActive ? "bg-[var(--theme-surface)] text-[var(--foreground)]" : ""
+                }`}
+              >
+                Shop
               </Link>
             </li>
             <li>
