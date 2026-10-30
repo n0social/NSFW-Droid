@@ -112,6 +112,8 @@ export const listings = pgTable("listing", {
   chartBucket: text("chart_bucket"),
   source: sourceEnum("source"),
   externalId: text("external_id"),
+  /** Plain-text store synopsis (Steam short_description, itch RSS, etc.). */
+  storeDescription: text("store_description"),
 });
 
 export const socialOutbox = pgTable(

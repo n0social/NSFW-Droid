@@ -18,7 +18,7 @@ The home page (`src/app/page.tsx`) embeds **`WebSite`** JSON-LD from `src/lib/si
 Each game page sets:
 
 - `title` (display title from catalog, brackets stripped per `listing-display.ts`)
-- `description` (generated from platforms, store source, and browse-safe tags — no store pricing)
+- `description` — store synopsis when `listing.store_description` is set (Steam `short_description`, itch RSS); otherwise generated from platforms, store source, and browse-safe tags (no store pricing)
 - `alternates.canonical` → `/game/{slug}`
 - **Open Graph** and **Twitter** cards; `summary_large_image` when `cover_image_url` is set
 

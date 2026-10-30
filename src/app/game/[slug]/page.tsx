@@ -86,6 +86,7 @@ export default async function GameListingPage({ params }: PageProps) {
         listing={listing}
         tags={tags}
         similarGames={similarGames}
+        storeDescription={listing.storeDescription}
         ageVerified={ageVerified}
         blurCovers={blurCovers}
         listingCount={listingCount}

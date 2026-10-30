@@ -4,6 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 npx --yes tsx scripts/db-migrate.ts
+npx --yes tsx scripts/backfill-listing-store-descriptions.ts
 npx --yes tsx scripts/recycle-stale-listings.ts --apply
 if [[ "${LINK_CHECK_SAMPLE_PER_INGEST:-20}" != "0" ]]; then
   LINK_CHECK_LIMIT="${LINK_CHECK_SAMPLE_PER_INGEST:-20}" npx --yes tsx scripts/check-listing-links.ts --apply

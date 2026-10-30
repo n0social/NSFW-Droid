@@ -19,6 +19,29 @@ source "$SCRIPT_DIR/ops-health-probe.sh"
 log() { echo "[$(date -Is)] [ensure-nsfwdroid] $*" | tee -a "$LOG_FILE"; }
 maintenance_lock_present() { [[ -f "$WEEKLY_LOCK_FILE" || -f "$CATALOG_MAINT_LOCK_FILE" ]]; }
 
+# Orphaned catalog-maintenance lock (crashed ingest) blocks recovery forever unless cleared.
+clear_stale_catalog_maintenance_lock() {
+  [[ -f "$CATALOG_MAINT_LOCK_FILE" ]] || return 0
+  local lock_pid lock_age_sec max_age
+  lock_pid=$(head -1 "$CATALOG_MAINT_LOCK_FILE" 2>/dev/null || true)
+  if [[ -n "$lock_pid" && "$lock_pid" =~ ^[0-9]+$ ]] && kill -0 "$lock_pid" 2>/dev/null; then
+    return 0
+  fi
+  max_age="${CATALOG_MAINT_LOCK_MAX_AGE_SEC:-7200}"
+  lock_age_sec=$(( $(date +%s) - $(stat -c %Y "$CATALOG_MAINT_LOCK_FILE" 2>/dev/null || echo 0) ))
+  if [[ -n "$lock_pid" && "$lock_pid" =~ ^[0-9]+$ ]] && ! kill -0 "$lock_pid" 2>/dev/null; then
+    log "removing stale catalog maintenance lock (dead pid=$lock_pid)"
+    rm -f "$CATALOG_MAINT_LOCK_FILE"
+    return 0
+  fi
+  if [[ "$lock_age_sec" -gt "$max_age" ]]; then
+    log "removing stale catalog maintenance lock (age=${lock_age_sec}s > ${max_age}s)"
+    rm -f "$CATALOG_MAINT_LOCK_FILE"
+  fi
+}
+
+clear_stale_catalog_maintenance_lock
+
 if maintenance_lock_present; then exit 0; fi
 if [[ -f "$ENV_FILE" ]]; then set -a; # shellcheck disable=SC1090
   source "$ENV_FILE"; set +a; fi
