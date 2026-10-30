@@ -302,6 +302,8 @@ Design mockups and future photography should cover **six hero products**:
 
 Each SKU needs: **flat lay mock**, **PDP hero**, **thumbnail** for cards (export @2x).
 
+**Launch SKU art sources (approved):** Owner-selected raster filenames (logo/wordmark set, panda-hoodie Vesper, **banner-v2** sale chibis, Vesper+Andri duo) are mapped to storefront placement in [shop-storefront-blueprint.md — Approved merch art map](shop-storefront-blueprint.md#approved-merch-art-map). Canonical index: `/opt/cursor/artifacts/shop-design-batch-index.md`.
+
 ---
 
 ## Vesper / Andri usage in shop art

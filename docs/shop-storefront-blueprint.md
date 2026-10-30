@@ -211,6 +211,65 @@ Canonical index: **`/opt/cursor/artifacts/shop-design-batch-index.md`**.
 
 ---
 
+## Approved merch art map
+
+**Owner selection (30 Oct 2026):** logo/wordmark set, panda-hoodie hero art, **banner-v2** marketing chibis, Vesper + Andri duo line. Canonical filenames from [`shop-design-batch-index.md`](/opt/cursor/artifacts/shop-design-batch-index.md). On-disk copies: **`/opt/cursor/artifacts/assets/`** (same basenames as `assets/` below). Ingest to repo `assets/` or `data/shop/mock/` at build time — do not duplicate JPGs in git until that pass.
+
+### Panda hoodie Vesper (hero / tee / sticker)
+
+User-approved **panda hoodie** character art. **Primary:** pin-up solo (not MapleStory chibi — no panda-hoodie file in section F/G).
+
+| SKU / use case | Primary artifact path | Storefront placement |
+| --- | --- | --- |
+| Panda hoodie Vesper — tee, sticker, hero companion | `assets/nsfw-droid-shop-vesper-panda-hoodie-solo-no-text-v2.jpg` | Shop home hero (beside 16:9 logo banner); PDP main for panda-hoodie SKU; sticker die-cut mock |
+| *(alt, superseded)* | `assets/nsfw-droid-shop-vesper-panda-hoodie-solo-no-text.jpg` | Archive only — wave + boutique bg |
+| *(alt, wrong style)* | `assets/nsfw-droid-shop-vesper-panda-wave-wink-solo.jpg` | Pose ref; may include chest text |
+| *(alt, MapleStory — no panda)* | `assets/nsfw-droid-shop-vesper-maplestory-chibi-wave.jpg` (and F set) | Chibi promos only; **not** the approved panda-hoodie hero |
+
+### Logo / wordmark set (type + Andri lockups)
+
+| SKU / use case | Primary artifact path | Storefront placement |
+| --- | --- | --- |
+| Shop hero / OG / collection header wide | `assets/nsfw-droid-logo-banner-16x9.jpg` | Hero 16:9 band; OG share; sticker sheet header |
+| Wordmark green (legacy batch E) | `assets/nsfw-droid-shop-wordmark-green.jpg` | Tee chest small; footer chip |
+| Wordmark split stack (legacy E) | `assets/nsfw-droid-shop-wordmark-split.jpg` | PDP thumb; sticker tall die-cut ref |
+| Two-line lockup (legacy E) | `assets/nsfw-droid-shop-wordmark-two-line-lockup.jpg` | Email header; back-print ref |
+| Green heart-dot logo | `assets/nsfw-droid-logo-green-heart-dot.jpg` | Sticker; tee chest; social avatar crop |
+| Purple gradient wordmark | `assets/nsfw-droid-logo-purple-gradient.jpg` | Tee/hoodie chest (pairs with pink-hoodie chin-cup SKU family) |
+| Split stacked `NSFW` / `Droid` | `assets/nsfw-droid-logo-split-stacked.jpg` | Tee back; PDP wordmark thumb |
+| Andri + wordmark lockup | `assets/nsfw-droid-logo-andri-lockup.jpg` | Sticker sheet hero; tee left-chest combo mock |
+| Green box outline | `assets/nsfw-droid-logo-green-box.jpg` | Tee center chest; square sticker |
+| ND monogram | `assets/nsfw-droid-logo-monogram-nd.jpg` | Favicon mock; mini sticker; patch |
+| Neon outline | `assets/nsfw-droid-logo-neon-outline.jpg` | Dark banner chip; holographic sticker mock |
+
+### Marketing chibis — Standard **banner-v2** set (storefront sales UI)
+
+Black panel + purple `#C026D3` border, white type — **no green/red** promo chips. Supersedes section G paths without `-banner-v2`.
+
+| Banner text | Primary artifact path | Storefront placement |
+| --- | --- | --- |
+| **SALE** | `assets/nsfw-droid-shop-vesper-chibi-sale-big-bust-v1-banner-v2.jpg` | Sale row overlay; sticker sheet cell |
+| **-30%** | `assets/nsfw-droid-shop-vesper-chibi-sale-big-bust-v2-banner-v2.jpg` | PDP strikethrough row; promo thumbnail |
+| **DEAL** | `assets/nsfw-droid-shop-vesper-chibi-deal-big-bust-banner-v2.jpg` | Featured deal rail; sale row hero chip |
+| **CLEARANCE** | `assets/nsfw-droid-shop-vesper-chibi-clearance-big-bust-banner-v2.jpg` | Clearance collection header; outlet rail |
+| **NEW** | `assets/nsfw-droid-shop-vesper-chibi-new-item-big-bust-banner-v2.jpg` | New-arrivals rail; PDP launch pill |
+| **LIMITED** | `assets/nsfw-droid-shop-vesper-chibi-limited-big-bust-banner-v2.jpg` | Limited-drop card; scarcity sticker on PDP |
+
+### Vesper + Andri duo (stickers, bundles, gag SKUs)
+
+| SKU / use case | Primary artifact path | Storefront placement |
+| --- | --- | --- |
+| Panda Vesper + floating Andri peace (approved duo) | `assets/nsfw-droid-shop-vesper-panda-andri-peace-sticker-v2.jpg` | Sticker pack hero; bundle card; **do not regen** |
+| Heart prop gag | `assets/nsfw-droid-shop-duo-heart-prop.jpg` | Sticker sheet cell; bundle marketing thumb |
+| SALE paddle gag | `assets/nsfw-droid-shop-duo-sale-paddle.jpg` | Sale collection header; optional rail beside DEAL chibi |
+| *(alt, superseded)* | `assets/nsfw-droid-shop-vesper-panda-andri-peace-sticker.jpg` | v1 — four-finger hand; do not use |
+| *(alt, prior batch)* | `assets/nsfw-droid-shop-vesper-andri-duo-v2-cta.jpg` | CTA rail ref only |
+| *(alt, prior batch)* | `assets/nsfw-droid-shop-vesper-andri-duo-v3-hips.jpg` | Duo pose ref only |
+
+**Sticker sheet backing (Andri cells):** `assets/nsfw-droid-shop-andri-sticker-sheet.jpg` — grid variants for Sheet A/B PDP thumbs when sticker pack v1 ships.
+
+---
+
 ## Theme tokens and `/design/shop`
 
 Production CSS variables (`src/app/globals.css`):

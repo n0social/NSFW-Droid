@@ -40,13 +40,16 @@ Automated fulfillment, webhooks, and env vars are specified in [shop-design-conc
 
 ## Marketing art references
 
-Canonical **banner-v2** MapleStory chibi promos (SALE / DEAL rails, purple border panels — no green/red sale banners):
+Owner-approved filenames (see [shop-storefront-blueprint.md — Approved merch art map](shop-storefront-blueprint.md#approved-merch-art-map)). Artifact copies: `/opt/cursor/artifacts/assets/` · index: `/opt/cursor/artifacts/shop-design-batch-index.md`.
 
-See Cloud Agent artifact **`shop-design-batch-index.md`** (not committed to repo). Primary filenames:
-
-- `nsfw-droid-shop-vesper-chibi-deal-big-bust-banner-v2.jpg` — featured deal rail / hero chip
-- `nsfw-droid-shop-vesper-chibi-sale-big-bust-v1-banner-v2.jpg` — sale row overlay
-- `nsfw-droid-shop-vesper-chibi-sale-big-bust-v2-banner-v2.jpg` — PDP / strikethrough promo
-- `nsfw-droid-logo-banner-16x9.jpg` — shop hero / OG wide wordmark
+| Placement in mock / canvas | Chosen primary file |
+| --- | --- |
+| Hero 16:9 band | `nsfw-droid-logo-banner-16x9.jpg` |
+| Hero Vesper companion (panda hoodie) | `nsfw-droid-shop-vesper-panda-hoodie-solo-no-text-v2.jpg` |
+| Featured DEAL rail | `nsfw-droid-shop-vesper-chibi-deal-big-bust-banner-v2.jpg` |
+| Sale overlays | `nsfw-droid-shop-vesper-chibi-sale-big-bust-v1-banner-v2.jpg`, `…-v2-banner-v2.jpg` (**-30%**) |
+| NEW / LIMITED / CLEARANCE rails | `nsfw-droid-shop-vesper-chibi-new-item-big-bust-banner-v2.jpg`, `…-limited-…-banner-v2.jpg`, `…-clearance-…-banner-v2.jpg` |
+| Duo sticker / bundle hero | `nsfw-droid-shop-vesper-panda-andri-peace-sticker-v2.jpg` |
+| Wordmark tee / logo SKUs | `nsfw-droid-logo-purple-gradient.jpg`, `nsfw-droid-shop-wordmark-green.jpg`, section H set in blueprint |
 
 Full spec: [shop-design-concepts.md](shop-design-concepts.md) (IA, cards, cart drawer, launch SKUs).
