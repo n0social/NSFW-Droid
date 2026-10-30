@@ -3,14 +3,15 @@
 **Date:** 30 October 2026  
 **Status:** design preview only — no `/shop` routes, cart API, or payment integration.
 
+## Production host
+
+**Target URL:** `https://shop.nsfwdroid.com` — subdomain of `nsfwdroid.com` (no separate domain). Phase A in [shop-design-concepts.md](shop-design-concepts.md): typically Shopify + POD; catalog stays on `www.nsfwdroid.com`.
+
 ## Interactive canvas
 
 Tabbed layout mockups (**Shop home**, **Collection**, **PDP**, **Cart drawer**):
 
-- Publish from agent canvas source: `/opt/cursor/artifacts/nsfw-droid-shop-layout-mockups.canvas.tsx` (title: **NSFW Droid Shop — Layout mockups**).
-- Agent run (canvas panel / WriteCanvas): [Shop layout mockups canvas+page](https://cursor.com/agents/bc-b79a04b4-fc1e-546b-88d3-b0b8be960e4d)
-
-After WriteCanvas succeeds, replace the agent link above with the tool-returned `cursor.com/canvas/...` URL.
+- [NSFW Droid Shop — Layout mockups](https://cursor.com/canvas/store-71d7e49f-a003-4074-be74-ec6a867c57da/a2d41d50-20f5-429f-8f4c-6865e00a9827)
 
 Tabs / sections in the canvas:
 
