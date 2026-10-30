@@ -1,10 +1,10 @@
 # Shop catalog storefront — planning spec
 
 **Date:** 30 October 2026  
-**Status:** Planning only — sign-off before Phase B catalog build. No DB migration, no new routes in this pass.  
+**Status:** Planning only — **no storefront build** until owner sign-off on this doc **and** explicit [Phase B kickoff](shop-phase-b-stripe-pod.md). C0–C2 catalog UI is **blocked** until sign-off. Checkout/API is **Phase B only** (Stripe + POD). No DB migration in this pass.  
 **Audience:** Owner / product / implementers  
 
-**Related:** [shop-storefront-blueprint.md](shop-storefront-blueprint.md) (what exists today), [shop-design-concepts.md](shop-design-concepts.md) (checkout ops + launch SKUs), [shop-layout-mockups.md](shop-layout-mockups.md) (dev preview).  
+**Related:** [shop-storefront-blueprint.md](shop-storefront-blueprint.md) (what exists today), [shop-design-concepts.md](shop-design-concepts.md) (checkout ops + launch SKUs), [shop-phase-b-stripe-pod.md](shop-phase-b-stripe-pod.md) (**locked** Stripe + POD epic), [shop-layout-mockups.md](shop-layout-mockups.md) (dev preview).  
 **Checkout / webhooks / POD API:** stay in design concepts — this doc covers **browse, collections, rails, cards, PDP fields** only.
 
 ---
@@ -17,7 +17,7 @@ A **standard merch catalog storefront** on the NSFW Droid brand surface: collect
 
 ### What we are not building in the catalog phase
 
-- Cart persistence, checkout, webhooks, order DB (Phase A Shopify or Phase B Stripe — see [Automated shop + checkout](shop-design-concepts.md#automated-shop--checkout-ops-architecture))
+- Cart persistence, checkout, webhooks, order DB (**Phase B** — Stripe + POD API; Phase A Shopify is optional alternate — see [shop-phase-b-stripe-pod.md](shop-phase-b-stripe-pod.md))
 - Inventory counts or warehouse logic (virtual SKUs via POD + digital files)
 - Game keys or hosted builds
 
@@ -97,7 +97,7 @@ The **v2 percent chibi** is a **pose + flag prop** reference. On **product cards
 | **B — Static JPG only** | Map each SKU to nearest pre-rendered **-30%** (or other) art. | Simple `<img>` only; **wrong %** when discount ≠ 30%. |
 | **C — Hybrid** | Static labels (NEW, CLEARANCE, LIMITED, DEAL) from JPG; **only** percent sales use Option A dynamic flag. | Matches current asset set; owner must confirm Option A for percent path. |
 
-**Default for planning:** **Option C** (static marketing labels on art; dynamic flag for **`percent_off`** only). Owner confirms or overrides in sign-off.
+**Owner decision (30 Oct 2026 — locked):** **Option C** (static marketing labels on art; dynamic flag for **`percent_off`** only). Override only by explicit owner note in sign-off.
 
 ### Semantic mapping (data → chibi)
 
@@ -406,9 +406,11 @@ N = round((compareAtPrice - price) / compareAtPrice * 100) when percent_off
 
 ## Phased build checklist (after plan sign-off)
 
-**Reminder:** `/shop` today is **preview only** (`robots: noindex`); revert emphasis — do not treat as live storefront.
+**Gate:** Owner sign-off on this document unlocks **C0–C2** only. **Phase B** (Stripe + POD) starts only after separate [Phase B kickoff](shop-phase-b-stripe-pod.md).
 
-### Phase C0 — Catalog data + badges (no checkout)
+**Preview on branch:** `/shop` is **noindex preview** with mock data — useful for art/layout regression. **Hold merges** of mock-only work ahead of sign-off unless owner wants pixel-check on `main`. Do **not** delete preview code without owner request; it is not production commerce.
+
+### Phase C0 — Catalog data + badges (**blocked** until sign-off)
 
 - [ ] Add `data/shop/catalog.json` (or TS) with full launch + expanded matrix rows  
 - [ ] Extend `ShopProductCard` with **conditional** right-aligned standee + badge resolver + dynamic `%` flag for `percent_off`  
@@ -416,29 +418,40 @@ N = round((compareAtPrice - price) / compareAtPrice * 100) when percent_off
 - [ ] Map all six chibis in `assets.ts` → badge keys  
 - [ ] Unit tests for badge priority + best seller pill vs NEW chibi  
 
-### Phase C1 — Routes
+### Phase C1 — Routes (**blocked** until C0)
 
 - [ ] `/shop/collections/[slug]` grid + sort + filters  
 - [ ] `/shop/products/[slug]` PDP templates per `productType`  
 - [ ] Replace `home-products.ts` mock with catalog slice + keep `design` variant for `/design/shop`  
 
-### Phase C2 — Polish
+### Phase C2 — Polish (**blocked** until C1)
 
 - [ ] Collection headers with chibi (clearance / new-arrivals)  
 - [ ] Occult manga collection stub (hidden until art QA)  
 - [ ] SEO: flip `/shop` index when owner ready; structured data `Product`  
 
-### Phase A or B — Commerce (separate epic)
+### Phase A — Shopify subdomain *(optional alternate — not locked path)*
 
-- [ ] Phase A: Shopify collections mirror slugs; header link to `shop.nsfwdroid.com`  
-- [ ] Phase B: cart, checkout, webhooks — [shop-design-concepts.md](shop-design-concepts.md)  
+- [ ] Only if owner pivots before Phase B: `shop.nsfwdroid.com` + POD Shopify app; header **Shop** link-out  
+- [ ] De-emphasized vs [Phase B epic](shop-phase-b-stripe-pod.md)
+
+### Phase B — Commerce epic (**blocked** until kickoff; Stripe + POD locked)
+
+Full checklist: **[shop-phase-b-stripe-pod.md](shop-phase-b-stripe-pod.md)** (B0–B5: order DB, Stripe Checkout, Printful webhooks, digital signed URLs, ops alerts).
+
+Summary:
+
+- [ ] Stripe Checkout Session (or Payment Element) + webhooks  
+- [ ] **Required** POD REST API (default **Printful**): order create on paid, tracking email on ship webhook  
 - [ ] Digital delivery tokens + bundle split fulfillment  
+- [ ] Droplet env: `STRIPE_*`, `PRINTFUL_API_KEY`, `SHOP_DOWNLOAD_SIGNING_SECRET` — no keys in repo  
 
 ### Owner actions before C0 code
 
+- [ ] Sign off catalog planning (incl. **Option C** chibi)  
 - [ ] Confirm best seller launch list (manual slugs)  
 - [ ] Confirm poster sizes and frame add-on for v1  
-- [ ] Confirm processor/POD approval for PG SKUs  
+- [ ] Confirm Stripe + Printful (or alternate POD) approval for PG SKUs before Phase B go-live  
 
 ---
 
@@ -448,3 +461,4 @@ N = round((compareAtPrice - price) / compareAtPrice * 100) when percent_off
 | --- | --- |
 | 2026-10-30 | Initial catalog planning spec (chibi system, matrix, IA, PDP, data sketch, phases) |
 | 2026-10-30 | Chibi placement: tagged SKUs only, **right-aligned** standee; **dynamic `-{N}%`** flag for percent sales; owner decision on static vs composited sale art |
+| 2026-10-30 | Phase B locked (Stripe + POD); C0–C2 blocked until sign-off; Phase A Shopify optional; link **shop-phase-b-stripe-pod.md** |

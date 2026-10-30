@@ -1,10 +1,10 @@
 # Shop design concepts (pre-build)
 
 **Date:** 30 October 2026  
-**Status:** design only — no routes, checkout, or inventory in the app yet. UX wireframes below; **automated fulfillment + checkout ops** are specified in [Automated shop + checkout](#automated-shop--checkout-ops-architecture) (still no implementation).  
+**Status:** design only — **implementation frozen** (no new shop routes/checkout) until [catalog sign-off](shop-catalog-planning.md) and [Phase B kickoff](shop-phase-b-stripe-pod.md). UX wireframes below; **automated fulfillment + checkout ops** are specified in [Automated shop + checkout](#automated-shop--checkout-ops-architecture) (still no implementation).  
 **Goal:** Visual and UX direction so a future merch / digital shop feels like the same product as the game catalog, with **near-zero owner upkeep** once live.
 
-**Catalog storefront detail (rails, chibi badges, product matrix, PDP variants):** [shop-catalog-planning.md](shop-catalog-planning.md). Checkout ops stay in this doc.
+**Catalog storefront detail (rails, chibi badges, product matrix, PDP variants):** [shop-catalog-planning.md](shop-catalog-planning.md). **Locked commerce epic:** [shop-phase-b-stripe-pod.md](shop-phase-b-stripe-pod.md). Checkout ops stay in this doc.
 
 **Live UI tokens:** `src/app/globals.css` — background `#14061C`, surface `#241033`, primary `#22FF88`, accent `#39FF14`, text `#FFF1F7`, muted `#86EFAC`.  
 **Mascot:** Vesper hosts the shop (storefront outfit, PG on public previews). Andri / `DroidMark` can appear on tech merch only. See `docs/design-and-mascot.md` and `docs/mascots.md`.
@@ -141,6 +141,10 @@ When built, the same steps map to **hosted payment** (Stripe Checkout, Shopify P
 
 ## Automated shop + checkout (ops architecture)
 
+**Owner direction (30 Oct 2026):** **Phase B is locked** — **Stripe** for payments and a **required online POD API** (default **Printful**) for physical SKUs. **Phase A Shopify** remains an **optional alternate**, not the primary plan. Full flow, webhooks, env vars, and B0–B5 checklist: **[shop-phase-b-stripe-pod.md](shop-phase-b-stripe-pod.md)**.
+
+**Phase gate:** No storefront catalog build (C0–C2) until catalog planning sign-off; no checkout/API until Phase B kickoff. Branch preview `/shop` is noindex mock — **hold merges** unless owner wants pixel-check; do not delete preview code without owner request.
+
 This section is the **target operating model**: customers browse on `/shop`, pay at checkout, and **orders fulfill without the owner packing boxes or emailing tracking numbers**. The catalog site stays the brand surface; fulfillment runs through partners and webhooks.
 
 Design goal for the owner: **minimal manual upkeep**. Past shop experience (listing drift, stock counts, manual label printing) is explicitly out of scope. Inventory is **virtual** (POD + digital files), not a warehouse.
@@ -149,8 +153,8 @@ Design goal for the owner: **minimal manual upkeep**. Past shop experience (list
 
 | Pattern | What it is | Fit for NSFW Droid merch |
 | --- | --- | --- |
-| **Headless POD + own checkout** | Next.js shop UI on `www.nsfwdroid.com`; **Stripe Checkout** (or specialist processor) collects payment; **Printful / Printify / Gelato** API creates production jobs from webhooks | Best **Phase B**: same-domain IA (`/shop`, `/cart`, `/checkout`), full control of Vesper UX, one order record in your DB |
-| **Embedded Shopify + POD app** | Shopify storefront (custom domain or subdomain) with **Printful/Printify** app; Shopify owns cart, tax, and payment | Best **Phase A**: almost **zero custom code**; theme matches brand loosely; subdomain `shop.nsfwdroid.com` is acceptable for launch |
+| **Headless POD + own checkout** | Next.js shop UI on `www.nsfwdroid.com`; **Stripe Checkout** (or Payment Element) collects payment; **Printful / Printify / Gelato** API creates production jobs from webhooks | **Locked Phase B** — same-domain IA (`/shop`, `/cart`, `/checkout`), full control of Vesper UX, one order record in your DB. **Printful** recommended default — see [POD comparison](shop-phase-b-stripe-pod.md#recommended-pod-provider-phase-b-default). |
+| **Embedded Shopify + POD app** | Shopify storefront (custom domain or subdomain) with **Printful/Printify** app; Shopify owns cart, tax, and payment | **Optional Phase A alternate** — almost **zero custom code**; subdomain `shop.nsfwdroid.com`; de-emphasized vs locked Phase B |
 | **Marketplace-only** (Etsy, etc.) | Link out from footer | Lowest build cost, **highest** ongoing listing work — avoid as primary |
 
 **Why print-on-demand (POD) fits this SKU list:** stickers, enamel pins (where supported), and tees do not require buying stock upfront. The provider prints or presses **after** the customer pays. You hold **zero inventory**; SKUs are design files + variant mappings. Bundles (sticker + wallpaper) are a **checkout composition**: one payment, two fulfillment paths (physical POD + digital delivery).
@@ -262,16 +266,18 @@ Local dev: `.env` from [`.env.example`](../.env.example). After changing env on 
 
 ### Integration options for NSFW Droid
 
-| | **Phase A — external storefront** | **Phase B — embedded on same domain** |
+| | **Phase A — optional alternate** | **Phase B — locked (embedded same domain)** |
 | --- | --- | --- |
 | **Storefront** | Shopify (or similar) on `shop.nsfwdroid.com` | `/shop`, `/cart`, `/checkout` in Next.js app |
-| **Payment** | Shopify Payments / connected processor | Stripe Checkout Session or Payment Element |
-| **Fulfillment** | Printful/Printify **Shopify app** (no custom API at first) | Printful (etc.) **REST API** triggered from payment webhook |
+| **Payment** | Shopify Payments / connected processor | **Stripe Checkout Session** or Payment Element |
+| **Fulfillment** | Printful/Printify **Shopify app** (no custom API at first) | **Required** Printful (etc.) **REST API** from payment webhook |
 | **Digital goods** | Shopify digital delivery app or manual fulfillment automation | Custom token + Spaces + email |
 | **Owner effort** | Theme tweak, connect POD app, link from header **Shop** | Webhook handlers, order DB, monitoring — still low **ongoing** ops if webhooks are solid |
-| **When to choose** | Launch fast; validate SKUs | Brand-locked UX; single sign-on later |
+| **When to choose** | Only if owner explicitly pivots before Phase B ships | **Default plan** — brand-locked UX; single sign-on later |
 
-Header **Shop** can point to Phase A subdomain until Phase B routes ship; use consistent Vesper art on both.
+Header **Shop** on `www` targets Phase B routes when live; Phase A is link-out only if that alternate is activated.
+
+**Implementation detail:** [shop-phase-b-stripe-pod.md](shop-phase-b-stripe-pod.md).
 
 ### Operations burden: near zero
 
@@ -356,6 +362,6 @@ Do not use game cover art on merch without developer license.
 2. **Optional Figma** — component library linked to CSS variables above.  
 3. **Interactive preview** — `/design/shop` static page in app (dev-only) when ready to pixel-check against production header.  
 4. **Print vendor** — template safe zones (Sticker Mule / Printful) overlaid on sticker + tee mocks.  
-5. **Ops path** — pick Phase A (Shopify subdomain) vs Phase B (embedded checkout) from [Integration options](#integration-options-for-nsfw-droid); confirm processor + POD approval for PG launch SKUs before writing webhook code.
+5. **Ops path** — **Phase B locked:** Stripe + Printful (or approved alternate POD) per [shop-phase-b-stripe-pod.md](shop-phase-b-stripe-pod.md); confirm processor + POD approval for PG launch SKUs before webhook code. Phase A Shopify is optional alternate only.
 
 Interactive overview: open the **Shop design canvas** from the agent run (tabbed mockups). Full spec: [shop-design-concepts.md](shop-design-concepts.md).

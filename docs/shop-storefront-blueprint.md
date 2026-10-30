@@ -2,11 +2,11 @@
 
 **Audience:** Owner / product  
 **Date:** 30 October 2026  
-**Status:** Design mock only — no live checkout, cart API, inventory, or `shop.nsfwdroid.com` DNS in production yet.
+**Status:** Design mock only — **no storefront build** until [catalog sign-off](shop-catalog-planning.md) + [Phase B kickoff](shop-phase-b-stripe-pod.md). No live checkout, cart API, inventory, or `shop.nsfwdroid.com` DNS in production yet.
 
 > **Planning phase (Oct 2026):** Catalog storefront behavior — chibi badges, product taxonomy, rails, PDP variants, and JSON catalog shape — is specified in **[shop-catalog-planning.md](shop-catalog-planning.md)**. Implement that doc after owner sign-off; this blueprint remains the “what exists in repo / assets / gaps” index. **Chibi standees:** only on badge-tagged SKUs (not every card), **right-aligned** on the product image with **dynamic `-{N}%`** on the flag for percent-off sales — see catalog planning § Chibi badge system.
 
-**Related docs:** [shop-catalog-planning.md](shop-catalog-planning.md) (catalog IA + badges + matrix), `docs/shop-design-concepts.md` (IA, SKUs, automated checkout target), `docs/shop-layout-mockups.md` (dev preview + canvas link).
+**Related docs:** [shop-catalog-planning.md](shop-catalog-planning.md) (catalog IA + badges + matrix), [shop-phase-b-stripe-pod.md](shop-phase-b-stripe-pod.md) (**locked** Stripe + POD), `docs/shop-design-concepts.md` (IA, SKUs, automated checkout target), `docs/shop-layout-mockups.md` (dev preview + canvas link).
 
 ---
 
@@ -16,8 +16,8 @@
 | --- | --- |
 | **Production target** | `https://shop.nsfwdroid.com` — subdomain of `nsfwdroid.com` (no separate domain). |
 | **Catalog stays** | Game listings remain on `https://www.nsfwdroid.com`. Shop is a sibling surface, not a replacement catalog. |
-| **Phase A (launch fast)** | **Shopify** (or similar) on `shop.nsfwdroid.com` + Printful/Printify app. Shopify owns cart, tax, payment, webhooks to POD. Header **Shop** can link out until Phase B ships. |
-| **Phase B (brand-locked)** | **Headless** shop routes in the Next.js app on the same origin as catalog: `/shop`, `/cart`, `/checkout`, Stripe Checkout + POD REST API from payment webhooks. |
+| **Phase A *(optional alternate)* ** | **Shopify** (or similar) on `shop.nsfwdroid.com` + Printful/Printify **app** — fast launch, header **Shop** link-out. **Not** the locked owner path (30 Oct 2026); see Phase B. |
+| **Phase B *(locked)* ** | **Headless** shop routes in the Next.js app on `www`: `/shop`, `/cart`, `/checkout`, **Stripe Checkout** + **POD REST API** (default **Printful**) from payment webhooks. Spec: [shop-phase-b-stripe-pod.md](shop-phase-b-stripe-pod.md). |
 | **Today in repo** | **`/shop`** (noindex preview, real approved JPGs) + **`/design/shop`** (noindex dev mock alias). No cart API, no Caddy vhost for `shop.` documented as live. |
 | **SFW subdomain note** | `sfw.nsfwdroid.com` is a **separate** PG catalog concept (`docs/sfw-subdomain-catalog.md`) — not the merch shop host. |
 
@@ -28,13 +28,13 @@ flowchart LR
     DEV["/design/shop noindex mock"]
     WWW --> DEV
   end
-  subgraph phaseA [Phase A target]
+  subgraph phaseA [Phase A optional alternate]
     SHOP[shop.nsfwdroid.com]
     SHOPIFY[Shopify + POD app]
     SHOP --> SHOPIFY
     WWW -->|Shop nav link| SHOP
   end
-  subgraph phaseB [Phase B target]
+  subgraph phaseB [Phase B locked target]
     WWW2[www.nsfwdroid.com/shop]
     STRIPE[Stripe + POD API]
     WWW2 --> STRIPE
@@ -67,7 +67,7 @@ flowchart LR
 | `/shop/collections`, `/shop/products`, cart | **No** | Not in this pass |
 | Cart / checkout API | **No** | No webhooks, order DB, or shop env vars wired |
 | Interactive tabbed mock | **Yes (canvas)** | Shop home, Collection, PDP, Cart drawer — see [Layout mockups canvas](https://cursor.com/canvas/store-71d7e49f-a003-4074-be74-ec6a867c57da/a2d41d50-20f5-429f-8f4c-6865e00a9827) |
-| Branch `cursor/shop-layout-mockups-da0e` | **Yes** | Adds mock page, docs, component (merge to `main` enables owner/dev pixel-check) |
+| Branch `cursor/shop-layout-mockups-da0e` | **Yes** | Adds mock page, docs, components — **hold merges** ahead of catalog sign-off unless owner wants dev pixel-check; preview is **not** production shop |
 
 ### What is **not built** (design doc only — summarize)
 
@@ -337,13 +337,15 @@ Interactive canvas uses **`useHostTheme()`** (same green accent direction, flat 
 
 ### Full storefront build **still requires** (separate epics)
 
-1. **Hosting choice** — Phase A DNS + Shopify theme **or** Phase B Next routes + Caddy/host rules for `/shop` or `shop.` subdomain.
-2. **Commerce backend** — cart state, checkout session, webhooks, order DB, transactional email.
-3. **Fulfillment** — POD app (Phase A) or API integration (Phase B); digital token delivery.
-4. **Production components** — split mock into real routes and the seven spec’d components; wire header **Shop** link.
-5. **Assets in app** — copy or CDN-link approved JPGs from artifacts into `public/` or `data/shop/mock/`; replace STK/TEE/ZIP placeholders.
-6. **Ops** — secrets on droplet, monitoring for failed webhooks (`ALERT_EMAIL_TO`), processor/POD content approval for PG launch SKUs.
-7. **Legal / policy** — checkout age note, terms/privacy links on PDP trust row (routes exist on catalog today).
+**Gate:** [shop-catalog-planning.md](shop-catalog-planning.md) sign-off → C0–C2; [shop-phase-b-stripe-pod.md](shop-phase-b-stripe-pod.md) kickoff → checkout.
+
+1. **Hosting / routes** — Phase B Next routes on `www` (locked); Phase A Shopify subdomain only if owner pivots.
+2. **Commerce backend** — Stripe + order DB + webhooks (Phase B epic B0–B5).
+3. **Fulfillment** — **Required** POD API (Printful default); digital signed URLs in parallel.
+4. **Production components** — collections, PDP, cart, checkout (after C0–C2 + Phase B).
+5. **Assets in app** — catalog JSON + approved JPGs (much already in `public/shop/`).
+6. **Ops** — secrets on droplet (`STRIPE_*`, `PRINTFUL_*`, etc.), webhook failure alerts.
+7. **Legal / policy** — checkout age note, terms/privacy on PDP trust row.
 
 ---
 
@@ -356,6 +358,7 @@ Interactive canvas uses **`useHostTheme()`** (same green accent direction, flat 
 | Layout mockups canvas | https://cursor.com/canvas/store-71d7e49f-a003-4074-be74-ec6a867c57da/a2d41d50-20f5-429f-8f4c-6865e00a9827 |
 | Design concepts + checkout ops | `docs/shop-design-concepts.md` |
 | **Catalog planning (badges, matrix, PDP)** | `docs/shop-catalog-planning.md` |
+| **Phase B — Stripe + POD (locked)** | `docs/shop-phase-b-stripe-pod.md` |
 | Layout mockups doc | `docs/shop-layout-mockups.md` |
 | Art batch index | `/opt/cursor/artifacts/shop-design-batch-index.md` |
 
