@@ -345,6 +345,7 @@ Do not use game cover art on merch without developer license.
 1. **Raster mocks** — 6 SKUs × 3 angles (flat lay, PDP, thumb) under `data/shop/mock/` when art exists.  
 2. **Optional Figma** — component library linked to CSS variables above.  
 3. **Interactive preview** — `/design/shop` static page in app (dev-only) when ready to pixel-check against production header.  
-4. **Print vendor** — template safe zones (Sticker Mule / Printful) overlaid on sticker + tee mocks.
+4. **Print vendor** — template safe zones (Sticker Mule / Printful) overlaid on sticker + tee mocks.  
+5. **Ops path** — pick Phase A (Shopify subdomain) vs Phase B (embedded checkout) from [Integration options](#integration-options-for-nsfw-droid); confirm processor + POD approval for PG launch SKUs before writing webhook code.
 
 Interactive overview: open the **Shop design canvas** from the agent run (tabbed mockups). Full spec: [shop-design-concepts.md](shop-design-concepts.md).
