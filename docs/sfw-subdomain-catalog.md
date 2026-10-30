@@ -101,18 +101,220 @@ Today’s pipeline **only admits mature titles** (`catalog-maturity.ts`, itch NS
 
 **Launch content:** expect **manual curation + itch SFW Android feeds** until volume justifies automation; main catalog rows are overwhelmingly NSFW-tagged and unsuitable to “filter invert.”
 
+**Schema today (`src/db/schema.ts`):** the `listing` table has `platforms`, `source`, tags via `listing_tag`, and `storeDescription` — **no** audience or maturity column. Any SFW slice needs a migration plus query-layer guards so a single missed `WHERE` cannot expose adult rows on `sfw.`.
+
+---
+
+## Evidence from the current codebase
+
+This section ties the concept to **files that already exist** — not hypothetical greenfield work.
+
+| Claim | Where it lives | Implication for SFW |
+| --- | --- | --- |
+| Only `www` (+ apex redirect) terminates TLS to Next | `deploy/Caddyfile` — blocks for `nsfwdroid.com` (301) and `www.nsfwdroid.com` (reverse_proxy) | Adding `sfw.nsfwdroid.com` is a **new Caddy site block**, same upstream port |
+| Apex → www canonicalization | `src/lib/canonical-host.ts` — `redirectHostForCanonicalOrigin()` only maps bare apex to `primarySiteHost()` | **`sfw.` is not redirected today**; must stay that way (do not fold SFW into www redirect) |
+| Middleware has no site mode | `src/middleware.ts` — security headers + selective `X-Robots-Tag` on admin/go/ads | Host-based routing belongs here or in a small `src/lib/site-mode.ts` helper used by layouts |
+| Single build-time origin | `src/app/layout.tsx` `metadataBase: new URL(siteUrl)`; `src/lib/site.ts` / `NEXT_PUBLIC_SITE_URL` | Game URLs in OG tags and JSON-LD must become **request-host-aware** on SFW |
+| Sitemap is www-scoped | `src/app/sitemap.ts` — all URLs prefixed with `siteUrl`; includes `/videos`, `/creators/*` | SFW needs **filtered sitemap** (Android + `catalog_audience=sfw` only) or separate route `sitemap.xml` by Host |
+| NSFW-only ingest default | `src/lib/catalog-maturity.ts` — `isCatalogNsfwEnforcementEnabled()` / `isItchNsfwOnlyMode()` default **true** | SFW ingest is a **second pipeline** with inverted reject rules, not toggling `CATALOG_NSFW_ONLY=0` on main cron |
+| itch feeds are adult browse | `scripts/lib/itch-feeds.ts` — `ITCH_NSFW_BROWSE_FEEDS` (incl. `platform-android/tag-nsfw.xml`) | SFW uses **different feed list** (e.g. `platform-android.xml` without `/tag-nsfw`) + `isMatureItchItem()` **reject** |
+| Browse “vanilla” ≠ family-safe | `src/lib/browse-listings.ts` — `vanillaOnly` filters niche tags via `FEATURED_RAIL_NICHE_TAG_SLUGS`, not maturity | Document prominently so PM/engineering do not ship “vanilla mode” as SFW |
+| Age gate is global on storefront | `src/components/Storefront.tsx`, `BrowseCatalog.tsx`, `GameDetailPage.tsx` — `<AgeGate open={!ageVerified} />` | SFW layout branch skips or replaces gate; cookie name can stay `age_verified` with different copy or use host-scoped cookie |
+| Ads gated on age cookie | `src/components/AdSlot.tsx` — ads after `age_verified` | SFW should omit ExoClick entirely until PG network; see `src/lib/ads-config.ts` |
+| Stale NSFW cleanup exists | `scripts/unpublish-non-nsfw-listings.ts` (main catalog hygiene) | Mirror with **`unpublish-sfw-ineligible`** or shared maturity helper tests |
+
+```mermaid
+flowchart LR
+  subgraph edge [Caddy deploy/Caddyfile]
+    WWW[www.nsfwdroid.com]
+    SFW[sfw.nsfwdroid.com]
+    APEX[nsfwdroid.com 301]
+  end
+  subgraph app [Next.js :3000]
+    MW[src/middleware.ts]
+    MODE[site mode from Host]
+    Q[catalog queries + audience filter]
+  end
+  APEX --> WWW
+  WWW --> MW
+  SFW --> MW
+  MW --> MODE
+  MODE --> Q
+```
+
+---
+
+## SEO and Search Console rationale
+
+**Why a subdomain beats `/sfw` on www for this product:**
+
+| Factor | `www.nsfwdroid.com/sfw/...` | `sfw.nsfwdroid.com` |
+| --- | --- | --- |
+| GSC property intent | Mixed adult + family URLs under one URL prefix | **Dedicated URL-prefix property** or hostname group with clear audience |
+| SERP snippet context | Title still “NSFW Droid” in most templates | Header/wordmark can say **SFW Droid** without rewriting apex brand |
+| `robots.txt` / sitemap | One sitemap lists `/videos`, creator hubs, adult games | SFW sitemap lists **only** eligible Android game detail + browse |
+| Canonical policy | Risk of accidental `rel=canonical` to www game URL | Per-host canonical: `https://sfw.nsfwdroid.com/game/{slug}` |
+| Link equity | Internal links from adult rails | Footer **cross-links** only; no `canonical` cross-host (Google treats as separate sites) |
+
+**Alignment with existing SEO fixes:** apex → www 301 in Caddy matches `redirectHostForCanonicalOrigin()` — the same pattern should **not** force `sfw` → `www`. Register `sfw.nsfwdroid.com` in GSC after DNS; submit sitemap after launch content exists (empty sitemap is worse than delayed submit).
+
+**Structured data:** reuse game detail templates but ensure `metadataBase` and `@id` URLs use the SFW host when `siteMode === 'sfw'` so rich results do not point at www.
+
+---
+
+## Security and filter failure modes
+
+| Failure | How it could happen | Impact | Mitigation |
+| --- | --- | --- | --- |
+| **NSFW row on SFW home** | Query missing `catalog_audience = 'sfw'` | Reputation, school filter block, ad network ban | DB column + **default deny** in shared `publicCatalogWhere()`; integration test: no listing without `sfw` on SFW host |
+| **Shared slug, wrong host** | Same slug published on both audiences | User shares www link from SFW context | Optional **slug namespace** (`pg-pixel-quest` vs `pixel-quest`) or 404 on wrong host |
+| **Creator / video routes on SFW** | Next file-based routes still reachable | Adult hub indexed on SFW property | Middleware **404 or 301 to /** for `/videos`, `/creators/*` on SFW host; `X-Robots-Tag: noindex` belt-and-suspenders |
+| **Admin on SFW host** | `/admin` works on any Host | Odd cookie scope | Keep admin on www only — redirect SFW `/admin` → www |
+| **Open redirect via `/api/go`** | Outbound still works | Less critical but mixes tracking | Allow go URLs on SFW for **sfw listings only** (validate listing audience server-side) |
+| **Ingest misconfiguration** | `CATALOG_NSFW_ONLY=0` on main cron | Non-mature rows enter **main** catalog | Never disable NSFW enforcement globally; separate `INGEST_PROFILE=sfw` script |
+| **Cover art** | itch RSS image is suggestive though tags pass | Visual NSFW leak | Manual approve queue for SFW until image classifier or stricter itch filters |
+| **Vanilla browse confusion** | Marketing says “vanilla = safe” | Users see adult titles | Docs + UI: vanilla = **niche tag hide**, not PG |
+
+---
+
+## Failure modes and guardrails (engineering)
+
+1. **Single helper for “public catalog SQL”** — today `publicCatalogLinkStatus()` and friends in listing queries; extend with `forSiteMode(mode)` so every browse/home/sitemap path cannot forget the audience predicate.
+2. **Automated tests** — fixture listings: `{ audience: nsfw }` must never appear in SFW query snapshots; copy patterns from existing catalog tests under `src/lib/`.
+3. **Cron isolation** — SFW ingest via `catalog-ingest-cron.sh` wrapper with `CATALOG_AUDIENCE=sfw` env, separate log file under `/var/log/nsfwdroid/` (same as main ingest in [autonomous-ops.md](autonomous-ops.md)).
+4. **Feature flag** — `SFW_HOST_ENABLED=0` until row count &gt; N; Caddy can serve maintenance page on `sfw.` until flag on (optional).
+5. **Watchdog** — `ensure-nsfwdroid.sh` already hits `/api/health`; optional second check `Host: sfw.nsfwdroid.com` after launch.
+6. **Rollback** — remove Caddy block + DNS; no need to redeploy if feature-flagged off in app.
+
+---
+
+## Host-mode implementation sketch (no full code)
+
+**Resolve mode early:**
+
+```text
+Host header → normalize → siteMode: 'main' | 'sfw'
+  sfw.nsfwdroid.com     → sfw
+  www.nsfwdroid.com     → main
+  nsfwdroid.com         → (middleware already 301 to www)
+```
+
+**Suggested touch points (order of work):**
+
+| Step | File(s) | Change |
+| --- | --- | --- |
+| 1 | `src/lib/site-mode.ts` (new) | `getSiteMode(request)`, `siteUrlForMode(mode)` |
+| 2 | `src/middleware.ts` | Block or redirect disallowed paths on SFW; optional `Vary: Host` on cache-sensitive routes |
+| 3 | `src/app/layout.tsx` | Branch metadata / theme class on mode |
+| 4 | `src/lib/browse-listings.ts`, home data loaders | Add audience + default `platforms` contains `android` on SFW |
+| 5 | `src/app/sitemap.ts`, `src/app/robots.ts` | Host-aware or split sitemap generation |
+| 6 | `src/components/Storefront.tsx` | SFW wordmark, no AgeGate blur, cross-link banner |
+| 7 | Admin approve UI | Set `catalog_audience` when publishing |
+
+**Caching note:** ISR revalidation in `src/lib/catalog-revalidate.ts` applies to both hosts if shared; tag invalidation must refresh **both** sitemaps if ever dual-hosted on same build.
+
+---
+
+## Ingest strategy — SFW itch feeds
+
+**Do not** point main `ingest-all.ts` at non-NSFW global feeds while `isCatalogNsfwEnforcementEnabled()` is on — candidates from `https://itch.io/feed/new.xml` would still be **rejected** unless mature, wasting cron time.
+
+**Proposed SFW feed set (starting point — validate in staging):**
+
+| Feed URL | Role |
+| --- | --- |
+| `https://itch.io/games/platform-android.xml` | Broad Android browse (non–tag-nsfw) |
+| `https://itch.io/games/platform-android/price-free.xml` | Free Android |
+| `https://itch.io/games/genre-action/platform-android.xml` | Genre slices without adult tags |
+| Manual / admin | Play Store outbound links (no Play API in v1) |
+
+**Per-item pipeline (mirror main ingest):**
+
+```mermaid
+flowchart TD
+  RSS[itch RSS item] --> PLAT{platforms includes android?}
+  PLAT -->|no| DROP[skip]
+  PLAT -->|yes| MAT[isMatureItchItem + tags]
+  MAT -->|mature| DROP
+  MAT -->|clean| CAND[candidate row]
+  CAND --> APPR[admin approve → listing catalog_audience=sfw]
+```
+
+**Reuse:** `textHasMatureKeyword`, `MATURE_TAG_SLUGS`, and Steam `isMatureSteamPayload()` for **reject** on SFW ingest; Steam Android-native volume is low but descriptors must still be checked.
+
+**Env sketch:**
+
+```bash
+# /etc/nsfwdroid.env — illustrative second cron entry, not production today
+CATALOG_AUDIENCE=sfw
+ITCH_NSFW_ONLY=0
+CATALOG_NSFW_ONLY=0          # inverted logic: REJECT mature, accept clean
+ITCH_SFW_FEED_URLS=https://itch.io/games/platform-android.xml,...
+```
+
+Implement `ITCH_SFW_FEED_URLS` in `scripts/lib/itch-feeds.ts` as a sibling to `ITCH_NSFW_BROWSE_FEEDS` when coding — doc only names the intent.
+
+---
+
+## Legal, ads, and monetization
+
+| Topic | Main site today | SFW subdomain guidance |
+| --- | --- | --- |
+| **Age gate** | 18+ `AgeGate` + blur (`src/components/AgeGate.tsx`) | Lightweight 13+ or informational only — **owner legal review** before dropping gate |
+| **Terms / privacy** | `/terms`, `/privacy` on www | Same legal entity; link from SFW footer; mention dual catalogs |
+| **ExoClick** | Footer + popunder when ads enabled | **Off** on SFW until PG-approved network; never load popunder script on SFW layout |
+| **Affiliate** | itch / Steam outbound | Same disclosure pages; only SFW-eligible titles |
+| **DMCA / reports** | `listing_report` flow | Same admin queue; filter column by audience |
+
+School and corporate filters look at **domain reputation** (`nsfwdroid.com` substring) — SFW subdomain improves **human and reviewer signaling**, not guaranteed filter allowlisting.
+
+---
+
+## Metrics and success criteria
+
+**Launch (first 30 days after go-live):**
+
+| Metric | Target (example) | Source |
+| --- | --- | --- |
+| SFW indexed URLs (GSC) | &gt; 50 game detail pages | GSC coverage report |
+| Crawl errors on `sfw.` | 0 “Soft 404” from empty catalog | GSC |
+| NSFW leakage incidents | **0** confirmed | Manual QA + user reports |
+| Ingest adds per run | &gt; 0 new SFW candidates (median) | Ingest logs / optional `INGEST_ALERT` variant |
+| Health | `GET https://sfw.nsfwdroid.com/api/health` 200 | Watchdog / uptime |
+
+**Product:** Android chip selected by default; bounce rate not primary — focus on **outbound click-through** to itch/Play from SFW rails.
+
+---
+
+## Phased rollout checklist
+
+| Phase | Owner | Tasks |
+| --- | --- | --- |
+| **0 — Doc / design** | Done | This doc + [shop-design-concepts.md](shop-design-concepts.md) visuals |
+| **1 — Schema** | Dev | Migration `catalog_audience`; backfill none (empty SFW) |
+| **2 — App mode** | Dev | `site-mode`, query guards, SFW layout, route blocks |
+| **3 — Ingest** | Dev | SFW cron + feed list; admin approve UX |
+| **4 — Staging** | Dev | Host header tests; leak test suite |
+| **5 — DNS** | Owner | `A`/`AAAA` for `sfw` → droplet (see [cloudflare.md](cloudflare.md)) |
+| **6 — Caddy** | Owner/agent | Add block below; `caddy reload` in **maintenance window** ([autonomous-ops.md](autonomous-ops.md#human-scheduled-changes-dns-deploy-maintenance)) |
+| **7 — Content** | Owner | Approve seed list (~30–50 titles) |
+| **8 — GSC** | Owner | Property + sitemap submit |
+| **9 — Ads** | Owner | Keep ads off until PG partner |
+
 ---
 
 ## Ops
 
 **DNS:** `A`/`AAAA` for `sfw` → same droplet as `www`.
 
-**Caddy snippet (illustrative):**
+**Caddy — match existing `www` block pattern** (`deploy/Caddyfile` lines 18–27 today). Insert **after** the `www.nsfwdroid.com` block:
 
 ```caddy
+# PG Android catalog — same Next process as www; Host header drives site mode in app.
 sfw.nsfwdroid.com {
 	encode gzip
 	reverse_proxy 127.0.0.1:3000
+
 	handle_errors 502 503 504 {
 		root * /var/www/nsfwdroid/deploy
 		rewrite * /maintenance.html
@@ -120,6 +322,8 @@ sfw.nsfwdroid.com {
 	}
 }
 ```
+
+Do **not** add a redirect from `sfw` to `www` (unlike apex). TLS certificates: Caddy on-demand TLS or pre-provisioned cert for `sfw.nsfwdroid.com` once DNS resolves.
 
 **Env (droplet `/etc/nsfwdroid.env` — illustrative):**
 

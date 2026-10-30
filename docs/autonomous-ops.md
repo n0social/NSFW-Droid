@@ -37,6 +37,8 @@ Times in **America/New_York** (`NEWSLETTER_WEEKLY_TZ` / default site timezone). 
 
 **Deploy** (`cloud-agent-deploy-droplet.sh`) restarts the app (~seconds of blip); still best during low traffic or right after weekly maintenance.
 
+**Future SFW subdomain (`sfw.nsfwdroid.com`):** planning doc only — DNS + Caddy block + optional second ingest cron; cutover should use the windows above. See [sfw-subdomain-catalog.md](sfw-subdomain-catalog.md).
+
 ### Inside each ingest run (`catalog-ingest-cron.sh`)
 
 When the ingest cron fires, the inner script (always via `catalog-maintenance.sh`) automatically:
