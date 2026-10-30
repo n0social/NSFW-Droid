@@ -25,4 +25,4 @@ Keep chat summaries scannable (headers, bullets, PR numbers). Do not put secrets
 
 Production droplet: see `docs/deploy-droplet.md` (§4b tarball release via `scripts/cloud-agent-deploy-droplet.sh`).
 
-After deploy, verify `https://www.sfwdroid.com/api/health`. If the PR touched cron or systemd/Caddy deploy files, call out the extra manual steps from [docs/autonomous-ops.md](docs/autonomous-ops.md).
+After deploy, verify `https://www.nsfwdroid.com/api/health`. If the PR touched cron or systemd/Caddy deploy files, call out the extra manual steps from [docs/autonomous-ops.md](docs/autonomous-ops.md).
