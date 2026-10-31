@@ -2,6 +2,7 @@
 export function browseCatalogPath(input: {
   rail?: string | null;
   tag?: string | null;
+  platform?: string | null;
   q?: string | null;
   vanilla?: boolean;
   sort?: string | null;
@@ -10,6 +11,7 @@ export function browseCatalogPath(input: {
   const params = new URLSearchParams();
   if (input.vanilla) params.set("vanilla", "1");
   else if (input.tag) params.set("tag", input.tag);
+  else if (input.platform) params.set("platform", input.platform);
   else if (input.rail === "new" || input.rail === "hot") params.set("rail", "new");
   else if (input.rail === "trending") params.set("rail", "trending");
   if (input.q) params.set("q", input.q);

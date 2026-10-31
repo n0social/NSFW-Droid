@@ -13,10 +13,13 @@ import {
   listingFirstSeenAtExpr,
   newListingPublishedSinceCondition,
 } from "@/lib/new-listings";
+import { listingMatchesBrowsePlatformSlug } from "@/lib/browse-platform-filter";
+import { normalizeBrowsePlatformSlug } from "@/lib/browse-platforms";
 
 export type BrowseFilters = {
   rail?: "new" | "trending" | null;
   tag?: string | null;
+  platform?: string | null;
   vanilla?: boolean;
   q?: string | null;
   sort?: "new" | null;
@@ -38,12 +41,15 @@ export async function getBrowseListings(filters: BrowseFilters): Promise<BrowseR
   const result = await safeCatalogQuery("getBrowseListings", empty, async (db) => {
     const allTags = await listBrowseTags(db);
     const tagSlug = filters.tag?.trim().toLowerCase() || null;
+    const platformSlug = normalizeBrowsePlatformSlug(filters.platform);
+    const platformSql = platformSlug ? listingMatchesBrowsePlatformSlug(platformSlug) : null;
     const q = filters.q?.trim() || null;
     const vanillaOnly = filters.vanilla === true;
     const sortNew = filters.sort === "new";
     const page = Math.max(1, Math.floor(filters.page ?? 1));
     const offset = (page - 1) * BROWSE_PAGE_SIZE;
-    const useFeaturedRanking = page === 1 && !tagSlug && !filters.rail && !q && !sortNew && !vanillaOnly;
+    const useFeaturedRanking =
+      page === 1 && !tagSlug && !platformSlug && !filters.rail && !q && !sortNew && !vanillaOnly;
 
     let base: Listing[] = [];
 
@@ -86,6 +92,20 @@ export async function getBrowseListings(filters: BrowseFilters): Promise<BrowseR
           .limit(BROWSE_PAGE_SIZE)
           .offset(offset);
         base = tagged.map((r) => r.listing);
+      } else if (platformSlug && platformSql) {
+        const catalogWhere = and(
+          publicCatalogLinkStatus(),
+          platformSql,
+          ...(sortNew ? [newListingPublishedSinceCondition()] : []),
+          ...conditions,
+        );
+        base = await db
+          .select()
+          .from(listings)
+          .where(catalogWhere)
+          .orderBy(desc(sortNew ? listingFirstSeenAtExpr() : listings.publishedAt))
+          .limit(BROWSE_PAGE_SIZE)
+          .offset(offset);
       } else {
         const catalogWhere = and(
           publicCatalogLinkStatus(),
@@ -112,10 +132,32 @@ export async function getBrowseListings(filters: BrowseFilters): Promise<BrowseR
       filtered = rankForFeaturedRail(base, tagsById, BROWSE_PAGE_SIZE);
     }
 
-    const countWhere =
+    let countWhere =
       sortNew || filters.rail === "new"
         ? and(publicCatalogLinkStatus(), newListingPublishedSinceCondition())
         : publicCatalogLinkStatus();
+    if (tagSlug) {
+      const [tagRow] = await db.select({ id: tags.id }).from(tags).where(eq(tags.slug, tagSlug)).limit(1);
+      if (tagRow) {
+        const [tagCount] = await db
+          .select({ count: sql<number>`count(distinct ${listings.id})::int` })
+          .from(listings)
+          .innerJoin(listingTags, eq(listingTags.listingId, listings.id))
+          .where(and(publicCatalogLinkStatus(), eq(listingTags.tagId, tagRow.id)));
+        return {
+          listings: filtered,
+          tags: allTags,
+          total: tagCount?.count ?? filtered.length,
+        };
+      }
+    }
+    if (platformSlug && platformSql) {
+      countWhere = and(
+        publicCatalogLinkStatus(),
+        platformSql,
+        ...(sortNew ? [newListingPublishedSinceCondition()] : []),
+      );
+    }
     const [countRow] = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(listings)

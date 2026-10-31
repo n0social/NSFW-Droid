@@ -30,6 +30,7 @@
     "test:sitemap-slug-safety": "tsx scripts/test-sitemap-slug-safety.ts",
     "test:listing-store-description": "tsx scripts/test-listing-store-description.ts",
     "test:browse-tag-hub-seo": "tsx scripts/test-browse-tag-hub-seo.ts",
+    "test:browse-platform-hub": "tsx scripts/test-browse-platform-hub.ts",
     "test-listing-json-ld": "tsx scripts/test-listing-json-ld.ts",
     "test-listing-cover-alt": "tsx scripts/test-listing-cover-alt.ts",
     "test-browse-catalog-path": "tsx scripts/test-browse-catalog-path.ts",

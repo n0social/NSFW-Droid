@@ -15,6 +15,7 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
 import type { ResolvedLayoutDecorItem } from "@/lib/themes/types";
 import { ThemeLayoutDecor } from "@/components/theme/ThemeLayoutDecor";
+import { browsePlatformHubMeta, normalizeBrowsePlatformSlug } from "@/lib/browse-platforms";
 import { isNsfwBrowseCatalogTag } from "@/lib/tag-filter";
 import { BROWSE_PAGE_SIZE } from "@/lib/browse-constants";
 import { effectiveCoverBlur } from "@/lib/cover-blur";
@@ -36,7 +37,8 @@ type Props = {
   totalListings?: number;
   page?: number;
   pageSize?: number;
-  tagHubIntro?: string | null;
+  hubIntro?: string | null;
+  initialPlatform?: string | null;
 };
 
 export function BrowseCatalog({
@@ -56,7 +58,8 @@ export function BrowseCatalog({
   totalListings = 0,
   page = 1,
   pageSize = BROWSE_PAGE_SIZE,
-  tagHubIntro = null,
+  hubIntro = null,
+  initialPlatform = null,
 }: Props) {
   const router = useRouter();
   const { user } = useAuth();
@@ -80,10 +83,15 @@ export function BrowseCatalog({
       const label = tags.find((t) => t.slug === initialTag)?.label ?? initialTag;
       return `Tag: ${label}`;
     }
+    if (initialPlatform) {
+      const slug = normalizeBrowsePlatformSlug(initialPlatform);
+      const meta = slug ? browsePlatformHubMeta(slug) : null;
+      return meta?.seoTitle ?? `Platform: ${initialPlatform}`;
+    }
     if (initialSort === "new") return "New in the last 30 days";
     if (initialQ) return `Search: ${initialQ}`;
     return "Browse catalog";
-  }, [initialRail, initialTag, initialVanilla, initialQ, initialSort, tags]);
+  }, [initialRail, initialTag, initialPlatform, initialVanilla, initialQ, initialSort, tags]);
 
   const persistBrowsePrefs = useCallback(
     async (filter: string, search: string) => {
@@ -141,6 +149,7 @@ export function BrowseCatalog({
     return browseCatalogPath({
       vanilla: initialVanilla,
       tag: initialTag,
+      platform: initialPlatform,
       rail: initialRail,
       q: initialQ,
       sort: initialSort === "new" && filterValue === "all" && !initialQ ? "new" : null,
@@ -179,9 +188,9 @@ export function BrowseCatalog({
                 ← Home
               </Link>
               <h1 className="mt-1 text-xl font-black text-[#FFF1F7] sm:text-2xl">{title}</h1>
-              {tagHubIntro ? (
+              {hubIntro ? (
                 <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#E9D5FF]/90">
-                  {tagHubIntro}
+                  {hubIntro}
                 </p>
               ) : null}
               <p className="mt-1 text-xs text-[#E9D5FF]/80">

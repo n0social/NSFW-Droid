@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { getBrowsePlatformHubsForSitemap } from "@/lib/browse-platform-sitemap";
 import { getBrowseTagHubsForSitemap } from "@/lib/browse-tag-sitemap";
 import { getPublishedListingsForSitemap } from "@/lib/listing-detail";
 import { gameListingPath } from "@/lib/listing-routes";
@@ -28,9 +29,10 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [rows, tagHubs] = await Promise.all([
+  const [rows, tagHubs, platformHubs] = await Promise.all([
     getPublishedListingsForSitemap(),
     getBrowseTagHubsForSitemap(),
+    getBrowsePlatformHubsForSitemap(),
   ]);
 
   const gameEntries: MetadataRoute.Sitemap = rows.map((row) => ({
@@ -47,5 +49,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.62,
   }));
 
-  return [...STATIC_ROUTES, ...tagHubEntries, ...gameEntries];
+  const platformHubEntries: MetadataRoute.Sitemap = platformHubs.map((hub) => ({
+    url: `${siteUrl}/browse?platform=${encodeURIComponent(hub.slug)}`,
+    lastModified: hub.updatedAt,
+    changeFrequency: "weekly",
+    priority: 0.64,
+  }));
+
+  return [...STATIC_ROUTES, ...platformHubEntries, ...tagHubEntries, ...gameEntries];
 }
