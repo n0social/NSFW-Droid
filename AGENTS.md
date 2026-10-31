@@ -23,6 +23,6 @@ Keep chat summaries scannable (headers, bullets, PR numbers). Do not put secrets
 
 ## Deploy
 
-Production droplet: see `docs/deploy-droplet.md` (§4b tarball release via `scripts/cloud-agent-deploy-droplet.sh`).
+Production droplet: see `docs/deploy-droplet.md` (§4b tarball release via `scripts/cloud-agent-deploy-droplet.sh`). **Minnows/minnow.cloud is a different host** — never deploy or install Minnows paths on the NSFW Droid droplet (`159.203.136.220`, `/var/www/nsfwdroid`).
 
 After deploy, verify `https://www.nsfwdroid.com/api/health`. If the PR touched cron or systemd/Caddy deploy files, call out the extra manual steps from [docs/autonomous-ops.md](docs/autonomous-ops.md).

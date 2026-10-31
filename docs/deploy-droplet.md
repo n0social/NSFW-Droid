@@ -6,6 +6,19 @@
 
 **Cloud agent deploy key:** current public key is `deploy/cursor-cloud-agent-nsfwdroid.pub` (`cursor-cloud-agent-nsfwdroid`). Legacy key: `deploy/nsfwdroid-deploy.pub`.
 
+### This droplet is NSFW Droid only (not Minnows)
+
+**Minnows** (`minnow.cloud`, `/opt/minnows`, hostname `Minnows`, etc.) is a **separate project and host**. Nothing Minnows-related belongs on this production box.
+
+| | NSFW Droid (this droplet) |
+| --- | --- |
+| Site | https://www.nsfwdroid.com |
+| Public IP | `159.203.136.220` |
+| App tree | `/var/www/nsfwdroid` |
+| Cloud Agent deploy | `./scripts/cloud-agent-deploy-droplet.sh` only |
+
+Before appending Cloud Agent keys to `authorized_keys`, confirm you are on the right server: `curl -s ifconfig.me` should print **`159.203.136.220`**, and `hostname` should match your NSFW Droid droplet — not Minnows. Do not copy Minnows paths, env files, or SSH keys onto this host.
+
 **Current production:** Cloud Agents default to **`NSFWDROID_DEPLOY_SSH_USER=root`** until you run the non-root setup below. While logged in as **root** with your existing key, append the agent public key:
 
 ```bash
