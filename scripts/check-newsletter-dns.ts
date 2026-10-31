@@ -1,15 +1,15 @@
 /**
- * Verify Brevo domain authentication DNS for the configured newsletter From address.
+ * Verify Exim DKIM DNS for the configured newsletter From address.
  *
  * Usage: tsx scripts/check-newsletter-dns.ts
  */
 import "dotenv/config";
 import { newsletterFromAddress } from "../src/lib/newsletter/config";
-import { checkBrevoDomainDns } from "../src/lib/newsletter/brevo-dns";
+import { checkEximDomainDns } from "../src/lib/newsletter/exim-dns";
 
 async function main() {
   const from = newsletterFromAddress();
-  const result = await checkBrevoDomainDns(from);
+  const result = await checkEximDomainDns(from);
   console.log(JSON.stringify({ from, ...result }, null, 2));
   if (result.issues.length) {
     process.exit(1);

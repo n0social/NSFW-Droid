@@ -10,7 +10,7 @@ import {
 } from "../src/lib/newsletter/config";
 import { formatEmailFailureForOpsAlert } from "../src/lib/newsletter/email-diagnostics";
 import { fetchWeeklyNewsletterPicks } from "../src/lib/newsletter/picks";
-import { checkBrevoDomainDns } from "../src/lib/newsletter/brevo-dns";
+import { checkEximDomainDns } from "../src/lib/newsletter/exim-dns";
 import { sendWeeklyNewsletterToSubscriber } from "../src/lib/newsletter/send-weekly-to-subscriber";
 import { listActiveSubscribers } from "../src/lib/newsletter/subscriber";
 import {
@@ -79,12 +79,15 @@ async function main() {
   }
 
   const transport = newsletterTransport();
-  if (transport === "brevo" && !process.env.BREVO_API_KEY?.trim()) {
-    failOps("Missing BREVO_API_KEY", "brevo transport");
+  if (transport === "brevo") {
+    failOps(
+      "Brevo transport disabled",
+      "Set NEWSLETTER_TRANSPORT=sendmail on the droplet (Exim). See docs/newsletter-exim-runbook.md",
+    );
   }
-  if (transport === "brevo" && !skipDns) {
-    const dns = await checkBrevoDomainDns(summary.from);
-    if (dns.issues.length) failOps("Brevo DNS issues", dns.issues.join(" | "));
+  if (transport === "sendmail" && !skipDns) {
+    const dns = await checkEximDomainDns(summary.from);
+    if (dns.issues.length) failOps("Exim/DKIM DNS issues", dns.issues.join(" | "));
   }
 
   let sent = 0;

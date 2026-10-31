@@ -86,6 +86,25 @@ sendmail_bin() {
 transport_lc=$(echo "${ALERT_EMAIL_TRANSPORT:-sendmail}" | tr '[:upper:]' '[:lower:]')
 sent=false
 
+if [[ "$transport_lc" == "brevo" ]]; then
+  echo "[alert-email] ALERT_EMAIL_TRANSPORT=brevo is not used; use sendmail (Exim) or smtp" >&2
+  exit 1
+fi
+
+try_ts_send() {
+  if [[ ! -d "$APP_DIR/node_modules" ]] || ! command -v npx >/dev/null 2>&1; then
+    return 1
+  fi
+  (cd "$APP_DIR" && npx --yes tsx scripts/send-alert-email.ts \
+    --to "$TO" \
+    --subject "$SUBJECT" \
+    --body "$FULL_BODY")
+}
+
+if [[ "$transport_lc" != "smtp" ]]; then
+  try_ts_send && sent=true
+fi
+
 try_sendmail() {
   local bin
   bin=$(sendmail_bin) || return 1
@@ -98,7 +117,7 @@ try_sendmail() {
   } | "$bin" -t -oi
 }
 
-if [[ "$transport_lc" != "smtp" ]]; then
+if [[ "$sent" == false && "$transport_lc" != "smtp" ]]; then
   try_sendmail && sent=true
 fi
 

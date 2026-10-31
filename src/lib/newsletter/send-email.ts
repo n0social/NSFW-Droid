@@ -14,6 +14,8 @@ export type NewsletterEmailInput = {
   html: string;
   text?: string;
   listUnsubscribeUrl?: string;
+  /** When set, overrides newsletter From env (ops alerts). */
+  from?: string;
 };
 
 export type SendNewsletterEmailResult =
@@ -44,14 +46,19 @@ function assertHeaderValue(value: string, label: string): string {
 export function buildSendmailMessage(input: NewsletterEmailInput): string {
   const to = assertHeaderValue(input.to, "to");
   const subject = assertHeaderValue(input.subject, "subject");
-  const from = assertHeaderValue(newsletterFromAddress(), "from");
+  const from = assertHeaderValue(input.from?.trim() || newsletterFromAddress(), "from");
   const boundary = `nsfwdroid_${randomBytes(12).toString("hex")}`;
   const text = input.text?.replace(/\r\n/g, "\n") ?? "";
   const html = input.html.replace(/\r\n/g, "\n");
+  const domain = from.includes("@") ? from.replace(/^.*<([^>]+)>$/, "$1").split("@")[1] : "nsfwdroid.com";
+  const messageId = `<${randomBytes(16).toString("hex")}@${domain}>`;
   const lines = [
     `From: ${from}`,
     `To: ${to}`,
     `Subject: ${subject}`,
+    `Date: ${new Date().toUTCString()}`,
+    `Message-ID: ${messageId}`,
+    "Auto-Submitted: auto-generated",
     "MIME-Version: 1.0",
     `Content-Type: multipart/alternative; boundary="${boundary}"`,
   ];

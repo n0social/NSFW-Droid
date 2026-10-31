@@ -6,9 +6,9 @@ See [reward_program.md](reward_program.md) for product spec.
 
 - `npm run db:migrate` (creates `newsletter_subscriber`)
 - `SESSION_SECRET` or `NEWSLETTER_TOKEN_SECRET` in production (HMAC for weekly unsubscribe links; not used for Exim/sendmail authentication)
-- `BREVO_API_KEY` in env when not using sendmail (local `.env` or droplet `/etc/nsfwdroid.env`); on the droplet use `NEWSLETTER_TRANSPORT=sendmail` instead
-- **From / sender name:** Confirm and weekly mail use `sendBrevoEmail`, which builds the Brevo `sender` from env (set the same address in Brevo → Senders).
-  - **Production:** In [Brevo → Senders, Domains & Dedicated IPs → Domains](https://app.brevo.com/senders/domain), authenticate **nsfwdroid.com** (SPF, DKIM, and brevo-code TXT in NameSilo — see [deploy-droplet.md](deploy-droplet.md)). Then set on the droplet, e.g. `NEWSLETTER_FROM=NSFW Droid <newsletter@nsfwdroid.com>` or `ALERT_EMAIL_FROM=newsletter@nsfwdroid.com` (shared with ops alerts if you use one address). The app defaults the display name to **NSFW Droid** (`NEWSLETTER_FROM_NAME` overrides).
+- `NEWSLETTER_TRANSPORT=sendmail` (default on droplet; local dev needs `sendmail` or skip live sends)
+- **From / sender name:** Confirm and weekly mail use Exim `sendmail` via `sendNewsletterEmail`. Set e.g. `NEWSLETTER_FROM=NSFW Droid <newsletter@nsfwdroid.com>` or `ALERT_EMAIL_FROM=newsletter@nsfwdroid.com` in `/etc/nsfwdroid.env`. Display name defaults to **NSFW Droid** (`NEWSLETTER_FROM_NAME` overrides).
+- **DNS:** Publish Exim DKIM from `./scripts/print-exim-dkim-dns.sh` — see [newsletter-exim-runbook.md](newsletter-exim-runbook.md) and [deploy-droplet.md](deploy-droplet.md).
 
 ## DNS check (before first live send)
 
@@ -16,7 +16,7 @@ See [reward_program.md](reward_program.md) for product spec.
 tsx scripts/check-newsletter-dns.ts
 ```
 
-Fix any `issues` in NameSilo before sending. `send-weekly-newsletter.ts` aborts on DNS issues unless you pass `--skip-dns-check` (emergency only).
+Fix any `issues` in DNS before sending. `send-weekly-newsletter.ts` aborts on DNS issues unless you pass `--skip-dns-check` (emergency only).
 
 ## Footer subscribe (double opt-in)
 
@@ -43,4 +43,4 @@ tsx scripts/weekly-newsletter-pick.ts
 NEWSLETTER_ENABLED=1 tsx scripts/send-weekly-newsletter.ts --dry-run
 ```
 
-**Production:** `NEWSLETTER_ENABLED=1` and `BREVO_API_KEY` in `/etc/nsfwdroid.env` and cron `deploy/cron.d/nsfwdroid-weekly-newsletter` (Sunday 12:00 UTC). Use `--dry-run` before the first live send after changing picks logic.
+**Production:** `NEWSLETTER_ENABLED=1`, `NEWSLETTER_TRANSPORT=sendmail`, and cron `deploy/cron.d/nsfwdroid-weekly-newsletter` (Sunday 12:00 UTC). Use `--dry-run` before the first live send after changing picks logic.

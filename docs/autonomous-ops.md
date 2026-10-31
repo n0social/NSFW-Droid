@@ -99,7 +99,7 @@ Optional tuning: `ALERT_DEDUPE_MINUTES` (default 30), `INGEST_ALERT_ZERO_NEW_RUN
 
 | Feature | Variables |
 | --- | --- |
-| **Member newsletter** | `NEWSLETTER_ENABLED=1`, `NEWSLETTER_TRANSPORT=sendmail` or `BREVO_API_KEY`, `NEWSLETTER_FROM` / `ALERT_EMAIL_FROM`, `SESSION_SECRET` or `NEWSLETTER_TOKEN_SECRET` |
+| **Member newsletter** | `NEWSLETTER_ENABLED=1`, `NEWSLETTER_TRANSPORT=sendmail`, `NEWSLETTER_FROM` / `ALERT_EMAIL_FROM`, Exim DKIM DNS, `SESSION_SECRET` or `NEWSLETTER_TOKEN_SECRET` |
 | **Firebase favorites / sessions** | `FIREBASE_SERVICE_ACCOUNT_JSON`, `SESSION_SECRET` |
 | **Steam ingest** | `STEAM_WEB_API_KEY` (recommended) |
 | **Social posting** | `SOCIAL_MASTODON_ENABLED` / `SOCIAL_ENQUEUE_ENABLED`, `MASTODON_*`, etc. |
@@ -138,7 +138,7 @@ NSFW Droid does **not** send SMS or push notifications directly. All **automated
 
 **Deduping:** same `--key` at most once per `ALERT_DEDUPE_MINUTES` (default 30) under `ALERT_DEDUPE_DIR` (`/var/lib/nsfwdroid/alert-dedupe`).
 
-**Member newsletter** is separate mail (Brevo or Exim `sendmail`), not ops alerts — see [reward_program.md](reward_program.md) and [newsletter-manual-test.md](newsletter-manual-test.md).
+**Member newsletter** uses the same Exim `sendmail` path as ops alerts — see [newsletter-exim-runbook.md](newsletter-exim-runbook.md), [reward_program.md](reward_program.md), and [newsletter-manual-test.md](newsletter-manual-test.md).
 
 ### If you are not getting mail
 
