@@ -28,6 +28,13 @@ Review locally:
 node scripts/build-sfm-model-sfw-pick-review.mjs
 ```
 
+Tunneled pick retry (SFW MVP options per row):
+
+```bash
+node scripts/build-sfm-model-sfw-pick-submit.mjs
+node scripts/sfm-model-pick-server.mjs
+```
+
 Until images exist, cards show a gradient fallback.
 
 ## Legacy NSFW pick workflow (deprecated for cards)
