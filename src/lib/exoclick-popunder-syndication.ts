@@ -49,12 +49,13 @@ export function isGameStorePopunderDestination(url: string): boolean {
 const POPUNDER_RESOLVE_TIMEOUT_MS = 8_000;
 
 /**
- * Follow ExoClick syndication redirects server-side so the browser tab opens the
- * advertiser directly (avoids popunder JS opening a second store tab).
- */
-/**
- * Resolved advertiser URL, or `null` when syndication must not be opened in a browser tab
- * (opening the raw syndication link often redirects to the game store again).
+ * Follow ExoClick redirects on the server. This does **not** bill: ExoClick never sees
+ * the visitor's browser. Play/outbound monetization must be a browser navigation to
+ * `link.php` (`hop=syndication` in the popunder client). Do not use this as the
+ * impression path.
+ *
+ * Returns the advertiser URL, or `null` when the final URL is a game store (opening
+ * the raw syndication link often redirects to the store again).
  */
 export async function resolveExoclickPopunderDestination(
   syndicationUrl: string,
