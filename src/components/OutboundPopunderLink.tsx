@@ -1,8 +1,12 @@
 "use client";
 
-import type { ComponentPropsWithoutRef } from "react";
+import type { ComponentPropsWithoutRef, MouseEvent } from "react";
 import { useMemo } from "react";
 import { shouldShowPlayPopunder } from "@/lib/ads-config";
+import {
+  firePopunderThenOpenNewTab,
+  openOutboundInNewTab,
+} from "@/lib/exoclick-play-popunder-client";
 import { urlEligibleForOutboundPopunder } from "@/lib/outbound-link";
 
 type AnchorProps = ComponentPropsWithoutRef<"a">;
@@ -12,6 +16,7 @@ type Props = Omit<AnchorProps, "href"> & {
   ageVerified: boolean;
   /** When false, never run popunder. */
   monetize?: boolean;
+  /** Default: true when `target="_blank"`. */
   openInNewTab?: boolean;
 };
 
@@ -24,7 +29,9 @@ function absoluteOutboundHref(href: string): string {
 }
 
 /**
- * External outbound link. Monetized: same-tab `/api/outbound?u=…` (interstitial + ExoClick).
+ * External outbound anchor. Eligible non-Steam: one visible new tab plus a hidden iframe
+ * that sends the browser to ExoClick `link.php`. Steam URLs are not monetized.
+ * Eligibility is computed during render so the anchor and `window.open` cannot both fire.
  */
 export function OutboundPopunderLink({
   ageVerified,
@@ -48,18 +55,30 @@ export function OutboundPopunderLink({
     }
   }, [popunderEligible, href]);
 
-  const linkHref = monetizedOutbound
-    ? `/api/outbound?u=${encodeURIComponent(absoluteOutboundHref(href))}`
-    : href;
+  function handleClick(e: MouseEvent<HTMLAnchorElement>) {
+    if (monetizedOutbound) {
+      e.preventDefault();
+      e.stopPropagation();
+      const destHref = e.currentTarget.href;
+      if (!firePopunderThenOpenNewTab(destHref)) {
+        openOutboundInNewTab(destHref);
+      }
+      onClick?.(e);
+      return;
+    }
+    onClick?.(e);
+  }
 
-  const linkTarget = monetizedOutbound ? undefined : target ?? (openInNewTab ? "_blank" : undefined);
+  const linkTarget = monetizedOutbound
+    ? undefined
+    : target ?? (openInNewTab ? "_blank" : undefined);
 
   return (
     <a
       className={className}
-      href={linkHref}
+      href={href}
       target={linkTarget}
-      onClick={onClick}
+      onClick={handleClick}
       {...rest}
     >
       {children}

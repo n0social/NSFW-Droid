@@ -3,6 +3,10 @@
 import type { ComponentPropsWithoutRef, MouseEvent } from "react";
 import type { Listing } from "@/db/schema";
 import { shouldShowPlayPopunder } from "@/lib/ads-config";
+import {
+  firePlayStorePopunder,
+  openOutboundInNewTab,
+} from "@/lib/exoclick-play-popunder-client";
 import { listingEligibleForPlayPopunder } from "@/lib/outbound-link";
 
 type ListingPick = Pick<Listing, "source" | "officialUrl" | "affiliateUrl">;
@@ -18,7 +22,10 @@ type Props = Omit<AnchorProps, "href"> & {
 };
 
 /**
- * Store Play CTA. Monetized: same-tab `/api/go` (server ExoClick + 302). No `window.open`.
+ * Outbound store CTA. Eligible non-Steam Play: stay on site, one new store tab,
+ * ExoClick `link.php` in a hidden iframe (browser request — a server fetch does not bill).
+ * Steam stays a normal same-tab link with no popunder.
+ * Uses `<button>` when monetized so `/api/go` is not a real anchor for ad tag hooks.
  */
 export function OutboundPlayLink({
   monetize = true,
@@ -38,12 +45,16 @@ export function OutboundPlayLink({
   function handleMonetizedClick(e: MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     e.stopPropagation();
-    window.location.assign(new URL(href, window.location.origin).href);
+    const goHref = new URL(href, window.location.origin).href;
+    if (!firePlayStorePopunder(goHref)) {
+      openOutboundInNewTab(goHref);
+    }
     onClick?.(e as unknown as MouseEvent<HTMLAnchorElement>);
   }
 
   if (popunderEligible) {
-    const { type: _type, ...buttonRest } = rest as ComponentPropsWithoutRef<"button">;
+    const buttonRest = { ...(rest as ComponentPropsWithoutRef<"button">) };
+    delete buttonRest.type;
     return (
       <button
         type="button"

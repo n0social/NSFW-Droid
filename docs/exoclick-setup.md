@@ -101,9 +101,9 @@ Keep a screenshot or note of zone names ↔ placements for your own runbook.
 
 ## Play-click popunder
 
-Opens an ExoClick ad in a **background tab** when a visitor clicks **Play** / **Play on store** on **non-Steam** listings (itch.io, Nutaku, other partners). **Steam** Play buttons never fire a popunder. Normal `/api/go/…` redirect still runs in the same tab.
+On an age-verified **non-Steam** Play or outbound click (itch.io, Nutaku, other partners), the catalog tab stays put, the store or publisher opens in a new tab, and a hidden iframe sends the **browser** to ExoClick `link.php`. **Steam** Play never fires a popunder. ExoClick’s page may open one more ad tab. That extra tab is the popunder; removing it and fetching `s.pemsrv.com` from Node is what stopped billing on 2026-10-23.
 
-Implementation: client click handler (`exoclick-play-popunder-client.ts`) opens ExoClick `v1/link.php` on the user gesture (works after SPA navigation; no global “all links” trigger).
+Implementation: client click handler (`exoclick-play-popunder-client.ts`) opens one store/outbound tab, then a hidden iframe to `/api/ads/popunder-launch?hop=syndication`, which 302s the **browser** to ExoClick `v1/link.php` (works after SPA navigation). A Node `fetch` of `s.pemsrv.com` does not bill and is not used on `/api/go` or `/api/outbound`. Steam clicks never run this hop. Footer banner (`a.magsrv.com`) is separate and stays after the age gate.
 
 ### What to create in ExoClick
 
@@ -111,7 +111,7 @@ Implementation: client click handler (`exoclick-play-popunder-client.ts`) opens 
 2. Format: **Popunder** (not banner).
 3. Suggested name: `NSFW Droid — play outbound`.
 4. **Trigger method:** *Clicking on links with a specific class (Google Compliant)*.
-5. **Trigger class:** `nsfwdroid-play-outbound` (must match exactly — this is what Play buttons use in code).
+5. **Trigger class:** `nsfwdroid-play-outbound` only if you install ExoClick’s own snippet. The live site does not load `popunder1000.js` and does not need this class on the button.
 6. **New Tab:** ON (Chrome already uses tabs; this helps other browsers).
 7. **Chrome enabled:** ON (or OFF if you only want non-Chrome — not recommended).
 8. **Capping / frequency:** start conservative (e.g. **1** popunder per **24 hours** per user) so repeat Play clicks are not spammy.
@@ -119,7 +119,7 @@ Implementation: client click handler (`exoclick-play-popunder-client.ts`) opens 
 10. Code format: **Inline + Remote Script (Recommended)**.
 11. Create **two** popunder zones in ExoClick (web **6062592** + mobile **6062594**). The site fires the popunder iframe on **each** eligible outbound click by default. Optional client throttle: `NEXT_PUBLIC_EXOCLICK_POPUNDER_FREQUENCY_MINUTES` (e.g. `30`; omit or `0` = per click).
 
-**Important:** ExoClick’s default snippet often uses `trigger_method: 3` (every `<a>` on the page). That would pop on nav, tags, and legal links. This project uses **`trigger_method: 2`** and **`nsfwdroid-play-outbound`** so only **Play** CTAs fire the zone. Set the same trigger class in the ExoClick zone settings.
+**Important:** Do not ship ExoClick’s default snippet (`trigger_method: 3` pops every `<a>`). This site does not load `a.pemsrv.com/popunder1000.js`. Countable traffic is the browser iframe hop to `s.pemsrv.com/v1/link.php` for non-Steam clicks only. A server `fetch` of that URL does not bill.
 
 ### Droplet env
 
@@ -134,9 +134,9 @@ Rebuild after setting `NEXT_PUBLIC_EXOCLICK_ZONE_ID_POPUNDER` (same as other `NE
 
 ### Verify
 
-1. Age gate → 18+ confirmed.
-2. `NEXT_PUBLIC_ADS_ENABLED=1` and popunder zone ID set; `public/exoclick-popunder.js` is the real dashboard snippet (not the placeholder).
-3. Open a listing → **Play on store** → store tab loads; ad tab may open behind (depends on browser / blockers).
-4. ExoClick stats → zone impressions/clicks within a few minutes.
+1. Age gate → 18+ confirmed. Footer banner (`a.magsrv.com`, zone from `NEXT_PUBLIC_EXOCLICK_ZONE_ID_BANNER`) still loads only after that cookie.
+2. `NEXT_PUBLIC_ADS_ENABLED=1` and popunder zone IDs set. `public/exoclick-popunder.js` is a stub (old bookmarks must not 404). It is not the billing tag.
+3. Age-verified **itch / non-Steam Play**: Network shows `/api/go/…` in a new tab and an iframe to `/api/ads/popunder-launch?hop=syndication` that redirects to `s.pemsrv.com/v1/link.php`. ExoClick’s page may open another tab. **Steam Play** is a normal link: no `pemsrv` request.
+4. ExoClick stats → popunder zones **6062592** / **6062594** impressions within a few minutes. Optional throttle: `NEXT_PUBLIC_EXOCLICK_POPUNDER_FREQUENCY_MINUTES` (unset or `0` = every eligible click).
 
-Popunder loads on pages that render `SiteFooter` (same age gate as banner ads). Play links on cards and hero use class `nsfwdroid-play-outbound` only when popunder is configured.
+The click handler runs in the browser on eligible Play and outbound links. It does not depend on ExoClick binding every `<a>` at `window.load`.

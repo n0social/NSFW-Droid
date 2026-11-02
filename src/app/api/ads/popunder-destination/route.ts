@@ -9,7 +9,10 @@ import {
 } from "@/lib/exoclick-popunder-syndication";
 import { AGE_VERIFIED_COOKIE, parseAgeVerified } from "@/lib/cookies";
 
-/** JSON: resolved ExoClick advertiser URL for client `window.open` (no syndication hop in popups). */
+/**
+ * JSON: resolved advertiser URL. Following `s.pemsrv.com` on the server does not bill.
+ * Countable popunder traffic is a browser navigation to `link.php` (`hop=syndication`).
+ */
 export async function GET(request: Request) {
   if (!isAdsEnabled()) {
     return NextResponse.json({ ok: false }, { status: 404 });

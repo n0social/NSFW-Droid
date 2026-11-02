@@ -15,8 +15,6 @@ import {
   createAnalyticsSessionId,
 } from "@/lib/analytics-session";
 import { AGE_VERIFIED_COOKIE, parseAgeVerified } from "@/lib/cookies";
-import { shouldServeExoclickRedirectInterstitial } from "@/lib/exoclick-go-interstitial";
-import { scheduleExoclickPopunderSyndicationHit } from "@/lib/exoclick-popunder-server";
 import { isValidOutboundUrl, resolveOutboundLink } from "@/lib/outbound-link";
 import { cookies } from "next/headers";
 
@@ -56,10 +54,9 @@ export async function GET(
       adminSession: await isAdminSession(),
     });
 
-    if (shouldServeExoclickRedirectInterstitial(ageVerified, row)) {
-      scheduleExoclickPopunderSyndicationHit(request.headers.get("user-agent"));
-    }
-
+    // Do not fetch s.pemsrv.com here. A server syndication request does not bill
+    // (ExoClick never sees the visitor) and can look like invalid traffic.
+    // Eligible clicks load link.php in the browser (exoclick-play-popunder-client).
     const redirect = NextResponse.redirect(url, 302);
     redirect.headers.set("Referrer-Policy", "no-referrer");
 
