@@ -3,10 +3,7 @@
 import type { ComponentPropsWithoutRef, MouseEvent } from "react";
 import type { Listing } from "@/db/schema";
 import { shouldShowPlayPopunder } from "@/lib/ads-config";
-import {
-  firePlayStorePopunder,
-  openOutboundInNewTab,
-} from "@/lib/exoclick-play-popunder-client";
+import { firePlayStorePopunder } from "@/lib/exoclick-play-popunder-client";
 import { listingEligibleForPlayPopunder } from "@/lib/outbound-link";
 
 type ListingPick = Pick<Listing, "source" | "officialUrl" | "affiliateUrl">;
@@ -22,9 +19,10 @@ type Props = Omit<AnchorProps, "href"> & {
 };
 
 /**
- * Outbound store CTA. Eligible non-Steam Play: stay on site, one new store tab,
- * ExoClick `link.php` in a hidden iframe (browser request — a server fetch does not bill).
- * Steam stays a normal same-tab link with no popunder.
+ * Outbound store CTA. Eligible non-Steam Play: the current tab navigates to `/api/go`
+ * (then itch or the other store) and a hidden iframe loads ExoClick `link.php`
+ * (browser request — a server fetch does not bill). The click does not `window.open`
+ * the store. Steam stays a normal same-tab link with no popunder.
  * Uses `<button>` when monetized so `/api/go` is not a real anchor for ad tag hooks.
  */
 export function OutboundPlayLink({
@@ -46,9 +44,7 @@ export function OutboundPlayLink({
     e.preventDefault();
     e.stopPropagation();
     const goHref = new URL(href, window.location.origin).href;
-    if (!firePlayStorePopunder(goHref)) {
-      openOutboundInNewTab(goHref);
-    }
+    firePlayStorePopunder(goHref);
     onClick?.(e as unknown as MouseEvent<HTMLAnchorElement>);
   }
 

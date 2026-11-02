@@ -83,7 +83,7 @@ export function exoclickPopunderLiveReady(): boolean {
 /**
  * Optional client localStorage cap between popunder iframe fires.
  * **0** (default) = attempt monetization on every eligible outbound click.
- * Set e.g. `30` to throttle iframe hops (visible UX is still one store tab per click).
+ * Set e.g. `30` to throttle iframe hops (the current tab still navigates to the store).
  */
 export function exoclickPopunderFrequencyMinutes(): number {
   const raw = process.env.NEXT_PUBLIC_EXOCLICK_POPUNDER_FREQUENCY_MINUTES?.trim();

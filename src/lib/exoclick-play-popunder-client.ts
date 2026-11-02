@@ -2,8 +2,13 @@
  * Client-side play-click popunder (ExoClick syndication). Works on SPA navigations;
  * does not rely on ExoClick binding all `<a>` tags at window.load.
  *
- * The hidden iframe is a browser document request to `/api/ads/popunder-launch?hop=syndication`,
- * which 302s to `s.pemsrv.com/v1/link.php`. ExoClick counts that navigation.
+ * Eligible clicks do two things:
+ * 1. A hidden iframe loads `/api/ads/popunder-launch?hop=syndication`, which 302s
+ *    that iframe to `s.pemsrv.com/v1/link.php`. ExoClick counts that browser navigation.
+ * 2. The current tab navigates to `/api/go` or the outbound URL (one store navigation).
+ *
+ * link.php may itself call `window.open`. This client does not also open the store,
+ * so the catalog does not add a second tab.
  * A server-side `fetch` of `s.pemsrv.com` does not bill.
  */
 
@@ -17,6 +22,11 @@ import {
 export { EXOCLICK_POPUNDER_REFERRER_HOME } from "@/lib/exoclick-popunder-syndication";
 
 const HIDDEN_FRAME_CLEANUP_MS = 120_000;
+/**
+ * If the iframe never finishes (blocked network), still send the visitor to the store.
+ * Navigating immediately cancels the iframe, so the hop must start first.
+ */
+const HOP_SETTLE_FALLBACK_MS = 1_200;
 
 function popunderZoneIdForDevice(): string | undefined {
   if (typeof navigator === "undefined") return undefined;
@@ -66,24 +76,56 @@ function buildPopunderLaunchUrl(adReferrerPage?: string): string {
 }
 
 /**
- * Load popunder through same-origin launch → ExoClick `link.php` inside a hidden iframe
- * (browser navigation, not a Node `fetch`). Iframe hits
- * `/api/ads/popunder-launch?hop=syndication` so the visitor's browser requests
- * `s.pemsrv.com`. A server-only resolve does not bill.
+ * True once the hidden iframe has left our launch URL. A thrown location read means
+ * the frame followed the 302 onto `s.pemsrv.com` (cross-origin).
  */
-function openPopunderAdInHiddenFrame(options?: PopunderOpenOptions): void {
+function iframeHopReachedAdvertiser(iframe: HTMLIFrameElement): boolean {
+  try {
+    const href = iframe.contentWindow?.location?.href ?? "";
+    if (!href || href === "about:blank") return false;
+    if (href.includes(EXOCLICK_POPUNDER_LAUNCH_PATH)) return false;
+    return true;
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * Load popunder through same-origin launch → ExoClick `link.php` inside a hidden iframe
+ * (browser navigation, not a Node `fetch`). Calls `onReadyToLeave` once that document
+ * request has landed, or after a short fallback, so the current tab can go to the store
+ * without aborting the hop. A server-only resolve does not bill.
+ */
+function armHiddenPopunderFrame(
+  options: PopunderOpenOptions | undefined,
+  onReadyToLeave: () => void,
+): void {
   const zoneId = popunderZoneIdForDevice();
-  if (!zoneId || withinCapping(zoneId)) return;
+  if (!zoneId || withinCapping(zoneId) || typeof document === "undefined" || !document.body) {
+    onReadyToLeave();
+    return;
+  }
+
+  let settled = false;
+  const settle = () => {
+    if (settled) return;
+    settled = true;
+    onReadyToLeave();
+  };
 
   const iframe = document.createElement("iframe");
   iframe.setAttribute("aria-hidden", "true");
   iframe.setAttribute("tabindex", "-1");
   iframe.title = "";
-  iframe.src = buildPopunderLaunchUrl(options?.adReferrerPage);
   iframe.style.cssText =
     "position:absolute;width:0;height:0;border:0;clip:rect(0,0,0,0);overflow:hidden";
-
+  iframe.addEventListener("load", () => {
+    if (iframeHopReachedAdvertiser(iframe)) settle();
+  });
+  iframe.addEventListener("error", settle);
+  iframe.src = buildPopunderLaunchUrl(options?.adReferrerPage);
   document.body.appendChild(iframe);
+
   if (exoclickPopunderFrequencyMinutes() >= 1) {
     markOpened(zoneId);
   }
@@ -91,59 +133,37 @@ function openPopunderAdInHiddenFrame(options?: PopunderOpenOptions): void {
   window.setTimeout(() => {
     iframe.remove();
   }, HIDDEN_FRAME_CLEANUP_MS);
+  window.setTimeout(settle, HOP_SETTLE_FALLBACK_MS);
+}
+
+function navigateCurrentTab(destHref: string): void {
+  window.location.assign(destHref);
 }
 
 /**
- * @deprecated Use {@link firePopunderThenOpenNewTab}; never navigates the current tab.
+ * Hidden iframe requests ExoClick, then the current tab navigates to `destHref`.
+ * Does not call `window.open` for the store or the ad.
  */
-export function firePlayPopunderThenNavigate(goHref: string): boolean {
-  return firePlayStorePopunder(goHref);
-}
-
-/** Play on store: one visible `/api/go/` tab; ad loads in a hidden iframe. */
-export function firePlayStorePopunder(goHref: string): boolean {
-  return firePopunderThenOpenNewTab(goHref, {
-    adReferrerPage: EXOCLICK_POPUNDER_REFERRER_HOME,
-  });
-}
-
-/**
- * Stay on NSFW Droid: open exactly one new tab for the destination (synchronous, user
- * gesture), then fire the popunder hop in a hidden iframe so the browser requests ExoClick.
- */
-export function firePopunderThenOpenNewTab(
+export function firePopunderThenNavigate(
   destHref: string,
   options?: PopunderOpenOptions,
 ): boolean {
   if (!destHref) return false;
-
-  const destWin = window.open(destHref, "_blank", "noopener,noreferrer");
-  if (!destWin) return false;
-
-  openPopunderAdInHiddenFrame(options);
-
-  try {
-    destWin.focus();
-  } catch {
-    /* noop */
-  }
-  try {
-    window.focus();
-  } catch {
-    /* noop */
-  }
+  armHiddenPopunderFrame(options, () => navigateCurrentTab(destHref));
   return true;
 }
 
-/** Open `/api/go/…` or external URL in a new tab without popunder (same-tab never). */
-export function openOutboundInNewTab(destHref: string): boolean {
-  if (!destHref) return false;
-  const destWin = window.open(destHref, "_blank", "noopener,noreferrer");
-  if (!destWin) return false;
-  try {
-    destWin.focus();
-  } catch {
-    /* noop */
-  }
-  return true;
+/** @deprecated Use {@link firePlayStorePopunder}. Navigates the current tab. */
+export function firePlayPopunderThenNavigate(goHref: string): boolean {
+  return firePlayStorePopunder(goHref);
+}
+
+/**
+ * Play on store: current tab goes to `/api/go/…` (then the store). ExoClick `link.php`
+ * loads in a hidden iframe. No second `window.open` for the store.
+ */
+export function firePlayStorePopunder(goHref: string): boolean {
+  return firePopunderThenNavigate(goHref, {
+    adReferrerPage: EXOCLICK_POPUNDER_REFERRER_HOME,
+  });
 }

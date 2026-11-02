@@ -3,10 +3,7 @@
 import type { ComponentPropsWithoutRef, MouseEvent } from "react";
 import { useMemo } from "react";
 import { shouldShowPlayPopunder } from "@/lib/ads-config";
-import {
-  firePopunderThenOpenNewTab,
-  openOutboundInNewTab,
-} from "@/lib/exoclick-play-popunder-client";
+import { firePopunderThenNavigate } from "@/lib/exoclick-play-popunder-client";
 import { urlEligibleForOutboundPopunder } from "@/lib/outbound-link";
 
 type AnchorProps = ComponentPropsWithoutRef<"a">;
@@ -29,9 +26,10 @@ function absoluteOutboundHref(href: string): string {
 }
 
 /**
- * External outbound anchor. Eligible non-Steam: one visible new tab plus a hidden iframe
- * that sends the browser to ExoClick `link.php`. Steam URLs are not monetized.
- * Eligibility is computed during render so the anchor and `window.open` cannot both fire.
+ * External outbound anchor. Eligible non-Steam: the current tab navigates to `href`
+ * and a hidden iframe sends the browser to ExoClick `link.php`. The click does not
+ * `window.open` a second store tab. Steam URLs are not monetized.
+ * Eligibility is computed during render so the anchor navigation and the hop stay one path.
  */
 export function OutboundPopunderLink({
   ageVerified,
@@ -60,9 +58,7 @@ export function OutboundPopunderLink({
       e.preventDefault();
       e.stopPropagation();
       const destHref = e.currentTarget.href;
-      if (!firePopunderThenOpenNewTab(destHref)) {
-        openOutboundInNewTab(destHref);
-      }
+      firePopunderThenNavigate(destHref);
       onClick?.(e);
       return;
     }
