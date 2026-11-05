@@ -7,6 +7,8 @@ import {
   resolveAdminHostLocations,
 } from "../src/lib/admin-host";
 import {
+  ADMIN_ACCESS_EMAIL,
+  cfAccessEmailAllowed,
   cloudflareAccessConfig,
   normalizeAccessTeamHost,
   readCfAccessJwt,
@@ -119,10 +121,28 @@ assert.equal(readCfAccessJwt(" header-token ", "cookie-token"), "header-token");
 assert.equal(readCfAccessJwt("  ", "cookie-token"), "cookie-token");
 assert.equal(readCfAccessJwt(null, null), null);
 
+assert.equal(ADMIN_ACCESS_EMAIL, "donavansky@gmail.com");
+assert.equal(cfAccessEmailAllowed("donavansky@gmail.com"), true);
+assert.equal(cfAccessEmailAllowed("Donavansky@Gmail.com"), true);
+assert.equal(cfAccessEmailAllowed("  DONAVANSKY@GMAIL.COM  "), true);
+assert.equal(cfAccessEmailAllowed("other@gmail.com"), false);
+assert.equal(cfAccessEmailAllowed("donavansky+admin@gmail.com"), false);
+assert.equal(cfAccessEmailAllowed(""), false);
+assert.equal(cfAccessEmailAllowed("   "), false);
+assert.equal(cfAccessEmailAllowed(null), false);
+assert.equal(cfAccessEmailAllowed(undefined), false);
+assert.equal(cfAccessEmailAllowed(["donavansky@gmail.com"]), false);
+
 async function assertJwtGate() {
   const { publicKey, privateKey } = await generateKeyPair("RS256");
-  async function sign(claims: { aud?: string; iss?: string; exp?: string | number }) {
-    return new SignJWT({})
+  async function sign(claims: {
+    aud?: string;
+    iss?: string;
+    exp?: string | number;
+    email?: string | null;
+  }) {
+    const payload = claims.email === null ? {} : { email: claims.email ?? ADMIN_ACCESS_EMAIL };
+    return new SignJWT(payload)
       .setProtectedHeader({ alg: "RS256" })
       .setIssuer(claims.iss ?? access!.issuer)
       .setAudience(claims.aud ?? access!.audience)
@@ -132,6 +152,15 @@ async function assertJwtGate() {
   }
 
   assert.equal(await verifyCfAccessJwt(await sign({}), access!, publicKey), true);
+  assert.equal(
+    await verifyCfAccessJwt(await sign({ email: "Donavansky@Gmail.com" }), access!, publicKey),
+    true,
+  );
+  assert.equal(
+    await verifyCfAccessJwt(await sign({ email: "other@gmail.com" }), access!, publicKey),
+    false,
+  );
+  assert.equal(await verifyCfAccessJwt(await sign({ email: null }), access!, publicKey), false);
   assert.equal(await verifyCfAccessJwt(await sign({ aud: "other" }), access!, publicKey), false);
   assert.equal(
     await verifyCfAccessJwt(await sign({ iss: "https://evil.example" }), access!, publicKey),

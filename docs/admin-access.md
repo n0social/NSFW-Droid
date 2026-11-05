@@ -32,7 +32,7 @@ Do this in a [maintenance window](autonomous-ops.md#human-scheduled-changes-dns-
 2. **Zero Trust** → **Access** → **Applications** → **Add an application** → **Self-hosted**.
    - Application domain: `admin.nsfwdroid.com` (entire hostname).
    - Identity provider: **One-time PIN** and/or **Google**.
-   - Policy: **Allow**. Include **Emails** → the one owner address. Do not add an IP rule.
+   - Policy: **Allow**. Include **Emails** → `donavansky@gmail.com`. Do not add an IP rule or any other address.
    - Create the application.
 3. Copy **Application Audience (AUD)** tag from the application’s overview / basic information.
 4. Copy the **team domain** (`<team>.cloudflareaccess.com`). It is the host in the Access login URL and under Zero Trust → Settings → **Custom Pages** / team name. Do not include a path.
@@ -48,7 +48,7 @@ Leave `ADMIN_PASSWORD` set. Prefer `ADMIN_SESSION_SECRET` as well (below).
 6. After this release is on the box: install the new `deploy/Caddyfile` (`cp deploy/Caddyfile /etc/caddy/Caddyfile && systemctl reload caddy`) and `systemctl restart nsfwdroid`. Restart is enough for the two Access variables; they are read at runtime. Caddy reload is only needed when the site block changes.
 7. Check `https://admin.nsfwdroid.com/admin` prompts for Access, then the existing password form. `https://www.nsfwdroid.com/admin?from=www` should land on `https://admin.nsfwdroid.com/admin?from=www`.
 
-This is **not** an IP allowlist. Home, mobile, and travel IPs all work as long as the email passes Access.
+This is **not** an IP allowlist. Home, mobile, and travel IPs all work when Access accepts `donavansky@gmail.com`.
 
 ## How the JWT is checked
 
@@ -59,8 +59,9 @@ That is Cloudflare’s documented check ([Validating JSON](https://developers.cl
 - Token header: `Cf-Access-Jwt-Assertion` (fallback cookie `CF_Authorization`).
 - Signing keys: `https://<team>.cloudflareaccess.com/cdn-cgi/access/certs` (JWKS). The `jose` `createRemoteJWKSet` + `jwtVerify` helper caches those keys.
 - `alg` RS256, `iss` = `https://<team>.cloudflareaccess.com`, `aud` = `CF_ACCESS_AUD`, and `exp` still valid.
+- `email` must be `donavansky@gmail.com`. The comparison is case-insensitive (`Donavansky@Gmail.com` matches). Any other address, or a token with no email claim, gets **401**.
 
-A request that reaches the origin without that JWT gets **401** and never sees the password form. Cloudflare normally challenges the browser before the origin. The origin check matters when someone tries the droplet directly with `Host: admin.nsfwdroid.com`.
+A request that reaches the origin without that JWT, or with a verified token for a different email, gets **401** and never sees the password form. Cloudflare normally challenges the browser before the origin. The origin check matters when someone tries the droplet directly with `Host: admin.nsfwdroid.com`. The app enforces the same address even if the Cloudflare policy is later widened.
 
 ## Ops
 

@@ -9,10 +9,24 @@ import { createRemoteJWKSet, jwtVerify, type JWTVerifyGetKey } from "jose";
  * 1. Read `Cf-Access-Jwt-Assertion` (cookie `CF_Authorization` is the same token if the header was stripped).
  * 2. Fetch signing keys from `https://<team>.cloudflareaccess.com/cdn-cgi/access/certs` (JWKS).
  * 3. Verify RS256 signature, `exp`, `iss` = `https://<team>.cloudflareaccess.com`, and `aud` = the application's AUD tag.
+ * 4. Require the `email` claim to be the owner address (`ADMIN_ACCESS_EMAIL`), compared case-insensitively.
  *
  * Both `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD` must be set. If either is missing, Access is off
  * and the existing admin password still gates `/admin` (so a deploy cannot lock the owner out).
  */
+
+/** Cloudflare Access policy Include → Emails. The verified JWT must carry this address. */
+export const ADMIN_ACCESS_EMAIL = "donavansky@gmail.com";
+
+/**
+ * Case-insensitive match for the Access `email` claim.
+ * Empty, missing, and any other address are rejected.
+ */
+export function cfAccessEmailAllowed(email: unknown): boolean {
+  if (typeof email !== "string") return false;
+  const normalized = email.trim().toLowerCase();
+  return normalized.length > 0 && normalized === ADMIN_ACCESS_EMAIL;
+}
 
 export type CloudflareAccessConfig = {
   teamHost: string;
@@ -105,12 +119,12 @@ export async function verifyCfAccessJwt(
 ): Promise<boolean> {
   if (!token) return false;
   try {
-    await jwtVerify(token, key ?? jwksFor(config.certsUrl), {
+    const { payload } = await jwtVerify(token, key ?? jwksFor(config.certsUrl), {
       issuer: config.issuer,
       audience: config.audience,
       algorithms: ["RS256"],
     });
-    return true;
+    return cfAccessEmailAllowed(payload.email);
   } catch {
     return false;
   }
