@@ -20,6 +20,10 @@ import {
   type ReactNode,
 } from "react";
 import { getFirebaseAuth, isFirebaseConfigured } from "@/lib/firebase/client";
+import {
+  SignupPasswordPolicyError,
+  signupPasswordMeetsPolicy,
+} from "@/lib/password-policy";
 import { fetchAndSyncProfilePreferences } from "@/lib/sync-profile-preferences";
 
 type AuthContextValue = {
@@ -88,6 +92,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUpWithEmail = useCallback(async (email: string, password: string) => {
     const auth = getFirebaseAuth();
     if (!auth) throw new Error("Firebase not configured");
+    if (!signupPasswordMeetsPolicy(password)) {
+      throw new SignupPasswordPolicyError();
+    }
     await createUserWithEmailAndPassword(auth, email, password);
   }, []);
 

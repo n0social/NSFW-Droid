@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { SiteFooterClient } from "@/components/site/SiteFooterClient";
+import {
+  SIGNUP_PASSWORD_RULE,
+  SignupPasswordPolicyError,
+  signupPasswordPolicyMessage,
+} from "@/lib/password-policy";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -22,16 +27,21 @@ export default function SignUpPage() {
     setBusy(true);
     const form = new FormData(e.currentTarget);
     const password = String(form.get("password"));
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    const policyMessage = signupPasswordPolicyMessage(password);
+    if (policyMessage) {
+      setError(policyMessage);
       setBusy(false);
       return;
     }
     try {
       await signUpWithEmail(String(form.get("email")), password);
       router.push("/account");
-    } catch {
-      setError("Could not create account. Email may already be in use.");
+    } catch (err) {
+      setError(
+        err instanceof SignupPasswordPolicyError
+          ? err.message
+          : "Could not create account. Email may already be in use.",
+      );
     } finally {
       setBusy(false);
     }
@@ -79,15 +89,21 @@ export default function SignUpPage() {
                 placeholder="Email"
                 className="w-full rounded-xl border-2 border-[var(--theme-primary)]/40 bg-[var(--background)] px-3 py-2 text-sm"
               />
-              <input
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                minLength={6}
-                placeholder="Password (6+ characters)"
-                className="w-full rounded-xl border-2 border-[var(--theme-primary)]/40 bg-[var(--background)] px-3 py-2 text-sm"
-              />
+              <div>
+                <input
+                  name="password"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  minLength={10}
+                  placeholder="Password"
+                  aria-describedby="signup-password-rule"
+                  className="w-full rounded-xl border-2 border-[var(--theme-primary)]/40 bg-[var(--background)] px-3 py-2 text-sm"
+                />
+                <p id="signup-password-rule" className="mt-1.5 text-xs text-[var(--theme-text-muted)]">
+                  {SIGNUP_PASSWORD_RULE}
+                </p>
+              </div>
               <button
                 type="submit"
                 disabled={busy}
