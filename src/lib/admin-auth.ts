@@ -55,6 +55,10 @@ export async function isAdminSession(): Promise<boolean> {
   return verifyAdminSessionToken(token ?? "");
 }
 
+/**
+ * Host-only `admin_session` cookie. `domain` is intentionally omitted so the
+ * cookie is not `Domain=.nsfwdroid.com` and is not sent to www.
+ */
 export function adminCookieOptions() {
   const secure = process.env.NODE_ENV === "production";
   return {

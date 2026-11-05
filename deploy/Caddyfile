@@ -17,6 +17,23 @@ nsfwdroid.com {
 
 www.nsfwdroid.com {
 	encode gzip
+
+	# Admin UI lives on admin.nsfwdroid.com (same app). Keep the query string.
+	@admin path /admin /admin/* /api/admin /api/admin/*
+	redir @admin https://admin.nsfwdroid.com{uri} 308
+
+	reverse_proxy 127.0.0.1:3000
+
+	handle_errors 502 503 504 {
+		root * /var/www/nsfwdroid/deploy
+		rewrite * /maintenance.html
+		file_server
+	}
+}
+
+# Staff portal. Same Next.js process and automatic HTTPS as www (Caddy + Let's Encrypt).
+admin.nsfwdroid.com {
+	encode gzip
 	reverse_proxy 127.0.0.1:3000
 
 	handle_errors 502 503 504 {

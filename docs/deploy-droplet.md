@@ -1,6 +1,6 @@
 # Deploy to DigitalOcean Droplet (www.nsfwdroid.com)
 
-**Production URL:** https://www.nsfwdroid.com (HTTPS via Caddy + Let’s Encrypt). Admin: `/admin/login`.  
+**Production URL:** https://www.nsfwdroid.com (HTTPS via Caddy + Let’s Encrypt). Admin: https://admin.nsfwdroid.com/admin/login (`ADMIN_PASSWORD`, optional Cloudflare Access — [admin-access.md](admin-access.md)).  
 **Droplet public IP:** `159.203.136.220`  
 **Your key on droplet:** `icollar-droplet` (for you from your laptop).
 
@@ -113,6 +113,9 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 # SESSION_SECRET=
 ADMIN_PASSWORD=choose-a-long-secret
 # ADMIN_SESSION_SECRET=   # optional; openssl rand -base64 32 — signs admin_session (falls back to ADMIN_PASSWORD if unset)
+# Cloudflare Access on admin.nsfwdroid.com (both or neither). See docs/admin-access.md.
+# CF_ACCESS_TEAM_DOMAIN=<team>.cloudflareaccess.com
+# CF_ACCESS_AUD=
 # Auto-publish TOS-clear ingest (default on when NODE_ENV=production). Use 0 for all-manual review.
 AUTO_PUBLISH=1
 # Legacy local demo flag (also enables auto-publish in dev)
@@ -223,7 +226,7 @@ curl -sI https://www.nsfwdroid.com/api/health
 
 (`npm run ingest` needs `tsx` from devDependencies; production `node_modules` from `npm ci --omit=dev` does not include it — use `npx tsx` as above.)
 
-TOS holds: visit https://www.nsfwdroid.com/admin (set `ADMIN_PASSWORD`).
+TOS holds: visit https://admin.nsfwdroid.com/admin (set `ADMIN_PASSWORD`; www `/admin` redirects there).
 
 ### Watchdog cron (recommended)
 
