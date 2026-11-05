@@ -125,22 +125,34 @@ export function GameDetailPage({
               className="relative aspect-[16/10] w-full sm:aspect-[2/1]"
               style={{ background: showCover ? "#14061C" : FALLBACK_GRADIENT }}
             >
-              {showCover && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={coverUrl!}
-                  alt={listingCoverImageAlt(displayTitle)}
-                  className={`absolute inset-0 h-full w-full object-cover transition-[filter] duration-300 ${effectiveBlur ? "scale-105 blur-xl" : ""}`}
-                  onError={() => setCoverFailed(true)}
-                />
-              )}
+              {/* Same Play control as the store button: /api/go, age gate, popunder only when Play would. */}
+              <OutboundPlayLink
+                listing={listing}
+                href={playHref}
+                ageVerified={ageVerified}
+                aria-label={`Play ${displayTitle} on store`}
+                className="absolute inset-0 z-0 block h-full w-full cursor-pointer appearance-none border-0 bg-transparent p-0 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-6px] focus-visible:outline-[#FF4D8D]"
+              >
+                {showCover ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={coverUrl!}
+                    alt={listingCoverImageAlt(displayTitle)}
+                    className={`absolute inset-0 h-full w-full object-cover transition-[filter] duration-300 ${effectiveBlur ? "scale-105 blur-xl" : ""}`}
+                    onError={() => setCoverFailed(true)}
+                  />
+                ) : null}
+              </OutboundPlayLink>
               {effectiveBlur && (
-                <span className="absolute right-3 top-3 z-20 rounded-full bg-black/50 px-2.5 py-1 text-[10px] font-bold text-[#F9A8D4]">
+                <span className="pointer-events-none absolute right-3 top-3 z-20 rounded-full bg-black/50 px-2.5 py-1 text-[10px] font-bold text-[#F9A8D4]">
                   Blurred
                 </span>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#14061Cee] via-[#14061C66] to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 z-10 p-4 sm:p-6">
+              <div
+                className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-[#14061Cee] via-[#14061C66] to-transparent"
+                aria-hidden
+              />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 p-4 sm:p-6">
                 <h1 className="text-xl font-black leading-tight text-[#FFF1F7] sm:text-3xl">
                   {displayTitle}
                 </h1>
