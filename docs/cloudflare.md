@@ -21,6 +21,10 @@ Store the zone ID and API tokens in your password manager — **not** in git. Us
 
 TTL flips can cause mixed old/new resolver behavior for up to 24–48 hours. Prefer scheduling registrar/NS changes in **[owner maintenance windows](autonomous-ops.md#human-scheduled-changes-dns-deploy-maintenance)** when possible.
 
+## Admin hostname (Access)
+
+Staff UI is **`admin.nsfwdroid.com`**, not a path on www. DNS for `admin` should be **proxied**, then a Zero Trust **Access** self-hosted application (one email, OTP or Google) plus the existing admin password. Steps, env vars, and the JWT check: [admin-access.md](admin-access.md). Access is not an IP allowlist.
+
 ## App-level security (origin)
 
 Even behind Cloudflare, the app sets baseline security headers in middleware (`src/lib/security-headers.ts`) and rate limits abusive POST APIs. Cloudflare free tier adds network DDoS absorption; tune **WAF / rate limiting rules** in the dashboard for edge-specific rules.

@@ -73,7 +73,9 @@ Secrets live in **`/etc/nsfwdroid.env`** on the droplet (never commit). Local de
 | --- | --- |
 | `NODE_ENV=production` | Production behavior, default auto-publish policy |
 | `NEXT_PUBLIC_SITE_URL` | Canonical URLs, newsletter links, metadata |
-| `ADMIN_PASSWORD` | `/admin` access |
+| `ADMIN_PASSWORD` | Admin password (second step on `admin.nsfwdroid.com`) |
+| `CF_ACCESS_TEAM_DOMAIN` | Cloudflare Access team host. Set with `CF_ACCESS_AUD` in production ([admin-access.md](admin-access.md)) |
+| `CF_ACCESS_AUD` | Access application audience tag. Unset both to keep password-only login |
 | Firebase **client** `NEXT_PUBLIC_FIREBASE_*` | As needed for features you ship (GA uses `NEXT_PUBLIC_GA_MEASUREMENT_ID`) |
 
 Rebuild + restart after any `NEXT_PUBLIC_*` change (`npm run build` on deploy).

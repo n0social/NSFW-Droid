@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { siteUrl } from "@/lib/site";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -28,7 +29,7 @@ export default function AdminLoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#14061C] px-4">
       <div className="w-full max-w-sm rounded-2xl border-2 border-[#C026D3]/40 bg-[#241033] p-8">
-        <Link href="/" className="text-xs font-bold text-[#FF4D8D]">← Store</Link>
+        <Link href={siteUrl} className="text-xs font-bold text-[#FF4D8D]">← Store</Link>
         <h1 className="mt-3 text-lg font-black text-[#FFF1F7]">Admin</h1>
         <p className="mt-1 text-xs text-[#E9D5FF]/80">Review queue and curated links.</p>
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
