@@ -50,6 +50,7 @@
     "test:site-json-ld": "tsx scripts/test-site-json-ld.ts",
     "test:seo-canonical-host": "tsx scripts/test-seo-canonical-host.ts",
     "test:admin-host": "tsx scripts/test-admin-host.ts",
+    "test:age-gate-wall": "tsx scripts/test-age-gate-wall.ts",
     "test:ads-popunder-config": "tsx scripts/test-ads-popunder-config.ts",
     "test:listing-play-popunder-eligibility": "tsx scripts/test-listing-play-popunder-eligibility.ts",
     "test:video-thumbnail-fallback": "tsx scripts/test-video-thumbnail-fallback.ts",
