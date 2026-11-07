@@ -288,7 +288,7 @@ All scheduled times below are **UTC** (droplet default). This is **separate** fr
 | **Tue 02:00** | `nsfwdroid-maintenance-notice` | Writes `data/maintenance-notice.json` → **amber site banner** until 04:00; optional **ops email** (1h warning) |
 | **Tue 03:00** | `nsfwdroid-weekly-maintenance` | Stops `nsfwdroid` → visitors see Caddy **`maintenance.html`** (502/503/504 path); runs `weekly-maintenance-inner.sh` via `catalog-maintenance.sh`; **hard `/api/health` checks** after start; service back when checks pass, **no later than 04:00 UTC** |
 | **Daily 06:00, 14:00, 22:00** | `nsfwdroid-ingest` | Unchanged — migrate → recycle → `ingest-all` |
-| **Fri 21:00 US Eastern** | `nsfwdroid-weekly-newsletter` | Weekly member newsletter (`send-weekly-newsletter.ts`) when `NEWSLETTER_ENABLED=1` |
+| **Fri 21:00 US Eastern** | `nsfwdroid-weekly-newsletter` | Hourly Saturday UTC. The script sends only when `America/New_York` is Friday 21:xx (`send-weekly-newsletter.ts`, `NEWSLETTER_ENABLED=1`) |
 
 **Design:** Site is intentionally **down** (service stopped) for the weekly job. Work may finish in under an hour; the script still runs the full checklist and polls health before declaring success. If work runs long, the parent script sends **SIGTERM** at **04:00 UTC** so `catalog-maintenance.sh`’s exit trap can start `nsfwdroid` again.
 

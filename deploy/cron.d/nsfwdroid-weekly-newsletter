@@ -1,6 +1,8 @@
-# Weekly member newsletter — Friday 9:00 PM US Eastern (America/New_York; EST/EDT).
+# Weekly member newsletter — Friday 9:00 PM America/New_York.
+# Vixie cron on this droplet ignored CRON_TZ and ran Friday 21:00 UTC (4:00 PM Eastern).
+# Hourly Saturday UTC covers both 01:00 UTC (EDT) and 02:00 UTC (EST). The script
+# sends only when America/New_York is Friday 21:xx and exits before stopping the app otherwise.
 # Requires NEWSLETTER_ENABLED=1 and NEWSLETTER_TRANSPORT=sendmail in /etc/nsfwdroid.env.
 # Log: /var/log/nsfwdroid-newsletter.log
 #
-CRON_TZ=America/New_York
-0 21 * * 5 root flock -n /var/lock/nsfwdroid-newsletter.lock /var/www/nsfwdroid/scripts/weekly-newsletter-cron.sh >> /var/log/nsfwdroid-newsletter.log 2>&1
+0 * * * 6 root flock -n /var/lock/nsfwdroid-newsletter.lock /var/www/nsfwdroid/scripts/weekly-newsletter-cron.sh >> /var/log/nsfwdroid-newsletter.log 2>&1

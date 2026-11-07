@@ -73,6 +73,8 @@ export function recordWeeklySendCompleted(input: {
   subject: string;
 }): void {
   const path = weeklySendGuardPath();
+  // Parent must already be writable by this user. weekly-newsletter-cron.sh
+  // chowns /var/lib/nsfwdroid to www-data before the send.
   mkdirSync(dirname(path), { recursive: true });
   const record: WeeklySendGuardRecord = {
     weekKey: input.weekKey,

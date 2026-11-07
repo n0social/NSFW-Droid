@@ -1,10 +1,10 @@
 "use client";
 
-import type { ComponentPropsWithoutRef, MouseEvent } from "react";
+import type { ComponentPropsWithoutRef } from "react";
 import type { Listing } from "@/db/schema";
 import { shouldShowPlayPopunder } from "@/lib/ads-config";
-import { firePlayStorePopunder } from "@/lib/exoclick-play-popunder-client";
 import { listingEligibleForPlayPopunder } from "@/lib/outbound-link";
+import { outboundPlayLinkClassName } from "@/lib/outbound-play-link";
 
 type ListingPick = Pick<Listing, "source" | "officialUrl" | "affiliateUrl">;
 
@@ -19,11 +19,9 @@ type Props = Omit<AnchorProps, "href"> & {
 };
 
 /**
- * Outbound store CTA. Eligible non-Steam Play: the current tab navigates to `/api/go`
- * (then itch or the other store) and a hidden iframe loads ExoClick `link.php`
- * (browser request — a server fetch does not bill). The click does not `window.open`
- * the store. Steam stays a normal same-tab link with no popunder.
- * Uses `<button>` when monetized so `/api/go` is not a real anchor for ad tag hooks.
+ * Outbound store CTA. Eligible non-Steam Play is a real same-tab link with class
+ * `nsfwdroid-play-outbound`. ExoClick's popunder script (trigger method 2) counts
+ * that click. Steam and pre-age-gate clicks omit the class.
  */
 export function OutboundPlayLink({
   monetize = true,
@@ -40,31 +38,13 @@ export function OutboundPlayLink({
     shouldShowPlayPopunder(ageVerified) &&
     listingEligibleForPlayPopunder(listing);
 
-  function handleMonetizedClick(e: MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
-    e.stopPropagation();
-    const goHref = new URL(href, window.location.origin).href;
-    firePlayStorePopunder(goHref);
-    onClick?.(e as unknown as MouseEvent<HTMLAnchorElement>);
-  }
-
-  if (popunderEligible) {
-    const buttonRest = { ...(rest as ComponentPropsWithoutRef<"button">) };
-    delete buttonRest.type;
-    return (
-      <button
-        type="button"
-        className={className}
-        onClick={handleMonetizedClick}
-        {...buttonRest}
-      >
-        {children}
-      </button>
-    );
-  }
-
   return (
-    <a className={className} href={href} onClick={onClick} {...rest}>
+    <a
+      className={popunderEligible ? outboundPlayLinkClassName(className) : className}
+      href={href}
+      onClick={onClick}
+      {...rest}
+    >
       {children}
     </a>
   );
