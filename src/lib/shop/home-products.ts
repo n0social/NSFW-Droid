@@ -16,22 +16,22 @@ export type ShopHomeProduct = {
 /** Hoodies only. One card per print. */
 export const SHOP_HOME_PRODUCTS: ShopHomeProduct[] = [
   {
-    title: "Vesper panda hoodie",
+    title: "Hoodie",
     imageSrc: SHOP_ASSETS.pandaHoodieV2,
     imageAlt: "Vesper in a panda hoodie",
   },
   {
-    title: "Engraved pyramid hoodie",
+    title: "Hoodie",
     imageSrc: SHOP_ASSETS.occultEngravedPyramid,
     imageAlt: "Engraved gold pyramid print",
   },
   {
-    title: "White triangle hoodie",
+    title: "Hoodie",
     imageSrc: SHOP_ASSETS.occultWhiteTriangle,
     imageAlt: "White triangle print",
   },
   {
-    title: "Orange stripe hoodie",
+    title: "Hoodie",
     imageSrc: SHOP_ASSETS.occultOrangeStripes,
     imageAlt: "Gold pyramid print on orange stripes",
   },

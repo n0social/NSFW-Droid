@@ -27,7 +27,7 @@ export function ShopHomeMain({ variant }: Props) {
         ) : (
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {(isDesign ? products.slice(0, 2) : products).map((p) => (
-              <ShopProductCard key={p.title} title={p.title} imageSrc={isDesign ? undefined : p.imageSrc} imageAlt={p.imageAlt} />
+              <ShopProductCard key={p.imageSrc} title={p.title} imageSrc={isDesign ? undefined : p.imageSrc} imageAlt={p.imageAlt} />
             ))}
           </div>
         )}
