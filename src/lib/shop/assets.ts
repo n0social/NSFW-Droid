@@ -6,6 +6,9 @@ export const shopAsset = (filename: string) => `${SHOP_PUBLIC}/${filename}`;
 export const SHOP_ASSETS = {
   logoBanner16x9: shopAsset("nsfw-droid-logo-banner-16x9.jpg"),
   pandaHoodieV2: shopAsset("nsfw-droid-shop-vesper-panda-hoodie-solo-no-text-v2.jpg"),
+  occultEngravedPyramid: shopAsset("nsfwdroid-shop-occult-engraved-pyramid.png"),
+  occultWhiteTriangle: shopAsset("nsfwdroid-shop-occult-white-triangle.png"),
+  occultOrangeStripes: shopAsset("nsfwdroid-shop-occult-orange-stripes.png"),
   chibiDealBannerV2: shopAsset("nsfw-droid-shop-vesper-chibi-deal-big-bust-banner-v2.jpg"),
   chibiSaleV1BannerV2: shopAsset("nsfw-droid-shop-vesper-chibi-sale-big-bust-v1-banner-v2.jpg"),
   chibiSaleV2BannerV2: shopAsset("nsfw-droid-shop-vesper-chibi-sale-big-bust-v2-banner-v2.jpg"),
