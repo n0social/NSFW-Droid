@@ -2,60 +2,71 @@ import { SHOP_ASSETS } from "@/lib/shop/assets";
 
 export type ShopHomeVariant = "design" | "production";
 
-export const SHOP_CHIPS = ["All", "Merch", "Digital", "Bundles"] as const;
+export const SHOP_CHIPS = ["All", "Tees", "Hoodies"] as const;
 export type ShopChip = (typeof SHOP_CHIPS)[number];
+
+export type ShopGarment = "Tee" | "Hoodie";
 
 export type ShopHomeProduct = {
   title: string;
   price: string;
-  pill: string;
-  chip: ShopChip;
-  imageSrc?: string;
-  imageAlt?: string;
-  mockLabel?: string;
+  garment: ShopGarment;
+  imageSrc: string;
+  imageAlt: string;
 };
+
+/** Layout stand-ins, not final retail. Tee $18, hoodie $28. */
+const TEE = "$18.00";
+const HOODIE = "$28.00";
 
 export const SHOP_HOME_PRODUCTS: ShopHomeProduct[] = [
   {
-    title: "Vesper sticker pack v1",
-    price: "$5.00 USD",
-    pill: "Ships worldwide",
-    chip: "Merch",
-    mockLabel: "STK",
-    imageSrc: SHOP_ASSETS.andriStickerSheet,
-    imageAlt: "Andri sticker sheet variants",
-  },
-  {
-    title: "NSFW Droid wordmark tee",
-    price: "$20.00 USD",
-    pill: "Merch",
-    chip: "Merch",
-    mockLabel: "TEE",
+    title: "Vesper panda hoodie",
+    price: HOODIE,
+    garment: "Hoodie",
     imageSrc: SHOP_ASSETS.pandaHoodieV2,
-    imageAlt: "Vesper in panda hoodie pin-up art",
+    imageAlt: "Vesper in a panda hoodie",
   },
   {
-    title: "Vesper + Andri peace sticker",
-    price: "$4.00 USD",
-    pill: "Sticker",
-    chip: "Merch",
-    mockLabel: "DUO",
-    imageSrc: SHOP_ASSETS.peaceDuoV2,
-    imageAlt: "Vesper and Andri peace sign duo sticker art",
+    title: "Engraved pyramid tee",
+    price: TEE,
+    garment: "Tee",
+    imageSrc: SHOP_ASSETS.occultEngravedPyramid,
+    imageAlt: "Engraved gold pyramid print on a black and red stripe ground",
   },
   {
-    title: "Vesper 4K wallpaper pack",
-    price: "$3.00 USD",
-    pill: "Instant download",
-    chip: "Digital",
-    mockLabel: "ZIP",
+    title: "Engraved pyramid hoodie",
+    price: HOODIE,
+    garment: "Hoodie",
+    imageSrc: SHOP_ASSETS.occultEngravedPyramid,
+    imageAlt: "Engraved gold pyramid print on a black and red stripe ground",
+  },
+  {
+    title: "White triangle tee",
+    price: TEE,
+    garment: "Tee",
+    imageSrc: SHOP_ASSETS.occultWhiteTriangle,
+    imageAlt: "White triangle print on a red and teal stripe ground",
+  },
+  {
+    title: "White triangle hoodie",
+    price: HOODIE,
+    garment: "Hoodie",
+    imageSrc: SHOP_ASSETS.occultWhiteTriangle,
+    imageAlt: "White triangle print on a red and teal stripe ground",
+  },
+  {
+    title: "Orange stripe tee",
+    price: TEE,
+    garment: "Tee",
+    imageSrc: SHOP_ASSETS.occultOrangeStripes,
+    imageAlt: "Gold pyramid print on an orange and black stripe ground",
+  },
+  {
+    title: "Orange stripe hoodie",
+    price: HOODIE,
+    garment: "Hoodie",
+    imageSrc: SHOP_ASSETS.occultOrangeStripes,
+    imageAlt: "Gold pyramid print on an orange and black stripe ground",
   },
 ];
-
-export const SHOP_FEATURED_DEAL = {
-  title: "Supporter bundle",
-  description: "Sticker pack + wallpaper ZIP — launch bundle placeholder.",
-  price: "$7.00 USD",
-  imageSrc: SHOP_ASSETS.chibiDealBannerV2,
-  imageAlt: "DEAL marketing chibi banner",
-} as const;

@@ -28,12 +28,8 @@ export function ShopPage({
 
         <main className="mx-auto max-w-6xl px-4 py-8 md:px-6">
           <div className="mb-6 max-w-3xl">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--theme-accent)]">Merch</p>
-            <h1 className="mt-1 text-2xl font-black text-[var(--foreground)] sm:text-3xl">NSFW Droid shop</h1>
-            <p className="mt-2 text-xs leading-relaxed text-[var(--theme-text-muted)]">
-              Official stickers, wear, and digital packs — same green catalog chrome, sibling to game listings on{" "}
-              <span className="font-semibold text-[var(--foreground)]">www.nsfwdroid.com</span>.
-            </p>
+            <h1 className="text-2xl font-semibold text-[var(--foreground)]">Shop</h1>
+            <p className="mt-1 text-sm text-[var(--theme-text-muted)]">Tees and hoodies. Prices are stand-ins.</p>
           </div>
           <ShopHomeMain variant="production" />
         </main>

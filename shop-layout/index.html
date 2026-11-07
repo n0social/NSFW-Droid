@@ -3,174 +3,65 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>NSFW Droid shop</title>
+    <title>Shop</title>
     <style>
       :root {
         --background: #14061c;
         --foreground: #fff1f7;
         --surface: #241033;
-        --primary: #22ff88;
-        --accent: #39ff14;
         --muted: #86efac;
         --border: rgba(34, 255, 136, 0.25);
       }
       * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        background: var(--background);
-        color: var(--foreground);
-        font-family: system-ui, sans-serif;
-      }
-      header, footer, main { max-width: 72rem; margin: 0 auto; padding: 1rem 1.25rem; }
-      header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid var(--border);
-      }
-      nav { display: flex; gap: 1rem; font-size: 0.8rem; font-weight: 800; color: var(--muted); }
-      .kicker { font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
-      h1 { margin: 0.25rem 0; font-size: 1.8rem; }
-      .lede, .note, .fine { color: var(--muted); font-size: 0.8rem; }
-      .note, .fine { text-align: center; }
-      .note {
-        border: 1px solid var(--border);
-        background: rgba(36, 16, 51, 0.8);
-        border-radius: 0.75rem;
-        padding: 0.75rem 1rem;
-      }
-      .hero {
-        position: relative;
-        margin: 1.5rem 0;
-        border: 2px solid var(--border);
-        border-radius: 1rem;
-        overflow: hidden;
-        min-height: 220px;
-        max-height: 360px;
-        background: #000 center/cover no-repeat;
-      }
-      .hero img.banner { width: 100%; height: 280px; object-fit: cover; display: block; }
-      .hero .shade {
-        position: absolute; inset: 0;
-        background: linear-gradient(90deg, rgba(20,6,28,0.85), rgba(20,6,28,0.4), transparent);
-      }
-      .hero .copy {
-        position: absolute; inset: 0;
-        display: flex; align-items: flex-end; gap: 1rem; padding: 1.25rem;
-      }
-      .cutout { width: 7rem; height: 9rem; object-fit: contain; object-position: bottom; }
-      .pills { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
-      .pill, .chip {
-        border-radius: 999px; padding: 0.45rem 0.9rem; font-size: 0.75rem; font-weight: 800;
-      }
-      .pill.solid { background: var(--primary); color: var(--background); }
-      .pill.ghost, .chip { border: 1px solid var(--border); color: var(--muted); background: transparent; }
-      .chip.on { background: var(--primary); color: var(--background); border-color: transparent; }
-      .chips { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
-      h2 { font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
-      .deal {
-        display: grid; gap: 1rem; align-items: center;
-        border: 2px solid var(--border); background: var(--surface);
-        border-radius: 1rem; padding: 1rem; margin-bottom: 2rem;
-      }
-      .deal img { width: 7rem; height: 7rem; object-fit: cover; border-radius: 0.75rem; border: 2px solid rgba(192,38,211,0.6); }
-      .price { color: var(--primary); font-weight: 800; }
-      .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-      @media (min-width: 768px) {
-        .grid { grid-template-columns: repeat(3, 1fr); }
-        .deal { grid-template-columns: auto 1fr; }
-      }
-      @media (min-width: 1024px) { .grid { grid-template-columns: repeat(4, 1fr); } }
-      article {
-        background: var(--surface); border: 2px solid var(--border); border-radius: 1rem; padding: 0.75rem;
-      }
-      .thumb { position: relative; aspect-ratio: 1; border-radius: 0.75rem; overflow: hidden; background: var(--background); }
-      .thumb img { width: 100%; height: 100%; object-fit: cover; }
-      .badge {
-        position: absolute; left: 0.5rem; top: 0.5rem;
-        border-radius: 999px; border: 1px solid var(--border); background: var(--surface);
-        padding: 0.15rem 0.45rem; font-size: 9px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted);
-      }
-      .empty { display: flex; height: 100%; align-items: center; justify-content: center; font-weight: 800; color: var(--muted); }
-      h3 { font-size: 0.9rem; margin: 0.5rem 0 0.2rem; }
+      body { margin: 0; background: var(--background); color: var(--foreground); font-family: system-ui, sans-serif; }
+      header, main { max-width: 52rem; margin: 0 auto; padding: 1rem 1.25rem; }
+      header { border-bottom: 1px solid var(--border); font-weight: 700; }
+      h1 { font-size: 1.5rem; font-weight: 600; margin: 0.5rem 0 0; }
+      .sub, .meta, .count { color: var(--muted); font-size: 0.85rem; }
+      .chips { display: flex; gap: 0.5rem; margin: 1rem 0; }
+      .chip { border: 1px solid var(--border); color: var(--muted); border-radius: 999px; padding: 0.4rem 0.8rem; font-size: 0.75rem; font-weight: 700; }
+      .chip.on { background: #22ff88; color: #14061c; border-color: transparent; }
+      article { display: flex; gap: 0.9rem; border: 1px solid var(--border); background: var(--surface); border-radius: 0.5rem; padding: 0.75rem; margin-bottom: 0.75rem; }
+      img { width: 9rem; height: 9rem; object-fit: cover; border-radius: 0.35rem; background: var(--background); }
+      h2 { font-size: 1rem; font-weight: 600; margin: 0; }
+      .price { font-size: 1.15rem; font-weight: 700; margin: 0.35rem 0 0; }
     </style>
   </head>
   <body>
-    <header>
-      <strong>NSFW Droid</strong>
-      <nav><span>New</span><span>Browse</span><span>Shop</span><span>Submit</span></nav>
-    </header>
+    <header>NSFW Droid</header>
     <main>
-      <p class="kicker">Merch</p>
-      <h1>NSFW Droid shop</h1>
-      <p class="lede">Official stickers, wear, and digital packs. Prices below are layout stand-ins, not final retail.</p>
-      <p class="note">Storefront preview. Cart and checkout are not connected.</p>
-      <section class="hero">
-        <img class="banner" src="img/nsfw-droid-logo-banner-16x9.jpg" alt="NSFW Droid wordmark banner" />
-        <div class="shade"></div>
-        <div class="copy">
-          <img class="cutout" src="img/nsfw-droid-shop-vesper-panda-hoodie-solo-no-text-v2.jpg" alt="" />
-          <div>
-            <p style="margin:0;font-weight:900;font-size:1.15rem">Official NSFW Droid goods</p>
-            <p class="lede" style="margin:0.3rem 0 0">Support the catalog — wear the droid. Stickers, wallpapers, wear.</p>
-            <div class="pills">
-              <span class="pill solid">Browse merch</span>
-              <span class="pill ghost">Digital packs</span>
-            </div>
-          </div>
-        </div>
-      </section>
-      <div class="chips">
-        <span class="chip on">All</span>
-        <span class="chip">Merch</span>
-        <span class="chip">Digital</span>
-        <span class="chip">Bundles</span>
-      </div>
-      <h2>Featured deal</h2>
-      <section class="deal">
-        <img src="img/nsfw-droid-shop-vesper-chibi-deal-big-bust-banner-v2.jpg" alt="DEAL chibi" />
-        <div>
-          <p style="margin:0;font-weight:800">Supporter bundle</p>
-          <p class="lede">Sticker pack + wallpaper ZIP — launch bundle placeholder.</p>
-          <p class="price">$7.00 USD</p>
-        </div>
-      </section>
-      <h2>Featured products</h2>
-      <section class="grid">
-        <article>
-          <div class="thumb">
-            <span class="badge">Ships worldwide</span>
-            <img src="img/nsfw-droid-shop-andri-sticker-sheet.jpg" alt="Andri sticker sheet" />
-          </div>
-          <h3>Vesper sticker pack v1</h3>
-          <p class="price">$5.00 USD</p>
-        </article>
-        <article>
-          <div class="thumb">
-            <span class="badge">Merch</span>
-            <img src="img/nsfw-droid-shop-vesper-panda-hoodie-solo-no-text-v2.jpg" alt="Vesper in a panda hoodie" />
-          </div>
-          <h3>NSFW Droid wordmark tee</h3>
-          <p class="price">$20.00 USD</p>
-        </article>
-        <article>
-          <div class="thumb">
-            <span class="badge">Sticker</span>
-            <img src="img/nsfw-droid-shop-vesper-panda-andri-peace-sticker-v2.jpg" alt="Vesper and Andri sticker" />
-          </div>
-          <h3>Vesper + Andri peace sticker</h3>
-          <p class="price">$4.00 USD</p>
-        </article>
-        <article>
-          <div class="thumb">
-            <span class="badge">Instant download</span>
-            <div class="empty">ZIP</div>
-          </div>
-          <h3>Vesper 4K wallpaper pack</h3>
-          <p class="price">$3.00 USD</p>
-        </article>
-      </section>
-      <p class="fine">Ships from US · 18+ brand · Digital sales final. Collection, product page, and cart come next.</p>
+      <h1>Shop</h1>
+      <p class="sub">Tees and hoodies. Prices are stand-ins.</p>
+      <div class="chips"><span class="chip on">All</span><span class="chip">Tees</span><span class="chip">Hoodies</span></div>
+      <p class="count">7 listings</p>
+      <article>
+        <img src="img/nsfw-droid-shop-vesper-panda-hoodie-solo-no-text-v2.jpg" alt="Vesper in a panda hoodie" />
+        <div><h2>Vesper panda hoodie</h2><p class="price">$28.00</p><p class="meta">Hoodie · Unisex</p><p class="meta">Shipping calculated at checkout</p></div>
+      </article>
+      <article>
+        <img src="img/nsfwdroid-shop-occult-engraved-pyramid.png" alt="Engraved pyramid print" />
+        <div><h2>Engraved pyramid tee</h2><p class="price">$18.00</p><p class="meta">Tee · Unisex</p><p class="meta">Shipping calculated at checkout</p></div>
+      </article>
+      <article>
+        <img src="img/nsfwdroid-shop-occult-engraved-pyramid.png" alt="Engraved pyramid print" />
+        <div><h2>Engraved pyramid hoodie</h2><p class="price">$28.00</p><p class="meta">Hoodie · Unisex</p><p class="meta">Shipping calculated at checkout</p></div>
+      </article>
+      <article>
+        <img src="img/nsfwdroid-shop-occult-white-triangle.png" alt="White triangle print" />
+        <div><h2>White triangle tee</h2><p class="price">$18.00</p><p class="meta">Tee · Unisex</p><p class="meta">Shipping calculated at checkout</p></div>
+      </article>
+      <article>
+        <img src="img/nsfwdroid-shop-occult-white-triangle.png" alt="White triangle print" />
+        <div><h2>White triangle hoodie</h2><p class="price">$28.00</p><p class="meta">Hoodie · Unisex</p><p class="meta">Shipping calculated at checkout</p></div>
+      </article>
+      <article>
+        <img src="img/nsfwdroid-shop-occult-orange-stripes.png" alt="Orange stripe print" />
+        <div><h2>Orange stripe tee</h2><p class="price">$18.00</p><p class="meta">Tee · Unisex</p><p class="meta">Shipping calculated at checkout</p></div>
+      </article>
+      <article>
+        <img src="img/nsfwdroid-shop-occult-orange-stripes.png" alt="Orange stripe print" />
+        <div><h2>Orange stripe hoodie</h2><p class="price">$28.00</p><p class="meta">Hoodie · Unisex</p><p class="meta">Shipping calculated at checkout</p></div>
+      </article>
     </main>
   </body>
 </html>
