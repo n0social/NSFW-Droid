@@ -56,7 +56,7 @@ export async function GET(
 
     // Do not fetch s.pemsrv.com here. A server syndication request does not bill
     // (ExoClick never sees the visitor) and can look like invalid traffic.
-    // Eligible clicks load link.php in the browser (exoclick-play-popunder-client).
+    // Eligible clicks are classed links; popunder1000.js counts them in the browser.
     const redirect = NextResponse.redirect(url, 302);
     redirect.headers.set("Referrer-Policy", "no-referrer");
 

@@ -19,7 +19,7 @@ These jobs are installed from `deploy/cron.d/` via `scripts/install-droplet-cron
 | **Daily 06:00, 14:00, 22:00 UTC** | `nsfwdroid-ingest` | `catalog-maintenance.sh` → `catalog-ingest-cron.sh` | Brief stop/start around PGlite work (~minutes) | If `INGEST_ALERT_ZERO_NEW_RUNS` set and last N ingests added 0 candidates |
 | **Tue 02:00 UTC** | `nsfwdroid-maintenance-notice` | `scripts/maintenance-notice.sh` | Amber **banner** (site still up); `maintenanceNotice` on `/api/health` | Optional 1h warning before weekly window |
 | **Tue 03:00–04:00 UTC** | `nsfwdroid-weekly-maintenance` | `scripts/weekly-maintenance.sh` → `weekly-maintenance-inner.sh` | **Maintenance page** while `nsfwdroid` stopped (Caddy 502/503/504 path) | Start, failure, and success emails (daily keys) |
-| **Fri 21:00 America/New_York** | `nsfwdroid-weekly-newsletter` | `catalog-maintenance.sh` → `send-weekly-newsletter.ts` | Brief stop/start for PGlite | No ops mail (member newsletter only) |
+| **Fri 21:00 America/New_York** | `nsfwdroid-weekly-newsletter` | Hourly Saturday UTC; script sends only in that Eastern hour, then `catalog-maintenance.sh` → `send-weekly-newsletter.ts` | Brief stop/start for PGlite | On preflight or send failure (a recorded successful week does not alert) |
 | **Daily 07:15 UTC** | `nsfwdroid-gsc-sync` | `scripts/gsc-sync.ts` | None (reads GSC API, writes cache file) | No (see `/admin/search`; requires `GSC_SERVICE_ACCOUNT_JSON`) |
 
 ### Human-scheduled changes (DNS, deploy, maintenance)

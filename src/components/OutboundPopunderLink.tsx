@@ -3,8 +3,8 @@
 import type { ComponentPropsWithoutRef, MouseEvent } from "react";
 import { useMemo } from "react";
 import { shouldShowPlayPopunder } from "@/lib/ads-config";
-import { firePopunderThenNavigate } from "@/lib/exoclick-play-popunder-client";
 import { urlEligibleForOutboundPopunder } from "@/lib/outbound-link";
+import { outboundPlayLinkClassName } from "@/lib/outbound-play-link";
 
 type AnchorProps = ComponentPropsWithoutRef<"a">;
 
@@ -26,10 +26,9 @@ function absoluteOutboundHref(href: string): string {
 }
 
 /**
- * External outbound anchor. Eligible non-Steam: the current tab navigates to `href`
- * and a hidden iframe sends the browser to ExoClick `link.php`. The click does not
- * `window.open` a second store tab. Steam URLs are not monetized.
- * Eligibility is computed during render so the anchor navigation and the hop stay one path.
+ * External outbound anchor. Eligible non-Steam links carry `nsfwdroid-play-outbound`
+ * so ExoClick's class-trigger popunder can count the click. The anchor is a normal
+ * navigation. Steam URLs omit the class.
  */
 export function OutboundPopunderLink({
   ageVerified,
@@ -54,14 +53,6 @@ export function OutboundPopunderLink({
   }, [popunderEligible, href]);
 
   function handleClick(e: MouseEvent<HTMLAnchorElement>) {
-    if (monetizedOutbound) {
-      e.preventDefault();
-      e.stopPropagation();
-      const destHref = e.currentTarget.href;
-      firePopunderThenNavigate(destHref);
-      onClick?.(e);
-      return;
-    }
     onClick?.(e);
   }
 
@@ -71,7 +62,7 @@ export function OutboundPopunderLink({
 
   return (
     <a
-      className={className}
+      className={monetizedOutbound ? outboundPlayLinkClassName(className) : className}
       href={href}
       target={linkTarget}
       onClick={handleClick}
