@@ -29,7 +29,7 @@ export function ShopPage({
         <main className="mx-auto max-w-6xl px-4 py-8 md:px-6">
           <div className="mb-6 max-w-3xl">
             <h1 className="text-2xl font-semibold text-[var(--foreground)]">Shop</h1>
-            <p className="mt-1 text-sm text-[var(--theme-text-muted)]">Tees and hoodies. Prices are stand-ins.</p>
+            <p className="mt-1 text-sm text-[var(--theme-text-muted)]">Hoodies.</p>
           </div>
           <ShopHomeMain variant="production" />
         </main>

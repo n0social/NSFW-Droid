@@ -14,28 +14,24 @@ export function ShopHomeMain({ variant }: Props) {
   const isDesign = variant === "design";
 
   const products = useMemo(() => {
-    if (chip === "All") return SHOP_HOME_PRODUCTS;
-    return SHOP_HOME_PRODUCTS.filter((p) => (chip === "Tees" ? p.garment === "Tee" : p.garment === "Hoodie"));
+    if (chip === "Tees") return [];
+    return SHOP_HOME_PRODUCTS;
   }, [chip]);
 
-  const shown = isDesign ? products.slice(0, 3) : products;
-
   return (
-    <>
+    <div className="flex flex-col gap-6 md:flex-row md:items-start">
       <ShopChipRow value={chip} onChange={setChip} />
-      <p className="mb-3 text-xs text-[var(--theme-text-muted)]">{shown.length} listings</p>
-      <section className="flex flex-col gap-3">
-        {shown.map((p) => (
-          <ShopProductCard
-            key={p.title}
-            title={p.title}
-            price={p.price}
-            garment={p.garment}
-            imageSrc={isDesign ? undefined : p.imageSrc}
-            imageAlt={p.imageAlt}
-          />
-        ))}
+      <section className="min-w-0 flex-1">
+        {products.length === 0 ? (
+          <p className="text-sm text-[var(--theme-text-muted)]">No tees yet.</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {(isDesign ? products.slice(0, 2) : products).map((p) => (
+              <ShopProductCard key={p.title} title={p.title} imageSrc={isDesign ? undefined : p.imageSrc} imageAlt={p.imageAlt} />
+            ))}
+          </div>
+        )}
       </section>
-    </>
+    </div>
   );
 }
