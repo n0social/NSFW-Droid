@@ -18,7 +18,7 @@ export type ShopHomeProduct = {
 export const SHOP_HOME_PRODUCTS: ShopHomeProduct[] = [
   {
     title: "Vesper sticker pack v1",
-    price: "$12.00 USD",
+    price: "$5.00 USD",
     pill: "Ships worldwide",
     chip: "Merch",
     mockLabel: "STK",
@@ -27,7 +27,7 @@ export const SHOP_HOME_PRODUCTS: ShopHomeProduct[] = [
   },
   {
     title: "NSFW Droid wordmark tee",
-    price: "$28.00 USD",
+    price: "$20.00 USD",
     pill: "Merch",
     chip: "Merch",
     mockLabel: "TEE",
@@ -36,7 +36,7 @@ export const SHOP_HOME_PRODUCTS: ShopHomeProduct[] = [
   },
   {
     title: "Vesper + Andri peace sticker",
-    price: "$9.00 USD",
+    price: "$4.00 USD",
     pill: "Sticker",
     chip: "Merch",
     mockLabel: "DUO",
@@ -45,7 +45,7 @@ export const SHOP_HOME_PRODUCTS: ShopHomeProduct[] = [
   },
   {
     title: "Vesper 4K wallpaper pack",
-    price: "$8.00 USD",
+    price: "$3.00 USD",
     pill: "Instant download",
     chip: "Digital",
     mockLabel: "ZIP",
@@ -55,7 +55,7 @@ export const SHOP_HOME_PRODUCTS: ShopHomeProduct[] = [
 export const SHOP_FEATURED_DEAL = {
   title: "Supporter bundle",
   description: "Sticker pack + wallpaper ZIP — launch bundle placeholder.",
-  price: "$17.00 USD",
+  price: "$7.00 USD",
   imageSrc: SHOP_ASSETS.chibiDealBannerV2,
   imageAlt: "DEAL marketing chibi banner",
 } as const;
