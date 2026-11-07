@@ -1,13 +1,13 @@
 import Image from "next/image";
-import { HOODIE_SIZES } from "@/lib/shop/home-products";
 
 type Props = {
   title: string;
+  sizes: string;
   imageSrc?: string;
   imageAlt?: string;
 };
 
-export function ShopProductCard({ title, imageSrc, imageAlt }: Props) {
+export function ShopProductCard({ title, sizes, imageSrc, imageAlt }: Props) {
   return (
     <article className="min-w-0">
       <div className="relative aspect-square overflow-hidden rounded-md bg-[var(--background)]">
@@ -16,7 +16,7 @@ export function ShopProductCard({ title, imageSrc, imageAlt }: Props) {
         ) : null}
       </div>
       <h3 className="mt-2 text-sm font-semibold text-[var(--foreground)]">{title}</h3>
-      <p className="mt-1 text-xs text-[var(--theme-text-muted)]">{HOODIE_SIZES.join("  ")}</p>
+      <p className="mt-1 text-xs text-[var(--theme-text-muted)]">{sizes}</p>
     </article>
   );
 }

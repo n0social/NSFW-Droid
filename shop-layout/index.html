@@ -21,59 +21,70 @@
       img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 0.35rem; background: #000; display: block; }
       h2 { font-size: 0.85rem; font-weight: 600; margin: 0.45rem 0 0.2rem; }
       p { margin: 0; color: var(--muted); font-size: 0.75rem; }
-      #empty { display: none; color: var(--muted); }
     </style>
   </head>
   <body>
     <header>NSFW Droid</header>
     <main>
       <h1>Shop</h1>
-      <p class="sub">Hoodies.</p>
+      <p class="sub">Tees or hoodies.</p>
       <div class="layout">
         <nav>
-          <button class="on" data-filter="all" type="button">All</button>
-          <button data-filter="tees" type="button">Tees</button>
-          <button data-filter="hoodies" type="button">Hoodies</button>
+          <button data-filter="tee" type="button">Tees</button>
+          <button class="on" data-filter="hoodie" type="button">Hoodies</button>
         </nav>
-        <div style="flex:1">
-          <p id="empty">No tees yet.</p>
-          <section class="grid" id="grid">
-            <article data-kind="hoodie">
-              <img src="img/nsfw-droid-shop-vesper-panda-hoodie-solo-no-text-v2.jpg" alt="Vesper in a panda hoodie" />
-              <h2>Hoodie</h2>
-              <p>S  M  L  XL  2XL  3XL</p>
-            </article>
-            <article data-kind="hoodie">
-              <img src="img/nsfwdroid-shop-occult-engraved-pyramid.png" alt="Engraved pyramid print" />
-              <h2>Hoodie</h2>
-              <p>S  M  L  XL  2XL  3XL</p>
-            </article>
-            <article data-kind="hoodie">
-              <img src="img/nsfwdroid-shop-occult-white-triangle.png" alt="White triangle print" />
-              <h2>Hoodie</h2>
-              <p>S  M  L  XL  2XL  3XL</p>
-            </article>
-            <article data-kind="hoodie">
-              <img src="img/nsfwdroid-shop-occult-orange-stripes.png" alt="Orange stripe print" />
-              <h2>Hoodie</h2>
-              <p>S  M  L  XL  2XL  3XL</p>
-            </article>
-          </section>
-        </div>
+        <section class="grid" id="grid">
+          <article data-kind="tee" hidden>
+            <img src="img/nsfw-droid-shop-vesper-panda-hoodie-solo-no-text-v2.jpg" alt="Vesper in a panda hoodie" />
+            <h2>Tee</h2>
+            <p>S  M  L  XL  2XL  3XL</p>
+          </article>
+          <article data-kind="tee" hidden>
+            <img src="img/nsfwdroid-shop-occult-engraved-pyramid.png" alt="Engraved pyramid print" />
+            <h2>Tee</h2>
+            <p>S  M  L  XL  2XL  3XL</p>
+          </article>
+          <article data-kind="tee" hidden>
+            <img src="img/nsfwdroid-shop-occult-white-triangle.png" alt="White triangle print" />
+            <h2>Tee</h2>
+            <p>S  M  L  XL  2XL  3XL</p>
+          </article>
+          <article data-kind="tee" hidden>
+            <img src="img/nsfwdroid-shop-occult-orange-stripes.png" alt="Orange stripe print" />
+            <h2>Tee</h2>
+            <p>S  M  L  XL  2XL  3XL</p>
+          </article>
+          <article data-kind="hoodie">
+            <img src="img/nsfw-droid-shop-vesper-panda-hoodie-solo-no-text-v2.jpg" alt="Vesper in a panda hoodie" />
+            <h2>Hoodie</h2>
+            <p>S  M  L  XL  2XL  3XL</p>
+          </article>
+          <article data-kind="hoodie">
+            <img src="img/nsfwdroid-shop-occult-engraved-pyramid.png" alt="Engraved pyramid print" />
+            <h2>Hoodie</h2>
+            <p>S  M  L  XL  2XL  3XL</p>
+          </article>
+          <article data-kind="hoodie">
+            <img src="img/nsfwdroid-shop-occult-white-triangle.png" alt="White triangle print" />
+            <h2>Hoodie</h2>
+            <p>S  M  L  XL  2XL  3XL</p>
+          </article>
+          <article data-kind="hoodie">
+            <img src="img/nsfwdroid-shop-occult-orange-stripes.png" alt="Orange stripe print" />
+            <h2>Hoodie</h2>
+            <p>S  M  L  XL  2XL  3XL</p>
+          </article>
+        </section>
       </div>
     </main>
     <script>
       const buttons = document.querySelectorAll("nav button");
       const cards = document.querySelectorAll("#grid article");
-      const empty = document.getElementById("empty");
-      const grid = document.getElementById("grid");
       buttons.forEach((btn) => btn.addEventListener("click", () => {
         buttons.forEach((b) => b.classList.remove("on"));
         btn.classList.add("on");
-        const tees = btn.dataset.filter === "tees";
-        cards.forEach((card) => { card.hidden = tees; });
-        empty.style.display = tees ? "block" : "none";
-        grid.style.display = tees ? "none" : "grid";
+        const kind = btn.dataset.filter;
+        cards.forEach((card) => { card.hidden = card.dataset.kind !== kind; });
       }));
     </script>
   </body>
