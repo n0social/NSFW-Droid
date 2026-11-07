@@ -209,7 +209,7 @@ Canonical index: **`/opt/cursor/artifacts/shop-design-batch-index.md`**. **Owner
 | PDP / strikethrough promo | `nsfw-droid-shop-vesper-chibi-sale-big-bust-v2-banner-v2.jpg` |
 | NEW / LIMITED / CLEARANCE rails | `*-new-item-*-banner-v2.jpg`, `*-limited-*-banner-v2.jpg`, `*-clearance-*-banner-v2.jpg` |
 | Pin-up / tee / sticker PDP art | e.g. `vesper-pink-hoodie-chin-hands-v3.jpg`, pin-up v2 series, Andri sticker sheet |
-| **Eyes Shut** lineup (planned SKU, 3 plates) | **Desired** — not launch-blocking. Plates: `nsfwdroid-shop-eyes-shut-01-engraved-pyramid.png`, `nsfwdroid-shop-eyes-shut-02-white-triangle.png`, `nsfwdroid-shop-eyes-shut-03-orange-stripes.png`. Earlier refs: `nsfwdroid-shop-vesper-manga-pale-hands-gold-pyramid-v5.jpg` / `v6.jpg` |
+| Occult manga plates (planned SKU) | **Desired** — not launch-blocking. Added plates: `nsfwdroid-shop-occult-engraved-pyramid.png`, `nsfwdroid-shop-occult-white-triangle.png`, `nsfwdroid-shop-occult-orange-stripes.png`. Earlier refs: `nsfwdroid-shop-vesper-manga-pale-hands-gold-pyramid-v5.jpg` / `v6.jpg` |
 
 **Promo art rules:** MapleStory chibi **banner-v2** set uses **black panel + purple `#C026D3` border**, white type — **no green/red sale banners** on storefront chips (see index “Standard marketing chibi set”).
 
@@ -284,18 +284,18 @@ Black panel + purple `#C026D3` border, white type — **no green/red** promo chi
 
 **Sticker sheet backing (Andri cells):** `assets/nsfw-droid-shop-andri-sticker-sheet.jpg` — grid variants for Sheet A/B PDP thumbs when sticker pack v1 ships.
 
-### Eyes Shut (planned occult lineup) — **desired**
+### Occult manga plates (planned SKU) — **desired**
 
-Owner name for the limited occult line: **Eyes Shut**. Three NovelAI plates, palms over the eyes, diagonal stripe grounds. Not launch-blocking. Earlier in-app v5/v6 stay as composition refs only.
+Three NovelAI plates added with no collection name. Palms over the eyes, diagonal stripe grounds. Not launch-blocking. Earlier in-app v5/v6 stay as composition refs only.
 
-| Plate | Artifact | What it is |
-| --- | --- | --- |
-| 01 | `assets/nsfwdroid-shop-eyes-shut-01-engraved-pyramid.png` | Engraved gold pyramid over the eyes, dollar pendant, lace cuffs, red and black stripes |
-| 02 | `assets/nsfwdroid-shop-eyes-shut-02-white-triangle.png` | Hands covering the eyes, white triangle above the head, red and teal stripes |
-| 03 | `assets/nsfwdroid-shop-eyes-shut-03-orange-stripes.png` | Gold pyramid between the palms, chain and dollar pendant, orange and black stripes |
-| Flat NovelAI base | `assets/nsfwdroid-shop-vesper-manga-pale-hands-gold-pyramid-nai-base.jpg` | Unscreentoned starting plate |
-| Composition ref | `assets/nsfwdroid-shop-vesper-manga-pale-hands-gold-pyramid-v5.jpg` | Earlier hoodie / magenta-streak version |
-| Failed occlusion ref | `assets/nsfwdroid-shop-vesper-manga-pale-hands-gold-pyramid-v6.jpg` | Do **not** ship |
+| Artifact | What it is |
+| --- | --- |
+| `assets/nsfwdroid-shop-occult-engraved-pyramid.png` | Engraved gold pyramid over the eyes, dollar pendant, lace cuffs, red and black stripes |
+| `assets/nsfwdroid-shop-occult-white-triangle.png` | Hands covering the eyes, white triangle above the head, red and teal stripes |
+| `assets/nsfwdroid-shop-occult-orange-stripes.png` | Gold pyramid between the palms, chain and dollar pendant, orange and black stripes |
+| `assets/nsfwdroid-shop-vesper-manga-pale-hands-gold-pyramid-nai-base.jpg` | Unscreentoned starting plate |
+| `assets/nsfwdroid-shop-vesper-manga-pale-hands-gold-pyramid-v5.jpg` | Earlier hoodie / magenta-streak version |
+| `assets/nsfwdroid-shop-vesper-manga-pale-hands-gold-pyramid-v6.jpg` | Do **not** ship |
 
 **Production playbook:** [`/opt/cursor/artifacts/occult-manga-art-production-guide.md`](/opt/cursor/artifacts/occult-manga-art-production-guide.md) (prompt packs, Civitai LoRAs, inpaint masks, print QA). Research depth: [`manga-screentone-research.md`](/opt/cursor/artifacts/manga-screentone-research.md), [`dark-anime-uchiha-pose-research.md`](/opt/cursor/artifacts/dark-anime-uchiha-pose-research.md). Canonical batch notes: artifact [`shop-design-batch-index.md`](/opt/cursor/artifacts/shop-design-batch-index.md) section **I**.
 

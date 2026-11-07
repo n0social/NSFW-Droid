@@ -216,7 +216,7 @@ Rows = **SKU families** (sellable product types). Columns = variant / fulfillmen
 | **Icon pack** | `digital_icons` | — | — | — | — | ZIP transparent PNG | Bundle | **Digital** |
 | **PDF zine** *(future)* | `digital_pdf` | — | — | — | — | PDF | — | **Digital** |
 | **Supporter bundle** | `bundle_mixed` | — | — | — | Includes sticker variant | Includes wallpaper SKU | Fixed SKU list, −15% vs à la carte | **POD + digital** split |
-| **Eyes Shut** *(planned occult line, 3 plates)* | `apparel_tee` / `poster` / `sticker_single` | Same as base type | Same | Optional on poster | — | — | Limited collection of the three plates | **POD** + `limited` badge |
+| **Occult manga line** *(planned)* | `apparel_tee` / `poster` / `sticker_single` | Same as base type | Same | Optional on poster | — | — | Limited collection | **POD** + `limited` badge |
 
 ### Apparel detail (tee types)
 
