@@ -19,6 +19,8 @@
     "catalog:recycle-stale": "tsx scripts/db-migrate.ts && tsx scripts/recycle-stale-listings.ts",
     "catalog:counts": "tsx scripts/db-migrate.ts && tsx scripts/catalog-counts.ts",
     "catalog:check-links": "tsx scripts/db-migrate.ts && tsx scripts/check-listing-links.ts",
+    "catalog:scan-sales": "tsx scripts/db-migrate.ts && tsx scripts/scan-listing-sales.ts",
+    "test:sale-scan": "tsx scripts/test-sale-scan.ts",
     "catalog:audit-outbound": "tsx scripts/db-migrate.ts && tsx scripts/audit-outbound-pairs.ts",
     "creators:verify-links": "tsx scripts/verify-creators-links.ts",
     "creators:verify-assets-sounds": "tsx scripts/verify-creator-assets-sounds.ts",

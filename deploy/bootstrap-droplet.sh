@@ -92,6 +92,12 @@ if [[ -f deploy/cron.d/nsfwdroid-weekly-maintenance ]]; then
   chmod 644 /etc/cron.d/nsfwdroid-weekly-maintenance
   touch /var/log/nsfwdroid-weekly-maintenance.log
 fi
+if [[ -f deploy/cron.d/nsfwdroid-sale-scan ]]; then
+  cp deploy/cron.d/nsfwdroid-sale-scan /etc/cron.d/nsfwdroid-sale-scan
+  chmod 644 /etc/cron.d/nsfwdroid-sale-scan
+  chmod +x scripts/sale-scan-cron.sh
+  touch /var/log/nsfwdroid-sale-scan.log
+fi
 
 cp deploy/Caddyfile /etc/caddy/Caddyfile
 systemctl reload caddy || systemctl restart caddy
@@ -99,4 +105,5 @@ systemctl reload caddy || systemctl restart caddy
 echo "==> Done. Point DNS A records for @ and www to this droplet, then open https://www.nsfwdroid.com"
 echo "    Watchdog: /etc/cron.d/nsfwdroid-watchdog (every 5 min)"
 echo "    Ingest:   /etc/cron.d/nsfwdroid-ingest (06:00, 14:00, 22:00 UTC) via scripts/catalog-maintenance.sh"
+echo "    Sales:    /etc/cron.d/nsfwdroid-sale-scan (10:00 UTC) via scripts/sale-scan-cron.sh"
 echo "    Weekly:   notice Tue 02:00 UTC, maintenance Tue 03:00–04:00 UTC (see deploy-droplet.md)"

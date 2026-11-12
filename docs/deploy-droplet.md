@@ -278,6 +278,19 @@ journalctl -u nsfwdroid -n 30 --no-pager
 
 Expect `[catalog-maintenance]` stop/start lines, JSON from `recycle-stale-listings.ts`, then ingest summary JSON with `itch` / `steam` counts.
 
+### Daily sale scan (separate from ingest)
+
+```bash
+cp deploy/cron.d/nsfwdroid-sale-scan /etc/cron.d/nsfwdroid-sale-scan
+chmod 644 /etc/cron.d/nsfwdroid-sale-scan
+touch /var/log/nsfwdroid-sale-scan.log
+chmod +x scripts/sale-scan-cron.sh
+```
+
+Or install every cron file with `./scripts/install-droplet-cron.sh`.
+
+Schedule: **10:00 UTC** (about **5:00 AM Eastern**). The job stops `nsfwdroid`, runs `scan-listing-sales.ts --apply`, and starts the app again. It does not run inside the 06:00 / 14:00 / 22:00 ingest. Log: `/var/log/nsfwdroid-sale-scan.log`. A dry run without writing is `npx tsx scripts/scan-listing-sales.ts` (still needs the catalog stopped).
+
 ### Weekly maintenance window (Tuesday, UTC)
 
 All scheduled times below are **UTC** (droplet default). This is **separate** from the 3× daily ingest — weekly work is deeper integrity (disk check, migrate, recycle, catalog counts). Full `ingest-all` stays on the daily cron unless you opt in (see below).
