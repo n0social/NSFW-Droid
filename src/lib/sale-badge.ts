@@ -1,5 +1,5 @@
-/** Transparent sticker cut from the SALE chibi. The -30% chibi is a fixed percent, so it is not used. */
-export const SALE_STANDEE_SRC = "/shop/nsfw-droid-shop-vesper-chibi-sale-standee.png";
+/** Tag chibi with the black -30% plate repainted as a pink-to-gold SALE flag. */
+export const SALE_STANDEE_SRC = "/shop/nsfw-droid-shop-vesper-chibi-sale-flag-standee.png";
 
 /** Badge percent for a listing. Hides a sale after saleEndsAt. */
 export function activeSalePercent(
