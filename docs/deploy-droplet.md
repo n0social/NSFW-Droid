@@ -167,7 +167,7 @@ Reliable pattern:
 3. Install production deps either:
    - **On droplet:** `cd /var/www/nsfwdroid && npm ci --omit=dev` (slow; needs swap), or
    - **From agent:** `npm ci --omit=dev` in a temp dir, `tar czf node_modules.tgz node_modules`, copy to `/var/www/nsfwdroid` (not `/tmp` if tmpfs is full), extract, `chown -R www-data:www-data node_modules`.
-4. `systemctl restart nsfwdroid` and verify `curl -sI http://localhost:3000` and `https://www.nsfwdroid.com`.
+4. While `nsfwdroid` is still stopped, run `npx --yes tsx scripts/db-migrate.ts` as `www-data`, then `systemctl start nsfwdroid`. Verify `curl -sI http://localhost:3000` and `https://www.nsfwdroid.com`. `cloud-agent-deploy-droplet.sh` does this before start. Starting the new build before the migration makes every catalog query fail on missing columns.
 
 ---
 

@@ -154,6 +154,8 @@ async function main() {
         })
         .where(eq(listings.id, write.id));
     }
+  } else {
+    console.log("[sale-scan] dry run, no rows written");
   }
 
   const summary = {
@@ -172,12 +174,14 @@ async function main() {
   };
   console.log(JSON.stringify(summary));
 
-  await recordIngestRun({
-    job: "sale_scan",
-    status: "ok",
-    startedAt,
-    summary,
-  });
+  if (apply) {
+    await recordIngestRun({
+      job: "sale_scan",
+      status: "ok",
+      startedAt,
+      summary,
+    });
+  }
 }
 
 main()

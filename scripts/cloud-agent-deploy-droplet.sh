@@ -18,6 +18,7 @@ REMOTE_UPLOAD_DIR="${REMOTE_UPLOAD_DIR:-${REMOTE_ROOT}/.deploy-upload}"
 if [[ "$DEPLOY_USER" == "root" ]]; then
   REMOTE_FINISH="chown -R www-data:www-data .
 rm -rf .next/server/route-cache .next/server/app/sitemap.xml.body .next/server/app/sitemap.xml.meta
+runuser -u www-data -- env PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin NPM_CONFIG_CACHE=/var/www/.npm npx --yes tsx scripts/db-migrate.ts
 systemctl start nsfwdroid
 sleep 3
 curl -sfI http://127.0.0.1:3000/api/health | head -1"
