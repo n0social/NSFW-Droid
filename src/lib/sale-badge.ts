@@ -1,4 +1,4 @@
-/** Tag chibi with the black -30% plate repainted as a pink-to-gold SALE flag. */
+/** Tag chibi. The flag is hot pink to gold so it stays bright on dark covers. */
 export const SALE_STANDEE_SRC = "/shop/nsfw-droid-shop-vesper-chibi-sale-flag-standee.png";
 
 /** Badge percent for a listing. Hides a sale after saleEndsAt. */
