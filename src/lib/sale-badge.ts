@@ -1,4 +1,4 @@
-/** Tag chibi. The flag is hot pink to gold so it stays bright on dark covers. */
+/** Flag chibi. She holds a swallowtail pole; the cloth is hot pink to gold so it stays bright on dark covers. */
 export const SALE_STANDEE_SRC = "/shop/nsfw-droid-shop-vesper-chibi-sale-flag-standee.png";
 
 /** Badge percent for a listing. Hides a sale after saleEndsAt. */
