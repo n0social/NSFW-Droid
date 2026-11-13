@@ -1,4 +1,4 @@
-/** Flag chibi. She holds a swallowtail pole; the cloth is hot pink to gold so it stays bright on dark covers. */
+/** Flag chibi. She holds a pole with a waving rectangular cloth, hot pink to gold, and the word SALE fills the cloth. */
 export const SALE_STANDEE_SRC = "/shop/nsfw-droid-shop-vesper-chibi-sale-flag-standee.png";
 
 /** Badge percent for a listing. Hides a sale after saleEndsAt. */
