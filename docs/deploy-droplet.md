@@ -167,7 +167,7 @@ Reliable pattern:
 3. Install production deps either:
    - **On droplet:** `cd /var/www/nsfwdroid && npm ci --omit=dev` (slow; needs swap), or
    - **From agent:** `npm ci --omit=dev` in a temp dir, `tar czf node_modules.tgz node_modules`, copy to `/var/www/nsfwdroid` (not `/tmp` if tmpfs is full), extract, `chown -R www-data:www-data node_modules`.
-4. `systemctl restart nsfwdroid` and verify `curl -sI http://localhost:3000` and `https://www.nsfwdroid.com`.
+4. While `nsfwdroid` is still stopped, run `npx --yes tsx scripts/db-migrate.ts` as `www-data`, then `systemctl start nsfwdroid`. Verify `curl -sI http://localhost:3000` and `https://www.nsfwdroid.com`. `cloud-agent-deploy-droplet.sh` does this before start. Starting the new build before the migration makes every catalog query fail on missing columns.
 
 ---
 
@@ -277,6 +277,19 @@ journalctl -u nsfwdroid -n 30 --no-pager
 ```
 
 Expect `[catalog-maintenance]` stop/start lines, JSON from `recycle-stale-listings.ts`, then ingest summary JSON with `itch` / `steam` counts.
+
+### Daily sale scan (separate from ingest)
+
+```bash
+cp deploy/cron.d/nsfwdroid-sale-scan /etc/cron.d/nsfwdroid-sale-scan
+chmod 644 /etc/cron.d/nsfwdroid-sale-scan
+touch /var/log/nsfwdroid-sale-scan.log
+chmod +x scripts/sale-scan-cron.sh
+```
+
+Or install every cron file with `./scripts/install-droplet-cron.sh`.
+
+Schedule: **10:00 UTC** (about **5:00 AM Eastern**). The job stops `nsfwdroid`, runs `scan-listing-sales.ts --apply`, and starts the app again. It does not run inside the 06:00 / 14:00 / 22:00 ingest. Log: `/var/log/nsfwdroid-sale-scan.log`. A dry run without writing is `npx tsx scripts/scan-listing-sales.ts` (still needs the catalog stopped).
 
 ### Weekly maintenance window (Tuesday, UTC)
 

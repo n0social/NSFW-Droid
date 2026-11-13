@@ -27,12 +27,14 @@ chmod +x \
   "$APP_DIR/scripts/post-ingest-hooks.sh" \
   "$APP_DIR/scripts/newsletter-preflight.sh" \
   "$APP_DIR/scripts/weekly-newsletter-cron.sh" \
+  "$APP_DIR/scripts/sale-scan-cron.sh" \
   "$APP_DIR/scripts/exim-relay-smoke.sh" \
   "$APP_DIR/scripts/ops-exim-relay-smoke-alert.sh" \
   "$APP_DIR/scripts/health-probe-selftest.sh" 2>/dev/null || true
 
 for f in nsfwdroid-ingest nsfwdroid-watchdog nsfwdroid-caddy-watchdog \
-  nsfwdroid-maintenance-notice nsfwdroid-weekly-maintenance nsfwdroid-weekly-newsletter; do
+  nsfwdroid-maintenance-notice nsfwdroid-weekly-maintenance nsfwdroid-weekly-newsletter \
+  nsfwdroid-sale-scan; do
   src="${CRON_SRC}/${f}"
   if [[ ! -f "$src" ]]; then
     echo "skip missing $src" >&2
@@ -49,6 +51,7 @@ touch \
   /var/log/nsfwdroid-maintenance-notice.log \
   /var/log/nsfwdroid-weekly-maintenance.log \
   /var/log/nsfwdroid-newsletter.log \
+  /var/log/nsfwdroid-sale-scan.log \
   /var/log/nsfwdroid-social.log \
   /var/log/nsfwdroid-exim-smoke.log 2>/dev/null || true
 

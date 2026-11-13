@@ -10,6 +10,8 @@ import { displayListingTitle, listingCoverImageAlt } from "@/lib/listing-display
 import { listingHasAffiliateLink } from "@/lib/outbound-link";
 import { GameCard } from "@/components/GameCard";
 import { OutboundPlayLink } from "@/components/OutboundPlayLink";
+import { SaleStandee } from "@/components/SaleStandee";
+import { activeSalePercent } from "@/lib/sale-badge";
 import { ListingReportPanel } from "@/components/ListingReportPanel";
 import { gameListingPath } from "@/lib/listing-routes";
 import type { ThemeDecorFiles } from "@/lib/themes/asset-url";
@@ -58,6 +60,7 @@ export function GameDetailPage({
 
   const effectiveBlur = effectiveCoverBlur(ageVerified, blurCovers);
   const displayTitle = displayListingTitle(listing.title);
+  const onSale = activeSalePercent(listing) != null;
   const coverUrl = listing.coverImageUrl?.trim() || null;
   const showCover = Boolean(coverUrl) && !coverFailed;
   const showAffiliateDisclosure = listingHasAffiliateLink(listing);
@@ -152,7 +155,10 @@ export function GameDetailPage({
                 className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-[#14061Cee] via-[#14061C66] to-transparent"
                 aria-hidden
               />
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 p-4 sm:p-6">
+              {onSale ? <SaleStandee size="detail" /> : null}
+              <div
+                className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 p-4 sm:p-6 ${onSale ? "pr-24 sm:pr-36" : ""}`}
+              >
                 <h1 className="text-xl font-black leading-tight text-[#FFF1F7] sm:text-3xl">
                   {displayTitle}
                 </h1>

@@ -17,6 +17,7 @@ These jobs are installed from `deploy/cron.d/` via `scripts/install-droplet-cron
 | **Every 5 min** | `nsfwdroid-watchdog` | `scripts/ensure-nsfwdroid.sh` | Restarts `nsfwdroid` if unit down or local `/api/health` fails; skips when weekly or catalog maintenance locks exist | On **failed** restart or **health still bad** after restart (deduped) |
 | **Every 5 min** | `nsfwdroid-caddy-watchdog` | `scripts/ensure-caddy.sh` | Restarts **Caddy** if the reverse-proxy unit is inactive | On **failed** restart or still inactive after restart (deduped) |
 | **Daily 06:00, 14:00, 22:00 UTC** | `nsfwdroid-ingest` | `catalog-maintenance.sh` → `catalog-ingest-cron.sh` | Brief stop/start around PGlite work (~minutes) | If `INGEST_ALERT_ZERO_NEW_RUNS` set and last N ingests added 0 candidates |
+| **Daily 10:00 UTC** | `nsfwdroid-sale-scan` | `sale-scan-cron.sh` → `catalog-maintenance.sh` → `scan-listing-sales.ts` | Brief stop/start. **Not** part of ingest. Marks itch/Steam discounts and clears them when the discount ends | No |
 | **Tue 02:00 UTC** | `nsfwdroid-maintenance-notice` | `scripts/maintenance-notice.sh` | Amber **banner** (site still up); `maintenanceNotice` on `/api/health` | Optional 1h warning before weekly window |
 | **Tue 03:00–04:00 UTC** | `nsfwdroid-weekly-maintenance` | `scripts/weekly-maintenance.sh` → `weekly-maintenance-inner.sh` | **Maintenance page** while `nsfwdroid` stopped (Caddy 502/503/504 path) | Start, failure, and success emails (daily keys) |
 | **Fri 21:00 America/New_York** | `nsfwdroid-weekly-newsletter` | `catalog-maintenance.sh` → `send-weekly-newsletter.ts` | Brief stop/start for PGlite | No ops mail (member newsletter only) |
@@ -33,6 +34,7 @@ Times in **America/New_York** (`NEWSLETTER_WEEKLY_TZ` / default site timezone). 
 | **Weekly maintenance** | **Mon ~11:00 PM – Tue ~12:00 AM** (Tue 03:00–04:00 **UTC**) | Full maintenance page; `nsfwdroid` stopped | DB/catalog work, risky deploys, long Caddy changes |
 | **Maintenance notice** | **Mon ~10:00 PM** (Tue 02:00 **UTC**) | Amber banner only | Communicate upcoming work |
 | **Ingest** | **~2:00 AM, ~10:00 AM, ~6:00 PM** Eastern (06:00 / 14:00 / 22:00 **UTC**) | Brief stop/start (~minutes) | Avoid overlapping manual deploys |
+| **Sale scan** | **~5:00 AM** Eastern (10:00 **UTC**) | Brief stop/start. Own cron, separate from ingest | Avoid overlapping manual deploys |
 | **Friday newsletter** | **Fri 9:00 PM** Eastern | Brief stop/start | Avoid if possible |
 
 **DNS / Cloudflare nameserver changes** can cause mixed resolver behavior for hours; prefer **late evening Eastern** or the **weekly maintenance** window. See [cloudflare.md](cloudflare.md).
@@ -51,6 +53,8 @@ When the ingest cron fires, the inner script (always via `catalog-maintenance.sh
 4. `ingest-all.ts` (itch + Steam + optional affiliate)
 5. Optional social queue (`social-enqueue.ts` / `social-drain.ts`) when Mastodon/Pillowfort env flags are on
 6. `check-ingest-stale.sh` (ops email when configured)
+
+The sale scan is a different cron (`nsfwdroid-sale-scan`, 10:00 UTC). It does not run inside ingest. It reads itch’s on-sale RSS and Steam’s US `price_overview`, writes `listing.sale_percent`, and leaves a source alone if that source’s fetch fails. Cards then show the SALE chibi.
 
 ### Other automatic recovery (not cron)
 

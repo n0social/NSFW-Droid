@@ -11,6 +11,8 @@ import { ThemeAssetImage } from "@/components/theme/ThemeAssetImage";
 import { displayListingTitle, listingCoverImageAlt } from "@/lib/listing-display";
 import { OutboundPlayLink } from "@/components/OutboundPlayLink";
 import { listingHasAffiliateLink } from "@/lib/outbound-link";
+import { activeSalePercent } from "@/lib/sale-badge";
+import { SaleStandee } from "@/components/SaleStandee";
 
 const gradients = [
   "linear-gradient(145deg, #4a1d6a 0%, #C026D3 45%, #14061C 100%)",
@@ -109,6 +111,7 @@ export function GameCard({
   const showFavoriteControl = Boolean(user);
   const displayTitle = displayListingTitle(game.title);
   const showAffiliateDisclosure = listingHasAffiliateLink(game);
+  const onSale = activeSalePercent(game) != null;
 
   return (
     <div
@@ -196,7 +199,9 @@ export function GameCard({
               className="absolute inset-0 bg-gradient-to-t from-[#14061Cee] via-transparent to-transparent"
               aria-hidden
             />
-            <span className="relative z-10 text-xs font-extrabold leading-tight text-[#FFF1F7] line-clamp-3 drop-shadow-md">
+            <span
+              className={`relative z-10 text-xs font-extrabold leading-tight text-[#FFF1F7] line-clamp-3 drop-shadow-md ${onSale ? "pr-14" : ""}`}
+            >
               {displayTitle}
             </span>
           </div>
@@ -215,12 +220,13 @@ export function GameCard({
           )}
         </div>
       </Link>
+      {onSale ? <SaleStandee size={layout === "grid" ? "grid" : "rail"} /> : null}
       <OutboundPlayLink
         listing={game}
         href={`/api/go/${game.id}`}
         onClick={(e) => e.stopPropagation()}
         ageVerified={ageVerified ?? false}
-        className="absolute bottom-2 right-2 z-20 rounded-full bg-[#C026D3] px-2.5 py-1 text-[9px] font-black text-[#FFF1F7] shadow-md hover:bg-[#FF4D8D]"
+        className={`absolute bottom-2 z-20 rounded-full bg-[#C026D3] px-2.5 py-1 text-[9px] font-black text-[#FFF1F7] shadow-md hover:bg-[#FF4D8D] ${onSale ? "left-2" : "right-2"}`}
         aria-label={`Play ${displayTitle} on store`}
       >
         Play

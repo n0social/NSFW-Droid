@@ -91,7 +91,7 @@ export const candidates = pgTable(
   (t) => [uniqueIndex("candidate_source_external_idx").on(t.source, t.externalId)],
 );
 
-/** Public catalog rows — no price columns; store pricing lives on outbound URLs only. */
+/** Public catalog rows. Shelf prices stay on the store. sale_* is the daily sale-scan badge. */
 export const listings = pgTable("listing", {
   id: uuid("id").defaultRandom().primaryKey(),
   slug: text("slug").notNull().unique(),
@@ -114,6 +114,10 @@ export const listings = pgTable("listing", {
   externalId: text("external_id"),
   /** Plain-text store synopsis (Steam short_description, itch RSS, etc.). */
   storeDescription: text("store_description"),
+  /** US-store discount from the daily sale scan. Null when that scan did not find one. */
+  salePercent: integer("sale_percent"),
+  saleEndsAt: timestamp("sale_ends_at", { withTimezone: true }),
+  saleCheckedAt: timestamp("sale_checked_at", { withTimezone: true }),
 });
 
 export const socialOutbox = pgTable(

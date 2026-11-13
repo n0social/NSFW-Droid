@@ -20,6 +20,10 @@ chown -R www-data:www-data "${APP_DIR}"
 rm -rf "${APP_DIR}/.next/server/route-cache" \
   "${APP_DIR}/.next/server/app/sitemap.xml.body" \
   "${APP_DIR}/.next/server/app/sitemap.xml.meta"
+# New listing columns must exist before the new server selects them.
+runuser -u www-data -- env PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
+  NPM_CONFIG_CACHE=/var/www/.npm \
+  bash -c "cd '${APP_DIR}' && npx --yes tsx scripts/db-migrate.ts"
 systemctl start nsfwdroid
 sleep 3
 curl -sfI http://127.0.0.1:3000/api/health | head -1

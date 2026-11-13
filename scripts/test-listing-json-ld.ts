@@ -22,6 +22,9 @@ function baseListing(overrides: Partial<Listing> = {}): Listing {
     source: "itch",
     externalId: "ext-1",
     storeDescription: null,
+    salePercent: null,
+    saleEndsAt: null,
+    saleCheckedAt: null,
     ...overrides,
   };
 }

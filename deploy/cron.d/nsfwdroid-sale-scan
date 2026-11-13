@@ -1,0 +1,5 @@
+# Daily sale badges. Separate from nsfwdroid-ingest (06:00, 14:00, 22:00 UTC).
+# 10:00 UTC is 5:00 AM America/New_York. Brief stop/start via catalog-maintenance.sh.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+0 10 * * * root /var/www/nsfwdroid/scripts/sale-scan-cron.sh >> /var/log/nsfwdroid-sale-scan.log 2>&1
