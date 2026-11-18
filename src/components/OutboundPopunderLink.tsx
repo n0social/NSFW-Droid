@@ -2,7 +2,8 @@
 
 import type { ComponentPropsWithoutRef, MouseEvent } from "react";
 import { useMemo } from "react";
-import { shouldShowPlayPopunder } from "@/lib/ads-config";
+import { useAdsPublicConfig } from "@/components/AdsConfigProvider";
+import { shouldShowPlayPopunderFromConfig } from "@/lib/ads-public-config";
 import { urlEligibleForOutboundPopunder } from "@/lib/outbound-link";
 import { outboundPlayLinkClassName } from "@/lib/outbound-play-link";
 
@@ -41,7 +42,9 @@ export function OutboundPopunderLink({
   children,
   ...rest
 }: Props) {
-  const popunderEligible = monetize && shouldShowPlayPopunder(ageVerified);
+  const adsConfig = useAdsPublicConfig();
+  const popunderEligible =
+    monetize && shouldShowPlayPopunderFromConfig(adsConfig, ageVerified);
 
   const monetizedOutbound = useMemo(() => {
     if (!popunderEligible) return false;

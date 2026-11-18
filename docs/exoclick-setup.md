@@ -6,7 +6,7 @@
 
 Display ads load only when **both** are true:
 
-1. `NEXT_PUBLIC_ADS_ENABLED=1` (build-time flag on the droplet).
+1. `NEXT_PUBLIC_ADS_ENABLED=1` (set in `/etc/nsfwdroid.env`; the root layout passes live `NEXT_PUBLIC_*` ad vars to the client on each request, so popunder zone IDs do not require a rebuild after you add them — still rebuild after you flip ads on or change banner script URLs baked into the client).
 2. The visitor has confirmed 18+ and holds the first-party `age_verified=1` cookie (set via the age gate on `/` and `/browse`).
 
 Until the cookie is set, `AdSlot` renders nothing and `ExoClickScript` does not load. Do not bypass this for ad traffic.

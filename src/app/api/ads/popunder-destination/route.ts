@@ -1,10 +1,12 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { isAdsEnabled } from "@/lib/ads-config";
+import {
+  adsPublicConfigFromEnv,
+  popunderZoneIdFromConfig,
+} from "@/lib/ads-public-config";
 import {
   buildExoclickPopunderClickUrl,
   EXOCLICK_POPUNDER_REFERRER_HOME,
-  popunderZoneIdForUserAgent,
   resolveExoclickPopunderDestination,
 } from "@/lib/exoclick-popunder-syndication";
 import { AGE_VERIFIED_COOKIE, parseAgeVerified } from "@/lib/cookies";
@@ -14,7 +16,8 @@ import { AGE_VERIFIED_COOKIE, parseAgeVerified } from "@/lib/cookies";
  * Countable popunder traffic is a browser navigation to `link.php` (`hop=syndication`).
  */
 export async function GET(request: Request) {
-  if (!isAdsEnabled()) {
+  const adsConfig = adsPublicConfigFromEnv();
+  if (!adsConfig.enabled) {
     return NextResponse.json({ ok: false }, { status: 404 });
   }
 
@@ -23,7 +26,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: false }, { status: 403 });
   }
 
-  const zoneId = popunderZoneIdForUserAgent(request.headers.get("user-agent"));
+  const zoneId = popunderZoneIdFromConfig(request.headers.get("user-agent"), adsConfig);
   if (!zoneId) {
     return NextResponse.json({ ok: false }, { status: 404 });
   }

@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
-import { shouldShowPlayPopunder } from "@/lib/ads-config";
+import { useAdsPublicConfig } from "@/components/AdsConfigProvider";
 import { EXOCLICK_PLAY_OUTBOUND_TRIGGER_CLASS } from "@/lib/outbound-play-link";
-import { popunderZoneIdForUserAgent } from "@/lib/exoclick-popunder-syndication";
+import {
+  popunderZoneIdFromConfig,
+  shouldShowPlayPopunderFromConfig,
+} from "@/lib/ads-public-config";
 
 const POPUNDER_SCRIPT_SRC = "https://a.pemsrv.com/popunder1000.js";
 const POPUNDER_SCRIPT_ID = "exoclick-popunder";
@@ -29,12 +32,13 @@ type PopunderWindow = Window & {
  * Loads only after the age gate, same as the footer banner.
  */
 export function ExoClickPopunderScript({ ageVerified }: { ageVerified: boolean }) {
-  const live = shouldShowPlayPopunder(ageVerified);
+  const adsConfig = useAdsPublicConfig();
+  const live = shouldShowPlayPopunderFromConfig(adsConfig, ageVerified);
 
   useEffect(() => {
     if (!live || typeof document === "undefined") return;
     if (document.getElementById(POPUNDER_SCRIPT_ID)) return;
-    const zoneId = popunderZoneIdForUserAgent(navigator.userAgent);
+    const zoneId = popunderZoneIdFromConfig(navigator.userAgent, adsConfig);
     if (!zoneId) return;
 
     const w = window as PopunderWindow;
@@ -55,7 +59,7 @@ export function ExoClickPopunderScript({ ageVerified }: { ageVerified: boolean }
     script.async = true;
     script.src = POPUNDER_SCRIPT_SRC;
     document.body.appendChild(script);
-  }, [live]);
+  }, [live, adsConfig]);
 
   return null;
 }

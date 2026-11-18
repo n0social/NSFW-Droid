@@ -1,10 +1,16 @@
+"use client";
+
 import Link from "next/link";
 import { AdSlot } from "@/components/AdSlot";
 import { ExoClickPopunderScript } from "@/components/ExoClickPopunderScript";
 import { ExoClickScript } from "@/components/ExoClickScript";
+import { useAdsPublicConfig } from "@/components/AdsConfigProvider";
 import { NewsletterSignup } from "@/components/site/NewsletterSignup";
 import { PwaInstallPrompt } from "@/components/site/PwaInstallPrompt";
-import { shouldShowFooterAds, shouldShowPlayPopunder } from "@/lib/ads-config";
+import {
+  shouldShowFooterAdsFromConfig,
+  shouldShowPlayPopunderFromConfig,
+} from "@/lib/ads-public-config";
 import { browseCatalogPath } from "@/lib/browse-catalog-path";
 import { BROWSE_PLATFORM_HUBS } from "@/lib/browse-platforms";
 import { siteName, siteUrl } from "@/lib/site";
@@ -16,13 +22,16 @@ type Props = {
 };
 
 export function SiteFooter({ ageVerified, showFooterAds = true }: Props) {
+  const adsConfig = useAdsPublicConfig();
   const year = new Date().getFullYear();
-  const footerAdsLive = showFooterAds && shouldShowFooterAds(ageVerified);
+  const footerAdsLive = showFooterAds && shouldShowFooterAdsFromConfig(adsConfig, ageVerified);
 
   return (
     <footer className="mt-12 border-t border-[#241033] bg-[#241033]">
       {footerAdsLive && <ExoClickScript ageVerified={ageVerified} />}
-      {shouldShowPlayPopunder(ageVerified) && <ExoClickPopunderScript ageVerified={ageVerified} />}
+      {shouldShowPlayPopunderFromConfig(adsConfig, ageVerified) && (
+        <ExoClickPopunderScript ageVerified={ageVerified} />
+      )}
       <div className="mx-auto max-w-7xl px-4 pt-6 pb-2 md:px-6 lg:px-8">
         <NewsletterSignup />
         {footerAdsLive && (

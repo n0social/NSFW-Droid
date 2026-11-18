@@ -51,6 +51,7 @@
     "test:seo-canonical-host": "tsx scripts/test-seo-canonical-host.ts",
     "test:admin-host": "tsx scripts/test-admin-host.ts",
     "test:ads-popunder-config": "tsx scripts/test-ads-popunder-config.ts",
+    "test:ads-runtime-config": "tsx scripts/test-ads-runtime-config.ts",
     "test:listing-play-popunder-eligibility": "tsx scripts/test-listing-play-popunder-eligibility.ts",
     "test:video-thumbnail-fallback": "tsx scripts/test-video-thumbnail-fallback.ts",
     "test:exoclick-popunder-launch": "tsx scripts/test-exoclick-popunder-launch.ts",

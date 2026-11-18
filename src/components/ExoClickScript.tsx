@@ -2,11 +2,9 @@
 
 import { useEffect } from "react";
 import Script from "next/script";
-import {
-  exoclickAdScriptUrl,
-  exoclickLiveReady,
-  pushExoClickServe,
-} from "@/lib/ads-config";
+import { useAdsPublicConfig } from "@/components/AdsConfigProvider";
+import { pushExoClickServe } from "@/lib/ads-config";
+import { exoclickLiveReadyFromConfig } from "@/lib/ads-public-config";
 
 type Props = {
   ageVerified: boolean;
@@ -21,8 +19,9 @@ function exoclickScriptSelector(src: string): string {
  * enabled, age-verified, and zone + script URL are configured.
  */
 export function ExoClickScript({ ageVerified }: Props) {
-  const live = ageVerified && exoclickLiveReady();
-  const src = live ? exoclickAdScriptUrl() : undefined;
+  const adsConfig = useAdsPublicConfig();
+  const live = ageVerified && exoclickLiveReadyFromConfig(adsConfig);
+  const src = live ? adsConfig.adScriptUrl : undefined;
 
   useEffect(() => {
     if (!live || !src) return;

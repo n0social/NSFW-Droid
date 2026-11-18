@@ -2,7 +2,8 @@
 
 import type { ComponentPropsWithoutRef } from "react";
 import type { Listing } from "@/db/schema";
-import { shouldShowPlayPopunder } from "@/lib/ads-config";
+import { useAdsPublicConfig } from "@/components/AdsConfigProvider";
+import { shouldShowPlayPopunderFromConfig } from "@/lib/ads-public-config";
 import { listingEligibleForPlayPopunder } from "@/lib/outbound-link";
 import { outboundPlayLinkClassName } from "@/lib/outbound-play-link";
 
@@ -33,9 +34,10 @@ export function OutboundPlayLink({
   children,
   ...rest
 }: Props) {
+  const adsConfig = useAdsPublicConfig();
   const popunderEligible =
     monetize &&
-    shouldShowPlayPopunder(ageVerified) &&
+    shouldShowPlayPopunderFromConfig(adsConfig, ageVerified) &&
     listingEligibleForPlayPopunder(listing);
 
   return (
