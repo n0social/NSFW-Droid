@@ -112,7 +112,7 @@ Optional tuning: `ALERT_DEDUPE_MINUTES` (default 30), `INGEST_ALERT_ZERO_NEW_RUN
 | Secret / var | Purpose |
 | --- | --- |
 | `CURSOR_CLOUD_AGENT_NSFWDROID_PRIVATE_KEY` | SSH private key matching `deploy/cursor-cloud-agent-nsfwdroid.pub` |
-| `NSFWDROID_DEPLOY_SSH_USER` | `root` (legacy) or `nsfwdroid-deploy` after [non-root setup](deploy-droplet.md) |
+| `NSFWDROID_DEPLOY_SSH_USER` | Optional; defaults to `nsfwdroid-deploy`. Set `root` only during [SSH migration](deploy-droplet.md). |
 
 Production `NEXT_PUBLIC_*` for builds must be available to the agent at **build** time (typically sourced from droplet env or documented copies — never committed).
 

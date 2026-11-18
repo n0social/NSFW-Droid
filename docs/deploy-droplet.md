@@ -52,7 +52,7 @@ If the agent key is still only in **`/root/.ssh/authorized_keys`** (older setup)
 2. From a Cloud Agent, unset `NSFWDROID_DEPLOY_SSH_USER` (or set `NSFWDROID_DEPLOY_SSH_USER=nsfwdroid-deploy`), run `./scripts/cloud-agent-ssh-setup.sh` and a test deploy.
 3. When satisfied, **remove** the `cursor-cloud-agent-nsfwdroid` line from `/root/.ssh/authorized_keys` (human SSH via `icollar-droplet` stays on root).
 
-Until step 2 passes, Cloud Agent scripts default to **`NSFWDROID_DEPLOY_SSH_USER=root`** so root-based deploy keeps working.
+Cloud Agent scripts default to **`NSFWDROID_DEPLOY_SSH_USER=nsfwdroid-deploy`** after migration. Set `=root` only if step 2 has not passed yet.
 
 Manual `authorized_keys` line (same as `scripts/cloud-agent-authorized-keys-line.sh`):
 
