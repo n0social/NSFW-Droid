@@ -28,7 +28,7 @@ Do this in a [maintenance window](autonomous-ops.md#human-scheduled-changes-dns-
 1. **DNS** (Cloudflare → `nsfwdroid.com` → DNS):
    - Add `admin` as a **proxied** (orange-cloud) **A** record to `159.203.136.220`, or a **proxied CNAME** to `www` / `@`.
    - Proxied is required so Access can sit in front. Grey-cloud (DNS only) skips Access.
-   - SSL/TLS mode stays **Full (strict)**, same as www. Caddy requests a certificate for `admin.nsfwdroid.com` the same way it does for www.
+   - SSL/TLS mode stays **Full (strict)**. `admin.nsfwdroid.com` uses the Cloudflare origin certificate installed on the droplet (`/etc/caddy/certs/cloudflare-origin.pem` and `.key`, not in git). www keeps Let's Encrypt. The apex name is also on that origin certificate.
 2. **Zero Trust** → **Access** → **Applications** → **Add an application** → **Self-hosted**.
    - Application domain: `admin.nsfwdroid.com` (entire hostname).
    - Identity provider: **One-time PIN** and/or **Google**.

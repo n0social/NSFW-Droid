@@ -11,11 +11,15 @@ http://159.203.136.220 {
 }
 
 # Apex → www so Google only indexes one host (canonical in HTML points at www).
+# force_automate keeps Let's Encrypt certificates for these names. Without it,
+# Caddy serves the admin origin cert, whose SAN is *.nsfwdroid.com and nsfwdroid.com.
 nsfwdroid.com {
+	tls force_automate
 	redir https://www.nsfwdroid.com{uri} permanent
 }
 
 www.nsfwdroid.com {
+	tls force_automate
 	encode gzip
 
 	# Admin UI lives on admin.nsfwdroid.com (same app). Keep the query string.
@@ -31,8 +35,11 @@ www.nsfwdroid.com {
 	}
 }
 
-# Staff portal. Same Next.js process and automatic HTTPS as www (Caddy + Let's Encrypt).
+# Staff portal. Cloudflare origin certificate so Full (strict) works on this host.
+# www is Let's Encrypt because `tls force_automate` prefers that exact name over the wildcard.
+# The origin certificate also lists nsfwdroid.com, so the apex handshake can present it.
 admin.nsfwdroid.com {
+	tls /etc/caddy/certs/cloudflare-origin.pem /etc/caddy/certs/cloudflare-origin.key
 	encode gzip
 	reverse_proxy 127.0.0.1:3000
 
