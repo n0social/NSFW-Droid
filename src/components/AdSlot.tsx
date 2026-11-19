@@ -1,13 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
-import {
-  type AdPlacement,
-  exoclickInsClass,
-  isAdsEnabled,
-  pushExoClickServe,
-  zoneIdForPlacement,
-} from "@/lib/ads-config";
+import { useAdsPublicConfig } from "@/components/AdsConfigProvider";
+import { pushExoClickServe } from "@/lib/ads-config";
+import { type AdPlacement } from "@/lib/ads-config";
+import { zoneIdForPlacementFromConfig } from "@/lib/ads-public-config";
 type Props = {
   placement: AdPlacement;
   /** Ads must not render before age verification (`age_verified` cookie). */
@@ -44,9 +41,10 @@ function AdSkipLink({ placement }: { placement: AdPlacement }) {
  * When enabled + age-verified + ExoClick env set, loads the network script and zone tags.
  */
 export function AdSlot({ placement, ageVerified }: Props) {
-  const enabled = isAdsEnabled();
-  const zoneId = zoneIdForPlacement(placement);
-  const insClass = exoclickInsClass();
+  const adsConfig = useAdsPublicConfig();
+  const enabled = adsConfig.enabled;
+  const zoneId = zoneIdForPlacementFromConfig(placement, adsConfig);
+  const insClass = adsConfig.insClass;
 
   useEffect(() => {
     if (!enabled || !ageVerified || !zoneId) return;

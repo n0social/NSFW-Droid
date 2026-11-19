@@ -16,7 +16,9 @@ mapfile -t _lines < <(
   ssh "${HOST_ALIAS}" 'bash -s' <<'REMOTE'
 set -euo pipefail
 if [[ ! -r /etc/nsfwdroid.env ]]; then
-  echo "ERROR: /etc/nsfwdroid.env not readable" >&2
+  echo "ERROR: /etc/nsfwdroid.env not readable for $(whoami)." >&2
+  echo "On the droplet as root: usermod -aG www-data nsfwdroid-deploy" >&2
+  echo "Re-run: ./deploy/setup-droplet-deploy-user.sh (adds www-data group)." >&2
   exit 1
 fi
 set -a

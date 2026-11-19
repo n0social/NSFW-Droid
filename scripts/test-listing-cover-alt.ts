@@ -110,8 +110,12 @@ async function assertPlayControlMarkup() {
     }
 
     const itchAds = renderPlay(itchListing, true);
-    if (!itchAds.startsWith("<button") || itchAds.includes("href=")) {
-      throw new Error(`non-Steam Play with ads on must be a button, got ${itchAds}`);
+    if (
+      !itchAds.startsWith("<a ") ||
+      !itchAds.includes('href="/api/go/listing-id"') ||
+      !itchAds.includes("nsfwdroid-play-outbound")
+    ) {
+      throw new Error(`non-Steam Play with ads on must be a classed link, got ${itchAds}`);
     }
     if (
       !itchAds.includes('aria-label="Play Neon Nights on store"') ||

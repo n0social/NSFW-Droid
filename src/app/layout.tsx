@@ -11,6 +11,8 @@ import { themeToCssVariables } from "@/lib/themes/css-vars";
 import { resolveThemeForRequest } from "@/lib/themes/preferences";
 import { CookieNoticeBar } from "@/components/site/CookieNoticeBar";
 import { MaintenanceNoticeBanner } from "@/components/site/MaintenanceNoticeBanner";
+import { AdsConfigProvider } from "@/components/AdsConfigProvider";
+import { adsPublicConfigFromEnv } from "@/lib/ads-public-config";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -84,20 +86,23 @@ export default async function RootLayout({
   const { active } = await resolveThemeForRequest();
   const themeStyle = themeToCssVariables(active.colors);
   const useFirebaseAnalytics = isFirebaseAnalyticsEnabled();
+  const adsConfig = adsPublicConfigFromEnv();
 
   return (
     <html lang="en" data-theme={active.id} style={themeStyle}>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <MaintenanceNoticeBanner />
-        {!useFirebaseAnalytics && <GoogleAnalytics />}
-        <FirebaseProvider>
-        <AuthProvider>
-          <FavoritesProvider>
-          {children}
-          <CookieNoticeBar />
-          </FavoritesProvider>
-        </AuthProvider>
-        </FirebaseProvider>
+        <AdsConfigProvider config={adsConfig}>
+          <MaintenanceNoticeBanner />
+          {!useFirebaseAnalytics && <GoogleAnalytics />}
+          <FirebaseProvider>
+            <AuthProvider>
+              <FavoritesProvider>
+                {children}
+                <CookieNoticeBar />
+              </FavoritesProvider>
+            </AuthProvider>
+          </FirebaseProvider>
+        </AdsConfigProvider>
       </body>
     </html>
   );

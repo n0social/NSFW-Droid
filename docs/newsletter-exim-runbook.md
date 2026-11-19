@@ -19,7 +19,7 @@ Optional: route ops mail through your mailbox provider with `ALERT_EMAIL_TRANSPO
 
 ## Cron
 
-Friday 21:00 America/New_York → `scripts/weekly-newsletter-cron.sh` → preflight → `send-weekly-newsletter.ts` via `catalog-maintenance.sh`. Log: `/var/log/nsfwdroid-newsletter.log`.
+Friday 21:00 America/New_York → hourly Saturday UTC cron calls `scripts/weekly-newsletter-cron.sh`, which sends only in that Eastern hour (the droplet cron daemon ignored `CRON_TZ` and was firing at 21:00 UTC). The script chowns `/var/lib/nsfwdroid` to `www-data` before the send so the week file can be written, then preflight → `send-weekly-newsletter.ts` via `catalog-maintenance.sh`. Log: `/var/log/nsfwdroid-newsletter.log`.
 
 Idempotency: `/var/lib/nsfwdroid/newsletter-weekly-send.json` (skip duplicate week unless `--force-resend`).
 

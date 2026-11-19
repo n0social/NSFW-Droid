@@ -19,6 +19,8 @@ if ! id "$DEPLOY_USER" &>/dev/null; then
   useradd --create-home --shell /bin/bash "$DEPLOY_USER"
   echo "Created user ${DEPLOY_USER}"
 fi
+# /etc/nsfwdroid.env is root:www-data mode 640 — deploy user needs group read for Cloud Agent builds.
+usermod -aG www-data "$DEPLOY_USER"
 
 install -d -m 755 /usr/local/sbin
 install -m 755 "${SCRIPT_DIR}/nsfwdroid-deploy-stop.sh" /usr/local/sbin/nsfwdroid-deploy-stop.sh

@@ -4,7 +4,7 @@ import { isValidOutboundUrl } from "@/lib/outbound-link";
 /**
  * Optional same-tab redirect for a raw outbound URL.
  * Popunder billing is not done here. A server fetch of s.pemsrv.com does not bill;
- * eligible clicks request ExoClick from the browser (exoclick-play-popunder-client).
+ * eligible clicks are classed links counted by popunder1000.js in the browser.
  */
 export async function GET(request: Request) {
   const reqUrl = new URL(request.url);
