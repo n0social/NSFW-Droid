@@ -33,6 +33,10 @@ echo "Building Next.js app with production NEXT_PUBLIC_* from droplet..."
 source "${SCRIPT_DIR}/cloud-agent-load-droplet-public-env.sh"
 npm run build
 
+DEPLOY_COMMIT="$(git rev-parse HEAD)"
+printf '%s\n' "$DEPLOY_COMMIT" > .deploy-commit
+printf '%s\n' "$DEPLOY_COMMIT" > .deploy-sha
+
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 SRC_TAR="/tmp/nsfwdroid-src-${STAMP}.tgz"
 NM_TAR="/tmp/nsfwdroid-node_modules-${STAMP}.tgz"

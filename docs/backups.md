@@ -16,8 +16,10 @@
 | Location | Purpose |
 | --- | --- |
 | **Git tag** `site_launch_01_default` | Immutable code state at launch (commit on `main`) |
+| **Git tag** `site_save_20251119_ads_sale` | Save state: ads runtime + sale markers + deploy prepare (`563f492` on `main`) |
 | **Droplet** `/var/backups/nsfwdroid/site_launch_01_default/` | Manifest + `latest.tar.gz` symlink to dated tarball |
 | **Droplet** `/var/backups/nsfwdroid/site_launch_01_default_YYYYMMDD.tar.gz` | Full launch archive |
+| **Droplet** `/var/backups/nsfwdroid/site_save_20251119_ads_sale_*` | Create with `./scripts/backup-site-launch.sh site_save_20251119_ads_sale` (root) |
 
 DigitalOcean droplet **volume snapshots** are mentioned in [architecture.md](architecture.md) as a future ops item; there is no automated DO backup job in-repo yet.
 
