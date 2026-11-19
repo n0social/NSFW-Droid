@@ -57,17 +57,17 @@ PUB_LOCAL="${REPO_ROOT}/deploy/cursor-cloud-agent-nsfwdroid.pub"
 
 "${SCRIPT_DIR}/cloud-agent-ssh-setup.sh" >/dev/null 2>&1 || true
 
+REMOTE_PUB="${NSFWDROID_APP_DIR}/.deploy-upload/cursor-cloud-agent-nsfwdroid.pub"
 if [[ -f "$PUB_LOCAL" ]] && ssh -o BatchMode=yes -o ConnectTimeout=10 "${NSFWDROID_SSH_HOST_ALIAS}" \
-  "test -d ${NSFWDROID_APP_DIR}/deploy" 2>/dev/null; then
-  scp -q -o BatchMode=yes "$PUB_LOCAL" \
-    "${NSFWDROID_SSH_HOST_ALIAS}:${NSFWDROID_APP_DIR}/deploy/cursor-cloud-agent-nsfwdroid.pub"
+  "test -d ${NSFWDROID_APP_DIR}/.deploy-upload" 2>/dev/null; then
+  scp -q -o BatchMode=yes "$PUB_LOCAL" "${NSFWDROID_SSH_HOST_ALIAS}:${REMOTE_PUB}"
 fi
 
 if ssh -o BatchMode=yes -o ConnectTimeout=10 "${NSFWDROID_SSH_HOST_ALIAS}" \
-  "${REMOTE_INSTALL}" 2>/dev/null; then
+  "${REMOTE_INSTALL} ${REMOTE_PUB}" 2>/dev/null; then
   echo "Droplet authorized_keys updated via ${REMOTE_INSTALL}."
 elif ssh -o BatchMode=yes -o ConnectTimeout=10 "${NSFWDROID_SSH_HOST_ALIAS}" \
-  "test -f ${NSFWDROID_APP_DIR}/deploy/nsfwdroid-install-agent-ssh-key.sh && ${REMOTE_FALLBACK}" 2>/dev/null; then
+  "test -f ${NSFWDROID_APP_DIR}/deploy/nsfwdroid-install-agent-ssh-key.sh && ${REMOTE_FALLBACK} ${REMOTE_PUB}" 2>/dev/null; then
   echo "Droplet authorized_keys updated via repo script (run setup-droplet-deploy-user.sh to install sbin helper)."
 else
   echo "=== Droplet (root, one time after git pull or deploy with new scripts) ==="
