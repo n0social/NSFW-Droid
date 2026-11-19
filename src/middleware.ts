@@ -9,6 +9,7 @@ import {
 import { redirectHostForCanonicalOrigin } from "@/lib/canonical-host";
 import { cloudflareAccessConfig, readCfAccessJwt, verifyCfAccessJwt } from "@/lib/cf-access";
 import { applySecurityHeaders } from "@/lib/security-headers";
+import { AGE_WALL_PATH, ageWallAction, ageWallCookieNames } from "@/lib/age-gate-access";
 
 /**
  * Node runtime so `CF_ACCESS_*` and `ADMIN_HOST` are read from the process
@@ -63,6 +64,32 @@ export async function middleware(request: NextRequest) {
         return finish(request, denied);
       }
     }
+  }
+
+  const wall = ageWallAction({
+    pathname,
+    onAdminHost: onAdmin,
+    ageVerifiedCookie: request.cookies.get(ageWallCookieNames.age)?.value,
+    userSessionCookie: request.cookies.get(ageWallCookieNames.user)?.value,
+    adminSessionCookie: request.cookies.get(ageWallCookieNames.admin)?.value,
+    userAgent: request.headers.get("user-agent"),
+  });
+  if (wall === "deny-api") {
+    const denied = NextResponse.json(
+      { ok: false, error: "age_gate" },
+      { status: 401, headers: { "Cache-Control": "private, no-store", Vary: "Cookie" } },
+    );
+    return finish(request, denied);
+  }
+  if (wall === "rewrite") {
+    const url = request.nextUrl.clone();
+    url.pathname = AGE_WALL_PATH;
+    url.search = "";
+    const gated = NextResponse.rewrite(url);
+    gated.headers.set("Cache-Control", "private, no-store");
+    gated.headers.set("Vary", "Cookie");
+    gated.headers.set("X-Robots-Tag", ROBOTS_TAG);
+    return finish(request, gated);
   }
 
   const needsNoIndex =
