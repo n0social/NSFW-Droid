@@ -53,13 +53,16 @@ scp "$SRC_TAR" "$NM_TAR" "${HOST_ALIAS}:${REMOTE_UPLOAD_DIR}/"
 
 if [[ "$DEPLOY_USER" == "root" ]]; then
   REMOTE_STOP="systemctl stop nsfwdroid || true"
+  REMOTE_PREPARE=""
 else
   REMOTE_STOP="sudo /usr/local/sbin/nsfwdroid-deploy-stop.sh"
+  REMOTE_PREPARE="sudo /usr/local/sbin/nsfwdroid-deploy-prepare-tarball.sh || sudo /usr/local/sbin/nsfwdroid-deploy-stop.sh"
 fi
 
 ssh "${HOST_ALIAS}" bash -s <<EOF
 set -euo pipefail
 cd "${REMOTE_ROOT}"
+${REMOTE_PREPARE}
 ${REMOTE_STOP}
 SRC="${REMOTE_UPLOAD_DIR}/$(basename "$SRC_TAR")"
 NM="${REMOTE_UPLOAD_DIR}/$(basename "$NM_TAR")"
