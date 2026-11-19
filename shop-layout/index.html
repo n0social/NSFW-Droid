@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Shop</title>
+    <style>
+      :root { --bg: #14061c; --fg: #fff1f7; --muted: #86efac; --line: rgba(34,255,136,.25); }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--fg); font-family: system-ui, sans-serif; }
+      header, main { max-width: 64rem; margin: 0 auto; padding: 1rem 1.25rem; }
+      header { border-bottom: 1px solid var(--line); font-weight: 700; }
+      h1 { font-size: 1.4rem; font-weight: 600; margin: 0.4rem 0; }
+      .sub { color: var(--muted); font-size: 0.9rem; margin: 0 0 1rem; }
+      .layout { display: flex; gap: 1.5rem; align-items: flex-start; }
+      nav { display: flex; flex-direction: column; gap: 0.25rem; width: 9rem; }
+      button { text-align: left; background: transparent; color: var(--muted); border: 0; border-radius: 0.4rem; padding: 0.55rem 0.7rem; font-weight: 650; cursor: pointer; }
+      button.on { background: #22ff88; color: #14061c; }
+      .grid { flex: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+      @media (min-width: 900px) { .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+      img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 0.35rem; background: #000; display: block; }
+      h2 { font-size: 0.85rem; font-weight: 600; margin: 0.45rem 0 0.2rem; }
+      p { margin: 0; color: var(--muted); font-size: 0.75rem; }
+    </style>
+  </head>
+  <body>
+    <header>NSFW Droid</header>
+    <main>
+      <h1>Shop</h1>
+      <p class="sub">Tees or hoodies.</p>
+      <div class="layout">
+        <nav>
+          <button data-filter="tee" type="button">Tees</button>
+          <button class="on" data-filter="hoodie" type="button">Hoodies</button>
+        </nav>
+        <section class="grid" id="grid">
+          <article data-kind="tee" hidden>
+            <img src="img/nsfw-droid-shop-vesper-panda-hoodie-solo-no-text-v2.jpg" alt="Vesper in a panda hoodie" />
+            <h2>Tee</h2>
+            <p>S  M  L  XL  2XL  3XL</p>
+          </article>
+          <article data-kind="tee" hidden>
+            <img src="img/nsfwdroid-shop-occult-engraved-pyramid.png" alt="Engraved pyramid print" />
+            <h2>Tee</h2>
+            <p>S  M  L  XL  2XL  3XL</p>
+          </article>
+          <article data-kind="tee" hidden>
+            <img src="img/nsfwdroid-shop-occult-white-triangle.png" alt="White triangle print" />
+            <h2>Tee</h2>
+            <p>S  M  L  XL  2XL  3XL</p>
+          </article>
+          <article data-kind="tee" hidden>
+            <img src="img/nsfwdroid-shop-occult-orange-stripes.png" alt="Orange stripe print" />
+            <h2>Tee</h2>
+            <p>S  M  L  XL  2XL  3XL</p>
+          </article>
+          <article data-kind="hoodie">
+            <img src="img/nsfw-droid-shop-vesper-panda-hoodie-solo-no-text-v2.jpg" alt="Vesper in a panda hoodie" />
+            <h2>Hoodie</h2>
+            <p>S  M  L  XL  2XL  3XL</p>
+          </article>
+          <article data-kind="hoodie">
+            <img src="img/nsfwdroid-shop-occult-engraved-pyramid.png" alt="Engraved pyramid print" />
+            <h2>Hoodie</h2>
+            <p>S  M  L  XL  2XL  3XL</p>
+          </article>
+          <article data-kind="hoodie">
+            <img src="img/nsfwdroid-shop-occult-white-triangle.png" alt="White triangle print" />
+            <h2>Hoodie</h2>
+            <p>S  M  L  XL  2XL  3XL</p>
+          </article>
+          <article data-kind="hoodie">
+            <img src="img/nsfwdroid-shop-occult-orange-stripes.png" alt="Orange stripe print" />
+            <h2>Hoodie</h2>
+            <p>S  M  L  XL  2XL  3XL</p>
+          </article>
+        </section>
+      </div>
+    </main>
+    <script>
+      const buttons = document.querySelectorAll("nav button");
+      const cards = document.querySelectorAll("#grid article");
+      buttons.forEach((btn) => btn.addEventListener("click", () => {
+        buttons.forEach((b) => b.classList.remove("on"));
+        btn.classList.add("on");
+        const kind = btn.dataset.filter;
+        cards.forEach((card) => { card.hidden = card.dataset.kind !== kind; });
+      }));
+    </script>
+  </body>
+</html>
