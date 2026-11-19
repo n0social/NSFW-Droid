@@ -27,6 +27,28 @@ Production droplet: see `docs/deploy-droplet.md` (§4b tarball release via `scri
 
 After deploy, verify `https://www.nsfwdroid.com/api/health`. If the PR touched cron or systemd/Caddy deploy files, call out the extra manual steps from [docs/autonomous-ops.md](docs/autonomous-ops.md).
 
+## Cloud Agent → droplet SSH
+
+**Diagnostics (run first):** `./scripts/cloud-agent-debug-droplet-ssh.sh` → `/opt/cursor/artifacts/droplet-ssh-debug.md`
+
+**Rotate / enable key (agent VM):**
+1. `./scripts/cloud-agent-enable-droplet-ssh.sh` (or `--skip-keygen` if key already exists)
+2. Owner sets Cursor secret `CURSOR_CLOUD_AGENT_NSFWDROID_PRIVATE_KEY` (never chat), then starts a **new** agent run
+3. `./scripts/cloud-agent-ssh-setup.sh` must print `ssh ok (nsfwdroid-deploy)`
+
+**If install over SSH fails** (no `sudo … nsfwdroid-install-agent-ssh-key.sh` on droplet yet), owner **once** as root on `159.203.136.220`:
+
+```bash
+cd /var/www/nsfwdroid && ./deploy/setup-droplet-deploy-user.sh
+sudo bash ~nsfwdroid-deploy/nsfwdroid-install-agent-ssh-key.sh ~nsfwdroid-deploy/agent.pub
+```
+
+After that, agents can rotate keys with `enable-droplet-ssh.sh` alone (uploads pub to deploy user home, `sudo` install helper).
+
+**Deploy:** `NSFWDROID_DEPLOY_SSH_USER` defaults to `nsfwdroid-deploy`. If extract fails, owner: `chown -R nsfwdroid-deploy:www-data /var/www/nsfwdroid` then redeploy.
+
+Details: [docs/deploy-droplet.md](docs/deploy-droplet.md) (Cloud Agent SSH section).
+
 ## Merch shop (paused)
 
 The **NSFW Droid merch shop** (`/shop`, `/design/shop`, shop canvases) is **not** a Cursor Published App. Checkout is not live; the owner paused storefront work.
