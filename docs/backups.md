@@ -16,7 +16,7 @@
 | Location | Purpose |
 | --- | --- |
 | **Git tag** `site_launch_01_default` | Immutable code state at launch (commit on `main`) |
-| **Git tag** `site_save_20251119_ads_sale` | Save state: ads runtime + sale markers + deploy prepare (`563f492` on `main`) |
+| **Git tag** `site_save_20251119_ads_sale` | Save state: ads runtime + sale markers + deploy prepare (`aa2cddc` on `main`) |
 | **Droplet** `/var/backups/nsfwdroid/site_launch_01_default/` | Manifest + `latest.tar.gz` symlink to dated tarball |
 | **Droplet** `/var/backups/nsfwdroid/site_launch_01_default_YYYYMMDD.tar.gz` | Full launch archive |
 | **Droplet** `/var/backups/nsfwdroid/site_save_20251119_ads_sale_*` | Create with `./scripts/backup-site-launch.sh site_save_20251119_ads_sale` (root) |
