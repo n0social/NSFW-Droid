@@ -26,3 +26,14 @@ Keep chat summaries scannable (headers, bullets, PR numbers). Do not put secrets
 Production droplet: see `docs/deploy-droplet.md` (§4b tarball release via `scripts/cloud-agent-deploy-droplet.sh`). **Minnows/minnow.cloud is a different host** — never deploy or install Minnows paths on the NSFW Droid droplet (`159.203.136.220`, `/var/www/nsfwdroid`).
 
 After deploy, verify `https://www.nsfwdroid.com/api/health`. If the PR touched cron or systemd/Caddy deploy files, call out the extra manual steps from [docs/autonomous-ops.md](docs/autonomous-ops.md).
+
+## Merch shop (paused)
+
+The **NSFW Droid merch shop** (`/shop`, `/design/shop`, shop canvases) is **not** a Cursor Published App. Checkout is not live; the owner paused storefront work.
+
+**Agents must not:**
+- Call `publish-app` for shop routes, shop mockups, or a standalone “NSFW Droid Shop” app.
+- Create or refresh shop **canvases** unless the owner explicitly asks for shop UI work.
+- Nudge the owner to publish/unpublish shop in Cursor chat (no publish pills or preview links in summaries).
+
+Catalog `/shop` on nsfwdroid.com stays `noindex` until the owner reopens storefront work.
