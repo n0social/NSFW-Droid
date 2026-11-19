@@ -40,7 +40,11 @@ chmod +x deploy/setup-droplet-deploy-user.sh
 
 That creates `nsfwdroid-deploy`, fixes app-dir ownership (`nsfwdroid-deploy:www-data`, `data/` stays `www-data`), installs sudoers + `/usr/local/sbin` helpers, and appends a **restricted** `authorized_keys` line (`restrict,port-forwarding`, no forwarding) for the agent key.
 
-Rotate or create keys on a Cloud Agent: `./scripts/cloud-agent-ssh-keygen.sh` (updates `deploy/cursor-cloud-agent-nsfwdroid.pub` and prints the constrained `authorized_keys` line). Store the matching **private** key as runtime secret `CURSOR_CLOUD_AGENT_NSFWDROID_PRIVATE_KEY`. Verify with `./scripts/cloud-agent-ssh-setup.sh`; releases use `./scripts/cloud-agent-deploy-droplet.sh` (§4b).
+**Rotate / enable Cloud Agent SSH (preferred):** on a Cloud Agent, `./scripts/cloud-agent-enable-droplet-ssh.sh` (keygen + install public key on droplet when SSH works, plus secret instructions). Or `./scripts/cloud-agent-ssh-keygen.sh` then commit `deploy/cursor-cloud-agent-nsfwdroid.pub`.
+
+**On the droplet as root** after a new public key is in the app tree: `./scripts/install-droplet-cloud-agent-ssh-key.sh` (replaces old `cursor-cloud-agent-nsfwdroid` lines on `nsfwdroid-deploy`, strips legacy root entries). Requires `setup-droplet-deploy-user.sh` once so `nsfwdroid-deploy` may `sudo /usr/local/sbin/nsfwdroid-install-agent-ssh-key.sh`.
+
+Store the matching **private** key as runtime secret `CURSOR_CLOUD_AGENT_NSFWDROID_PRIVATE_KEY`. Verify with `./scripts/cloud-agent-ssh-setup.sh`; releases use `./scripts/cloud-agent-deploy-droplet.sh` (§4b).
 
 The **private** key never leaves the agent VM and is **not** in git.
 

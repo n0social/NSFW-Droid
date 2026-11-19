@@ -48,4 +48,5 @@ echo "Add runtime secret CURSOR_CLOUD_AGENT_NSFWDROID_PRIVATE_KEY with the conte
 echo "  $KEY"
 echo "(Never commit the private key.)"
 echo ""
-echo "Then on this VM: ./scripts/cloud-agent-ssh-setup.sh"
+echo "Then on this VM: ./scripts/cloud-agent-enable-droplet-ssh.sh --skip-keygen"
+echo "  (installs the public key on the droplet when SSH already works, or prints the root one-liner)"
